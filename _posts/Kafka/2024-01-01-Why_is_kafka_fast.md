@@ -33,7 +33,7 @@ tags:
 
 
 <figure align="center">
-<img src="../../post_images/zero_copy.png">
+<img src="/post_images/zero_copy.png">
 <figcaption>what zero-copy means / Ref: ByteByteGo</figcaption>
 </figure>
 
