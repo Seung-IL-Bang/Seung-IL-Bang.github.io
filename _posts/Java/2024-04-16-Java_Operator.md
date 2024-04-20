@@ -1,5 +1,5 @@
 ---
-title: 김영한 자바 입문
+title: 김영한 자바 입문 연산자
 description: 김영한 자바 입문 연산자
 categories:
 - Java
