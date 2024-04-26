@@ -8,9 +8,6 @@ tags:
 - Java
 - Casting
 
-photos: 
-- 주소
-
 ---
 
 > Java 형변환이 언제 어떻게 발생하는지 알아보자.
