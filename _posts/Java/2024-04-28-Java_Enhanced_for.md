@@ -11,9 +11,10 @@ tags:
 
 ---
 
-> 앞서 [반복문](/_posts/Java/2024-04-21-Java_loop.md)에서 설명하지 않은 내용인 향상된 for문(Enhanced For Loop)에 대해 알아보자.
+> 앞서 [반복문](/java/김영한%20자바%20입문/2024/04/21/Java_loop/)에서 설명하지 않은 내용인 향상된 for문(Enhanced For Loop)에 대해 알아보자. 향상된 for문을 살펴보기 전에 [배열](/java/김영한%20자바%20입문/2024/04/28/Java_array_1D/)에 대한 이해가 우선되어야 한다.
 
 <!-- more -->
+
 
 `향상된 for문` 또는 `for-each문`은 다음과 같이 정의하여 사용한다.
 ```java
