@@ -3,6 +3,7 @@ title: 김영한 자바 입문 변수
 description: 김영한 자바 입문 변수
 categories:
 - Java
+- 김영한 자바 입문
 
 tags:
 - Java
