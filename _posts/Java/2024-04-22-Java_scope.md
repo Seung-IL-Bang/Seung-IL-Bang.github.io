@@ -3,10 +3,11 @@ title: 김영한 자바 입문 스코프
 description: 김영한 자바 입문 스코프
 categories:
 - Java
+- 김영한 자바 입문
 
 tags:
 - Java
-- scope
+- Scope
 
 ---
 

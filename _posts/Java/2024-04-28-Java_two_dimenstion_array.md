@@ -3,11 +3,12 @@ title: 김영한 자바 입문 2차원 배열
 description: 김영한 자바 입문 2차원 배열
 categories:
 - Java
+- 김영한 자바 입문
 
 tags:
 - Java
-- array
-- data structure
+- Array
+- Data Structure
 
 ---
 

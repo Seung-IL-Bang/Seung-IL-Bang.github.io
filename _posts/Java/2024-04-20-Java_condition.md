@@ -3,10 +3,11 @@ title: 김영한 자바 입문 조건문
 description: 김영한 자바 입문 조건문
 categories:
 - Java
+- 김영한 자바 입문
 
 tags:
 - Java
-- condition statement
+- Condition Statement
 
 ---
 
