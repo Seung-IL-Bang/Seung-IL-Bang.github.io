@@ -1,6 +1,6 @@
 ---
-title: 김영한 자바 입문 2차원 배열
-description: 김영한 자바 입문 2차원 배열
+title: 김영한 자바 입문 배열 - 2차원
+description: 김영한 자바 입문 배열 - 2차원
 categories:
 - Java
 - 김영한 자바 입문
