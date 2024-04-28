@@ -24,7 +24,7 @@ public class Array1 {
        int student3 = 70;
        int student4 = 60;
        int student5 = 50;
-       
+
 			 System.out.println("학생1 점수: " + student1); 
 			 System.out.println("학생2 점수: " + student2); 
 			 System.out.println("학생3 점수: " + student3); 
@@ -146,7 +146,7 @@ of bounds for length 5 at array.Array1Ref1.main(Array1Ref1.java:14)
 자바의 변수 데이터 타입은 크게 **기본형**과 **참조형**으로 분류할 수 있다.
 
 - **기본형(Primitive Type)**: `int`, `long`, `double`, `boolean`처럼 변수에 사용할 값을 직접 넣을 수 있는 데이터 타입을 기본형 또는 원시형이라 한다.
-- 참조형(Reference Type): `int[] students`와 같이 데이터에 접근하기 위한 참조(주소)를 저장하는 데이터 타입을 참조형이라 한다.
+- **참조형(Reference Type)**: `int[] students`와 같이 데이터에 접근하기 위한 참조(주소)를 저장하는 데이터 타입을 참조형이라 한다.
 
 **참고**
 기본형과 참조형은 각각 언제 사용할까?
@@ -195,7 +195,7 @@ int[] students = {90, 80, 70, 60, 50};
 **오류**
 ```java
 int[] students;
-students = {90, 80, 70, 60, 50};
+students = {90, 80, 70, 60, 50}; // 이렇게 사용하지 말자.
 ```
 
 간단한 배열 생성을 통해 리팩토링 해보자.
