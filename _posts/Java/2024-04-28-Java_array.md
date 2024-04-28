@@ -7,6 +7,7 @@ categories:
 tags:
 - Java
 - array
+- data structure
 
 ---
 
