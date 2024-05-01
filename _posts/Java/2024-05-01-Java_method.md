@@ -62,5 +62,33 @@ public static int add(int a, int b) {
 > 메서드명에 커서를 올려놓고 `cmd + B`를 입력하면 해당 메서드 선언 부분으로 이동한다.
 
 
+## 메서드 호출과 값 전달
+> ⭐️ 자바는 원시형과 참조형 관계없이 항상 변수의 값을 복사해서 대입한다.
+이 대원칙은 반드시 숙지해야 복잡한 상황에도 코드를 단순하게 이해할 수 있다.
+
+```java
+public class MethodValue1 {
+
+    public static void main(String[] args) {
+        int number = 5;
+        System.out.println("1. changeNumber 호출 전, number: " + number);
+        changeNumber(number);
+        System.out.println("4. changeNumber 호출 후, number: " + number);
+    }
+
+    public static void changeNumber(int number) {
+        System.out.println("2. changeNumber 변경 전, number: " + number);
+        number = number * 2;
+        System.out.println("3. changeNumber 변경 후, number: " + number);
+    }
+}
+```
+```java
+1. changeNumber 호출 전, number: 5
+2. changeNumber 변경 전, number: 5
+3. changeNumber 변경 후, number: 10
+4. changeNumber 호출 후, number: 5
+```
+`main()` 내부의 `number`변수의 값을 읽고 복사해서 `changeNumber` 메서드의 매개변수에 전달해준다. 복사해서 전달해주었기 때문에, `changeNumber` 내부의 `number`변화는 `main()` 내부의 `number` 에 영향을 주지 않는다. 즉, 각 메서드 안에서 사용하는 `number`변수는 서로 완전히 분리된 다른 변수이다. 이름이 같아도 완전히 다른 변수다.
 
 ---
