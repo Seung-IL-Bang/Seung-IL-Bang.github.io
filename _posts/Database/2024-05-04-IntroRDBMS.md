@@ -46,7 +46,7 @@ tags:
 아래 이미지처럼 테이블 초안을 작성했다고 해보자.
 
 <figure align="center">
-  <img src="/post_images/Database/학생수강신청관리테이블.png" width=60% height=20%>
+  <img src="/post_images/Database/table_ex.png" width=60% height=20%>
   <figcaption>학생 수강신청 관리 테이블 예시</figcaption>
 </figure>
 
