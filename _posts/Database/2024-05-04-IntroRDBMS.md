@@ -48,7 +48,7 @@ tags:
 <br>
 
 <figure align="center">
-  <img src="/post_images/table_ex.png" width=60% height=20%>
+  <img src="/post_images/table_ex.png">
   <figcaption>학생 수강신청 관리 테이블 예시</figcaption>
 </figure>
 
