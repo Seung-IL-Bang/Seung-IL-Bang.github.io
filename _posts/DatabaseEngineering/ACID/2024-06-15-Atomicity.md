@@ -9,6 +9,7 @@ categories:
 tags:
 - Actomicity
 - Database
+- Transaction
 
 ---
 
