@@ -266,7 +266,7 @@
       </header>
     {% endunless %}
 
-    <div class="post-body{% if site.han %} han-init-context{% endif %} text-center d-flex justify-content-center align-items-center" itemprop="articleBody">
+    <div class="post-body{% if site.han %} han-init-context{% endif %}" itemprop="articleBody" style="display: flex; justify-content: center; align-items: center; text-align: center; min-height: 100px;">
 
       {% comment %} Gallery support {% endcomment %}
       {% if post.photos and post.photos.size > 0 %}
