@@ -266,7 +266,7 @@
       </header>
     {% endunless %}
 
-    <div class="post-body{% if site.han %} han-init-context{% endif %}" itemprop="articleBody" style="display: flex; justify-content: center; align-items: center; text-align: center; min-height: 100px;">
+    <div class="post-body{% if site.han %} han-init-context{% endif %}" itemprop="articleBody">
 
       {% comment %} Gallery support {% endcomment %}
       {% if post.photos and post.photos.size > 0 %}
@@ -291,7 +291,9 @@
 
       {% if is_index %}
         {% if post.description and site.excerpt_description %}
+        <span class="text-center">
           {{ post.description }}
+        </span>
           <!--noindex-->
           <div class="post-button text-center">
             <a class="btn" href="{{ post.url | relative_url }}">
