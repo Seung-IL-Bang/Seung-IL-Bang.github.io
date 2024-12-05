@@ -10,7 +10,7 @@
     {% assign post_class = post_class | append: ' ' | append: 'post-sticky' %}
   {% endif %}
 
-  <article class="{{ post_class }}" itemscope itemtype="http://schema.org/Article">
+  <article class="{{ post_class }}" itemscope itemtype="http://schema.org/Article" style="border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.05); transition: all 0.3s ease; margin-bottom: 20px; padding: 20px;" onmouseover="this.style.transform='translateY(-5px)';this.style.boxShadow='0 5px 15px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
     <link itemprop="mainEntityOfPage" href="{{ post.url | absolute_url }}">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
