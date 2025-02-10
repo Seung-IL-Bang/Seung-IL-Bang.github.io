@@ -12,7 +12,7 @@ tags:
 
 ---
 
-> Spring Cloud를 활용한 마이크로 서비스 간 통신 방식에는 무엇이 있는지 살펴보자!
+> Spring Cloud를 활용한 마이크로 서비스 간 통신 방식에는 무엇이 있는지 살펴보겠습니다!
 
 <!-- more -->
 
@@ -85,7 +85,7 @@ e-commerce 플랫폼을 주제로 MSA와 Spring Cloud 기반의 사이드 프로
 
 # RestTemplate 
 
-`RestTemplate`은 Spring 기본으로 제공하는 HTTP 요청을 보낼 때 사용하는 도구입니다.
+`RestTemplate`은 Spring 에서 기본으로 제공하는 HTTP 요청을 보낼 때 사용하는 도구입니다.
 
 ## 장점
 
@@ -94,11 +94,12 @@ e-commerce 플랫폼을 주제로 MSA와 Spring Cloud 기반의 사이드 프로
 
 ## 단점
 
-- 요청을 보낸 후 응답을 받을 때까지 대기한다. (타임아웃 설정이 필수다 ⚠️)
+- 요청을 보낸 후 응답을 받을 때까지 대기한다. (try-catch로 예외 처리 + 타임아웃 설정이 필수 ⚠️)
 - 부하가 큰 시스템에서는 병목 현상이 발생할 수 있다.
-- 요청 받는 서비스가 중단되면 요청을 의존하는 서비스도 
+- 예외 발생 시 장애가 전파됨.
 
 ## 예제 코드
+
 ```java
 @Service
 @RequiredArgsConstructor
@@ -119,16 +120,61 @@ public class UserServiceImpl implements UserService {
 }
 ```
 
-- userId 에 해당하는 사용자의 주문 목록을 조회해올 때 RestTemplate 을 사용한 코드 일부입니다.
+- RestTemplate 을 사용한 코드 일부입니다. (사용자의 주문 목록을 조회하는 요청)
 - 몇 개의 인자를 전달함으로써 간단하게 HTTP 요청을 보낼 수 있습니다.
   - 요청 URL
   - HTTP 메서드
   - HttpEntity (요청 본문 및 헤더)
   - Class<?> responseType (응답 타입)
-- 다만, 동기 방식(Synchronous)으로 동작하기 때문에, 특정 서비스가 중단되거나 응답이 지연되면 요청을 보낸 서비스도 영향을 받는다는 것을 주의해야 한다.
+- 🚨 다만, 동기 방식(Synchronous)으로 동작하기 때문에, 특정 서비스가 중단되거나 응답이 지연되면 요청을 보낸 서비스도 영향을 받는다는 것을 주의해야 합니다.
 ---
 
 # OpenFeign
+
+`OpenFeign`은 HTTP 요청을 보내는 작업을 자동으로 해주는 도구입니다. `RestTemplate`과 비슷하지만, 인터페이스만 만들면 요청 코드가 자동으로 생성되는 편의성을 제공합니다.
+
+## 장점
+
+- 코드가 간결함 (인터페이스 정의만 하면 됨)
+- 내부적으로 로드 밸런싱 가능 (Eureka와 연동 시 URL 필요 없음)
+- Feign + Resilience4j로 Circuit Breaker(회로 차단기) 적용 가능. (Fallback 기능 포함)
+- Spring Cloud 생태계와 연동이 쉬움.
+
+## 단점
+
+- 기본적으로 동기 방식이므로 응답을 기다려야 함.
+- 추가적인 설정이 필요할 수도 있음 (Feign 인터셉터, 로깅 등)
+- 예외 발생 시 장애가 전파됨.
+
+## 예제 코드
+
+```java
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+    private final OrderServiceClient orderServiceClient;
+    ...
+
+    @Override
+    public UserDto getUserByUserId(String userId) {
+      ...
+      List<ResponseOrder> orderList = orderServiceClient.getOrders(userId);
+    }
+}
+```
+
+```java
+@FeignClient(name = "order-service")
+public interface OrderServiceClient {
+
+    @GetMapping("/orders/{userId}")
+    List<ResponseOrder> getOrders(@PathVariable("userId") String userId);
+
+}
+```
+- OpenFeign 을 사용할 경우 인터페이스만 구현하면 되기 때문에 RestTemplate 보다 더 간결하고 직관적이다.
+- Eureka(디스커버리 서비스)와 연동 시, 서비스의 이름만으로 요청을 보낼 수 있다.
+
 
 ---
 
