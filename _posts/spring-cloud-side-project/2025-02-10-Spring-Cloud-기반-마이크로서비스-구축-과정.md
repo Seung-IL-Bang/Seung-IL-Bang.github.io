@@ -126,6 +126,7 @@ public class UserServiceImpl implements UserService {
   - HTTP 메서드
   - HttpEntity (요청 본문 및 헤더)
   - Class<?> responseType (응답 타입)
+
 - 🚨 다만, 동기 방식(Synchronous)으로 동작하기 때문에, 특정 서비스가 중단되거나 응답이 지연되면 요청을 보낸 서비스도 영향을 받는다는 것을 주의해야 합니다.
 ---
 
@@ -179,5 +180,92 @@ public interface OrderServiceClient {
 ---
 
 # Kafka 
+
+Kafka는 비동기 메시지 큐 시스템입니다. 비동기이기 때문에 응답을 기다릴 필요가 없습니다. 메시지 처리도 바로 할 필요가 없습니다.
+
+## 장점
+
+- 비동기 방식이라 대량의 데이터를 효율적으로 처리 가능.
+- 여러 서비스 간 독립적인 운영이 가능 (서로 느슨한 결합이 됨)
+- 데이터 복구 및 확장성이 뛰어남.
+
+## 단점
+
+- 실시간 응답이 필요한 경우에는 적절하지 않음.
+- 러닝 커브 존재 (프로듀서, 컨슈머 개념 등 Kafka에 대한 이해 필요)
+- 메시지 처리 순서를 보장하려면 추가적인 설정이 필요.
+
+## 예제 코드 
+
+```java
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class OrderServiceImpl implements OrderService {
+
+    private final OrderRepository orderRepository;
+    private final OrderEventProducer orderEventProducer;
+    ...
+
+    @Transactional
+    @Override
+    public OrderDto createOrder(OrderDto orderDto) {
+        ...
+        orderRepository.save(order); // 주문 데이터 저장 
+        orderEventProducer.send(ORDER_CREATED, orderCreatedEvent); // ORDER_CREATED 메시지 발행
+        ...
+    }
+```
+
+- 주문이 생성되면 주문 데이터를 저장하고 이어서 주문 생성 메시지를 발행합니다.
+- 메시지는 `KafkaTemplate` 을 이용한 Producer(프로듀서)를 통해 발행합니다.
+
+```java
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class OrderCreatedEventConsumer {
+
+    private final ObjectMapper objectMapper;
+    private final PaymentHandler paymentHandler;
+
+    @KafkaListener(topics = "ORDER_CREATED", groupId = "${spring.kafka.consumer.group-id:payment-service-group}")
+    public void consume(ConsumerRecord<String, String> record) throws JsonProcessingException {
+        try {
+            String message = record.value();
+            log.info("Consumed message: {}", message);
+            OrderCreatedEvent orderCreatedEvent = objectMapper.readValue(message, OrderCreatedEvent.class);
+            log.info("Order created event: {}", orderCreatedEvent);
+
+            paymentHandler.handle(orderCreatedEvent); 
+        } catch (Exception e) {
+            log.error("Error Consume OrderCreatedEvent", e);
+        }
+    }
+}
+```
+
+- **주문 생성** 메시지가 결제 서비스의 컨슈머(Consumer)에 도달하면, 주문의 결제 처리를 진행합니다.
+- 즉, 주문 -> 결제의 과정이 동기식이 아닌 비동기식으로 진행됩니다.
+
+---
+
+# 🚀 정리
+
+# 비교 정리 및 실행 흐름
+| 방식 | 요청 방식 | 응답 처리 | 특징 |
+|------|---------|---------|------|
+| **RestTemplate** | 직접 HTTP 요청 | 동기 (응답 받을 때까지 대기) | 간단하지만 응답 기다려야 함 |
+| **OpenFeign** | 인터페이스 기반 HTTP 요청 | 동기 (설정 시 비동기 가능) | 코드가 간결, Spring Cloud와 연동 용이 |
+| **Kafka** | 메시지 전송 | 비동기 (나중에 메시지 수신) | 대량의 데이터 처리에 적합 |
+
+---
+
+## 실제 사용 예시
+| 사용 사례 | 어떤 방식을 선택할까? |
+|----------|-----------------|
+| REST API에서 데이터를 가져올 때 | `RestTemplate` 또는 `OpenFeign` 사용 |
+| 마이크로서비스 간 통신이 많을 때 | `OpenFeign` 추천 (Spring Cloud 연동) |
+| 이벤트 기반 비동기 처리 | `Kafka` 사용 (비동기 메시징) |
 
 ---
