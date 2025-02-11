@@ -253,6 +253,7 @@ public class OrderCreatedEventConsumer {
 # 🚀 정리
 
 # 비교 정리 및 실행 흐름
+
 | 방식 | 요청 방식 | 응답 처리 | 특징 |
 |------|---------|---------|------|
 | **RestTemplate** | 직접 HTTP 요청 | 동기 (응답 받을 때까지 대기) | 간단하지만 응답 기다려야 함 |
@@ -262,6 +263,7 @@ public class OrderCreatedEventConsumer {
 ---
 
 ## 실제 사용 예시
+
 | 사용 사례 | 어떤 방식을 선택할까? |
 |----------|-----------------|
 | REST API에서 데이터를 가져올 때 | `RestTemplate` 또는 `OpenFeign` 사용 |
