@@ -43,7 +43,7 @@ CircuitBreaker는 API 요청의 흐름을 막거나 흐르게 하는 API 요청 
 
 # Spring Cloud CircuitBreaker
 
-스프링 클라우드는 CircuitBreaker의 추상화 계층을 제공합니다.
+**스프링 클라우드는 CircuitBreaker의 추상화 계층을 제공합니다.**
 
 아래 코드는 스프링 클라우드가 제공하는 CircuitBreaker의 인터페이스 입니다.
 
@@ -111,13 +111,13 @@ dependencies {
 아래 코드는 CircuitBreaker의 설정을 커스텀한 CircuitBreakerFactory를 Bean 으로 등록하는 코드입니다.
 
 ```java
-	@Bean
-	public Customizer<Resilience4JCircuitBreakerFactory> defaultCustomizer() {
-		return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
-				.timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(3)).build())
-				.circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
-				.build());
-	}
+@Bean
+public Customizer<Resilience4JCircuitBreakerFactory> defaultCustomizer() {
+    return factory -> factory.configureDefault(id -> new Resilience4JConfigBuilder(id)
+            .timeLimiterConfig(TimeLimiterConfig.custom().timeoutDuration(Duration.ofSeconds(3)).build())
+            .circuitBreakerConfig(CircuitBreakerConfig.ofDefaults())
+            .build());
+}
 ```
 - 기본적으로 설정값으로 제공하는 CircuitBreakerConfig 기본 베이스로 설정해줍니다.
 - 그 외 커스텀마이징 하고 싶은 값들은 빌더(Builder) 패턴으로 각각 설정할 수 있습니다.
@@ -158,24 +158,24 @@ public Builder() {
 아래 코드는 `userId` 를 통해 사용자 정보와 주문 정보를 합쳐서 응답하는 간단한 메서드입니다.
 
 ```java
-    @Override
-    public UserDto getUserByUserId(String userId) {
-        log.info("user-service: 회원ID로 회원정보 및 주문 목록 조회");
+@Override
+public UserDto getUserByUserId(String userId) {
+    log.info("user-service: 회원ID로 회원정보 및 주문 목록 조회");
 
-        Optional<Users> findUser = userRepository.findByUserId(userId);
+    Optional<Users> findUser = userRepository.findByUserId(userId);
 
-        if (findUser.isEmpty()) {
-            throw new NoSuchElementException("User not found");
-        }
-
-        UserDto userDto = modelMapper.map(findUser.get(), UserDto.class);
-
-        List<ResponseOrder> orders = orderClient.getOrdersByUserId(userId);
-
-        userDto.setOrders(orders);
-
-        return userDto;
+    if (findUser.isEmpty()) {
+        throw new NoSuchElementException("User not found");
     }
+
+    UserDto userDto = modelMapper.map(findUser.get(), UserDto.class);
+
+    List<ResponseOrder> orders = orderClient.getOrdersByUserId(userId);
+
+    userDto.setOrders(orders);
+
+    return userDto;
+}
 ```
 
 1. `userId` 로 user 엔티티를 조회합니다.
@@ -186,7 +186,7 @@ public Builder() {
 
 여기서 UserService -> OrderService 는 에러가 발생할 수 있기 때문에, 주문 목록을 조회해오지 못 하고 에러가 전파될 가능성이 있습니다.
 
-아래 코드는 CircuitBreakerFactory 로 부터 CircuitBreaker 객체를 생성하고, 주문 목록을 조회해오는 API 호출 로직(Supplier)과 호출 실패 또는 회로 차단의 경우 대신할 로직(Fallback Function)을 CircuitBreaker 의 인자로 전달해주었습니다.
+아래 코드는 CircuitBreakerFactory 로 부터 CircuitBreaker 객체를 생성하고, 주문 목록을 조회해오는 API 호출 로직(Supplier)과 호출 실패 또는 회로 차단의 경우 대신할 로직(Fallback Function)을 CircuitBreaker 의 인자로 전달하는 코드입니다.
 
 ```java
 @Service
@@ -216,9 +216,9 @@ CircuitBreaker 의 역할은 API 요청에 대한 흐름 제어입니다.
 
 기존 흐름대로 흘러가게 할 지, 아니면 기존 요청을 차단하고 다른 응답을 대신 처리 할 지를 결정합니다.
 
-만약 CircuitBreaker의 역할이 담긴 코드가 핵심 비즈니스 로직과 섞여있다면 가독성이 떨어지고 유지보수가 힘들어 질 수 있다고 생각합니다.
+만약 CircuitBreaker의 역할이 담긴 코드가 핵심 비즈니스 로직과 섞여있다면 가독성이 떨어지고 유지보수가 어려워질 것입니다.
 
-따라서 스프링은 애너테이션을 활용한 `@CircuitBreaker` 를 제공하니다.
+따라서 스프링은 애너테이션을 활용한 `@CircuitBreaker` 를 제공합니다.
 
 **이는 프록시 패턴을 활용한 스프링 AOP를 적용한 사례입니다.**
 
@@ -253,7 +253,13 @@ public class SampleController {
 - 위 코드를 보면 CircuitBreaker의 역할인 회로 차단에 관한 코드가 전혀 보이질 않습니다. 즉, 스프링 AOP에 의해 관심사가 완전히 분리된 것입니다.
 - 따라서 CircuitBreaker를 적용하면서도 비즈니스 로직에 더 집중 할 수 있게 됩니다.
 
-# 요약
+# 🚀 추가 개발 및 고려하면 좋을 내용
+- Resilience4j의 메트릭 및 모니터링 기능(prometheus, micrometer와의 연동)
+- fallback 로직 외에도, 재시도(Retry)나 백오프(Backoff) 전략 조합
+
+---
+
+# 📌 요약
 
 ## CircuitBreaker 개념:
 서비스 장애 시, 지속적인 요청으로 인한 오류 전파를 막고 대체 로직(fallback)을 실행하여 시스템 안정성을 높이는 역할을 합니다.
@@ -264,10 +270,6 @@ public class SampleController {
 ## Resilience4j CircuitBreaker:
 세밀한 설정과 최적화된 구현체를 제공하며, 커스텀마이징한 설정과 함께 사용할 수 있습니다.
 
-
-# 추가 개발 및 고려하면 좋을 내용
-- Resilience4j의 메트릭 및 모니터링 기능(prometheus, micrometer와의 연동)
-- fallback 로직 외에도, 재시도(Retry)나 백오프(Backoff) 전략 조합
 
 
 
