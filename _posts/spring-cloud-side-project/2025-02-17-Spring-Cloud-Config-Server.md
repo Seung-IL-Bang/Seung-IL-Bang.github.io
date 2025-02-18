@@ -104,7 +104,7 @@ spring:
 server:
   port: 8888
 ```
-- 위와 같이 설정하면 `spring.cloud.config.server.git.uri` 경로의 레포지토리로부터 설정 파일들을 Config Server 읽어올 수 있습니다.
+- 위와 같이 설정하면 `spring.cloud.config.server.git.uri` 경로의 레포지토리로부터 설정 파일들을 Config Server에서 읽어올 수 있습니다.
 - private 저장소인 경우 접근 가능한 Git 계정의 `username`과 `password`를 입력해줍니다. (암호화해서 입력해야 안전합니다.)
 
 # Config Server 설정 파일 조회
@@ -126,10 +126,11 @@ test:
 
 로컬 환경에서 테스트하는 경우 `http://localhost:8888/test/default` 경로로 Config Server에 `GET` 요청을 하시면 됩니다.
 
-배포 환경에 따라 **프로파일(profile)**별로 설정 파일들 다르게 조회해올 수 있습니다.
+배포 환경에 따라 **프로파일(profile)**별로 설정 파일들을 다르게 조회할 수 있습니다.
 
-파일명에 프로파일을 명시하지 않은 경우 기본 값으로 `default` 가 됩니다.
+파일명에 프로파일을 명시하지 않은 경우 기본 값으로 `default` 가 적용 됩니다.
 
+### 예시
 - 운영 환경: `{HOST:PORT}/test/prod`
 - 개발 환경: `{HOST:PORT}/test/dev`
 - 로컬 환경: `{HOST:PORT}/test/local`
@@ -154,20 +155,7 @@ test:
 
 다음 포스트에서는 Spring Cloud 기반 MSA 환경에서 각 마이크로 서비스들이 Config Server로부터 파일을 읽어오는 방법과,
 
-Spring Boot Actuator 와 Spring Cloud Bus를 이용한 실시간 설정 반영 방법에 대해서도 살펴보도록 하겠습니다.
-
-
-
-
-
-
-
-
-
-
-
-
-
+`Spring Boot Actuator` 와 `Spring Cloud Bus`를 이용한 실시간 설정 반영 방법에 대해서도 살펴보도록 하겠습니다.
 
 
 
