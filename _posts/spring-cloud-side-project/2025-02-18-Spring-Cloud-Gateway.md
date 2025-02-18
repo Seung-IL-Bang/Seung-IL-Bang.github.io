@@ -52,7 +52,7 @@ spring:
             - Method=GET
 ```
 
-- 위 게이트웨이 라우팅 설정은 HTTP 메서드가 GET 요청이고, 경로가 `/user-service/test/**`에 매칭되는 경우 `http://localhost:8080` 에서 실행중인 `user-service` 로 라우팅해줍니다.
+- 위 게이트웨이 라우팅 설정은 HTTP 메서드가 `GET` 요청이고, 경로가 `/user-service/test/**`에 매칭되는 경우 `http://localhost:8080` 에서 실행중인 `user-service` 로 라우팅해줍니다.
 - 만약 디스커버리 서비스인 Eureka를 사용한다면, 라우팅 URI를 `lb://USER-SERVICE` 처럼 서비스 이름으로 작성할 수 있습니다. (`lb://{application.name}`)
 
 # 전역 필터
@@ -112,7 +112,7 @@ public class MyGlobalFilter extends AbstractGatewayFilterFactory<MyGlobalFilter.
 ```
 
 - `MyGlobalFilter` 클래스 내부의 중첩 클래스인 `Config` 객체에 `application.yml` 에서 설정한 `args` 를 전달받게 됩니다.
-- `apply` 메서드 내부에서 `return` **전 영역은 PreFilter** 이고, `return` **구문은 PostFilter 영역**이다.
+- `apply` 메서드 내부에서 `return` **전 영역은 PreFilter** 이고, `return` **구문은 PostFilter 영역**입니다.
 - 요청을 라우팅 하기 전에 PreFilter가 동작하고, 요청된 라우팅이 마이크로서비스에서 처리를 마친 후 응답이 돌아오면 그제서야 PostFilter가 동작합니다.
 
 
@@ -146,6 +146,7 @@ spring:
 ```
 
 - `spring.cloud.gateway.routes.filters`: 해당 속성에 선언된 필터들은 라우팅 조건을 만족하는 요청에 대해서만 필터가 작동합니다. 즉, 다른 라우팅 조건을 만족하는 요청에 대해선 필터가 동작하지 않습니다.
+  - 예를 들어, 위 설정에서는 uri가 `http://localhost:8080` 이고, path(경로)가 `/user-service/**` 에 매칭되는 요청에 대해서만 `filters` 들이 적용됩니다.
 - `RemoveRequestHeader`, `RewritePath`와 같이 기본적으로 스프링에서 지원하는 선언적 설정도 존재하고, `MyCustomFilter`, `MyLoggingFilter`와 같이 개발자가 정의한 커스텀 필터를 지정할 수도 있습니다.
 
 > ✅ 설정 파일(application.yml) 내에서 나열된 라우트(route)나 각 라우트에 정의된 필터(filters)는 선언한 순서(위에서 아래)대로 처리되는 것이 일반적입니다. 즉, 별도의 order 속성을 지정하지 않는 경우에는 위에서 아래로 우선순위가 적용됩니다.
@@ -170,18 +171,13 @@ spring:
             - Method=GET
 ```
 
-이때, 만약 user-service 의 인스턴스가 다중화 되어 있다면, Spring Cloud Gateway는 라운드 로빈(Round Robin) 알고리즘으로 로드밸런싱을 처리하게 됩니다.
-
-이와 같이 Spring Cloud Gateway는 단순한 API 게이트웨이 기능을 넘어, 서비스 디스커버리와 통합되어 여러 인스턴스 간의 로드밸런싱 기능을 제공합니다.
-
-따라서 시스템의 부하를 효과적으로 분산시켜, 서비스의 가용성과 안정성을 높여주고 마이크로서비스 아키텍처에서의 운영 효율성을 크게 향상시켜 줍니다.
-
+이때, 만약 user-service 의 인스턴스가 다중화 되어 있다면, Spring Cloud Gateway는 라운드 로빈(Round Robin) 알고리즘으로 로드밸런싱을 처리하게 됩니다. 이와 같이 **Spring Cloud Gateway는 단순한 API 게이트웨이 기능을 넘어, 서비스 디스커버리와 통합되어 여러 인스턴스 간의 로드밸런싱 기능을 제공**합니다. 따라서 시스템의 부하를 효과적으로 분산시켜, 서비스의 가용성과 안정성을 높여주고 마이크로서비스 아키텍처에서의 운영 효율성을 크게 향상시켜 줍니다.
 
 # 🎯 요약
 
 - 클라이언트와 내부 시스템 간의 단일 진입점 역할을 수행하며, 인증, 인가, 로깅, 모니터링 등 공통 기능을 중앙집중적으로 처리.
 - Spring 생태계와의 원활한 통합, Netty 기반의 비동기 논블로킹 처리, 선언적 설정을 통한 유연한 라우팅 및 필터 관리 등으로 높은 성능과 확장성을 제공.
-- Spring Cloud Netflix Eureka와 연동하여, lb:// 접두사를 사용함으로써 동적 로드밸런싱(라운드 로빈 알고리즘)을 수행, 여러 인스턴스 간의 부하 분산과 시스템 안정성을 확보
+- Spring Cloud Netflix Eureka와 연동하여, `lb://` 접두사를 사용함으로써 동적 로드밸런싱(라운드 로빈 알고리즘)을 수행, 여러 인스턴스 간의 부하 분산과 시스템 안정성을 확보
 
 
 # 📂 참고 자료
