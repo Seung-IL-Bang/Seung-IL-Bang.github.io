@@ -1,5 +1,5 @@
 ---
-title: Config Server와 Spring Cloud Bus를 통한 동적 설정 관리
+title: Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리
 description:
 categories:
 - Spring Cloud
@@ -194,8 +194,8 @@ management:
 `type` 필드와 `originService` 를 살펴보면 어떤 클라이언트에서 이벤트를 발송했고, 어떤 클라이언트가 이벤트를 수신했는지 확인할 수 있습니다.
 
 - `type`: 어떤 클라이언트에서 `/busrefresh` 요청이 발생했고, 어디서 그 이벤트를 수신했는지 확인할 수 있습니다.
-  - `RefreshRemoteApplicationEvent`: `/busrefresh`를 호출했다는 이벤트입니다.
-  - `AckRemoteApplicationEvent`: `/busrefresh`를 요청에 대한 확인 응답 이벤트입니다.
+  - `RefreshRemoteApplicationEvent`: `/busrefresh`를 호출한 이벤트입니다.
+  - `AckRemoteApplicationEvent`: `/busrefresh` 요청을 수신했다는 응답 이벤트입니다.
 - `originService`: 이벤트를 처리한 클라이언트(마이크로서비스)의 애플리케이션 이름 정보가 담겨있습니다.
 
 ```json
@@ -250,6 +250,9 @@ management:
 ]
 ```
 
+- 위 Json 파일을 살펴보면, `order-service`에서 `/busrefresh`를 호출한 것을 알 수 있습니다.
+- 그리고 `order-service`, `config-service`, `user-service`, `product-service` 가 확인 응답을 하여, 설정 파일이 갱신되었다는 것을 알 수 있습니다.
+
 > 참고로 Kafka는 도커 이미지를 이용하여 구동하였습니다. 이번 포스트는 Kafka에 대한 포스트가 아니므로, Kafka 도커 실행에 대한 내용은 생략하도록 하겠습니다.
 
 여기까지 Kafka를 이용한 Spring Cloud Bus 를 알아보았습니다.
@@ -285,7 +288,7 @@ management:
         include: refresh, busrefresh
 ```
 
-- Spring Cloud Bus를 위해서 Config Server와 연결되어 있어야 합니다.
+- Spring Cloud Bus를 위해서 Config Server와 연결 설정과 RabbitMQ 설정 그리고 액추에이터의 `/busrefresh` 엔드포인트를 설정해주기만 하면 됩니다.
 - `/busrefresh` 를 호출하면 RabbitMQ에 메시지를 발송하여, RabbitMQ(Bus 역할)에 연결된 서비스들의 설정 파일들을 갱신시키게 됩니다.
 
 > RabbitMQ는 도커 이미지를 이용하여 구동하였습니다.
