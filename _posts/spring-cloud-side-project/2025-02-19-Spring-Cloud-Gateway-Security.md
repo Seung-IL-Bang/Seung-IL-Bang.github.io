@@ -1,5 +1,5 @@
 ---
-title: Spring Cloud Gateway와 JWT: 분산 시스템의 중앙집중식 인증 구현
+title: Spring Cloud Gateway와 JWT - 분산 시스템의 중앙집중식 인증
 description: 
 categories:
 - Spring Cloud
