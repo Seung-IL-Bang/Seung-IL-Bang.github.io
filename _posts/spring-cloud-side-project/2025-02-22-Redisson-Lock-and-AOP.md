@@ -214,5 +214,6 @@ public class StockAspect {
 
 - [인프런 - 재고시스템으로 알아보는 동시성이슈 해결방법](https://www.inflearn.com/course/%EB%8F%99%EC%8B%9C%EC%84%B1%EC%9D%B4%EC%8A%88-%EC%9E%AC%EA%B3%A0%EC%8B%9C%EC%8A%A4%ED%85%9C)
 - [카카오페이는 어떻게 수천만 결제를 처리할까? 우아한 결제 분산락 노하우 / if(kakaoAI)2024](https://www.youtube.com/watch?v=4wGTavSyLxE)
+- [풀필먼트 입고 서비스팀에서 분산락을 사용하는 방법 - 마켓 컬리](https://helloworld.kurly.com/blog/distributed-redisson-lock/#2-%EC%A4%91%EB%B3%B5-%EB%B0%9C%EC%A3%BC-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EB%8F%99%EC%8B%9C-%EC%88%98%EC%8B%A0)
 
 ---
