@@ -151,13 +151,19 @@ services:
 
 이때 `Zipkin`을 활용한 분산 로그 트레이싱을 통합 적용한다면, 여러 서비스에 걸쳐 처리될 때 발생하는 로그의 흐름을 추적할 수 있도록 도와줍니다. 각 요청에 **고유한 TraceID를 부여**하여, 여러 서비스에 분산되어 기록된 로그들을 **Elasticsearch에서 하나의 흐름으로 연결지어 검색**할 수 있습니다.
 
-Kibana의 Discovery 서비스에서 TraceID를 입력하면 해당 요청에 관련된 모든 로그가 타임스탬프 순서대로 정렬시켜 모니터링 할 수 있습니다. 이를 통해 단일 요청이 서비스 전반에서 어떻게 처리되었는지 한눈에 파악할 수 있게 됩니다.
+Kibana의 Discovery 서비스에서 **TraceID**를 입력하면 해당 요청에 관련된 모든 로그가 타임스탬프 순서대로 정렬시켜 모니터링 할 수 있습니다. 이를 통해 단일 요청이 서비스 전반에서 어떻게 처리되었는지 한눈에 파악할 수 있게 됩니다.
 
-{로그 discovery}
+<figure align="center">
+<img src="/post_images/spring-cloud-side-project/logs-discovery.png">
+<figcaption></figcaption>
+</figure>
 
 또한, 로그 레벨의 분류를 통해 전체 로그에 대한 통계를 대시보드로 확인도 가능합니다.
 
-{로그 대시보드}
+<figure align="center">
+<img src="/post_images/spring-cloud-side-project/logs-dashboard.png">
+<figcaption></figcaption>
+</figure>
 
 # 🚀 결론
 
