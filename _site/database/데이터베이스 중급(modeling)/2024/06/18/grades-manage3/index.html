@@ -83,7 +83,7 @@
 <link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Database,Primary Key," />
+  <meta name="keywords" content="Database," />
 
 
 
@@ -111,17 +111,25 @@
 
 
 
-<meta name="description" content="데이터베이스 중급(Modeling) - PK 설계 방법">
-<meta name="keywords" content="Database, Primary Key">
+<meta name="description" content="데이터베이스 중급(Modeling) - 성적 관리 모델링 연습 (3)">
+<meta name="keywords" content="Database">
 <meta property="og:type" content="article">
-<meta property="og:title" content="PK 설계 시 고려 사항">
-<meta property="og:url" content="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/09/PK%EC%84%A4%EA%B3%84/">
+<meta property="og:title" content="성적 관리 모델링 연습 (3)">
+<meta property="og:url" content="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/grades-manage3/">
 <meta property="og:site_name" content="Seung il&apos;s Blog">
-<meta property="og:description" content="데이터베이스 중급(Modeling) - PK 설계 방법">
+<meta property="og:description" content="데이터베이스 중급(Modeling) - 성적 관리 모델링 연습 (3)">
 <meta property="og:locale" content="ko">
+<meta property="og:image" content="/post_images/Database/subject-openlecture-teacher.png">
+<meta property="og:image" content="/post_images/Database/erd(1).png">
+<meta property="og:image" content="/post_images/Database/SchoolGrade-OpenLecture.png">
+<meta property="og:image" content="/post_images/Database/teacherPK-classFK.png">
+<meta property="og:image" content="/post_images/Database/gradebook-final-erd.png">
+<meta property="og:image" content="/post_images/Database/gradebook-final-erd2.png">
+<meta property="og:image" content="/post_images/Database/erdcloud-studentscore.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="PK 설계 시 고려 사항">
-<meta name="twitter:description" content="데이터베이스 중급(Modeling) - PK 설계 방법">
+<meta name="twitter:title" content="성적 관리 모델링 연습 (3)">
+<meta name="twitter:description" content="데이터베이스 중급(Modeling) - 성적 관리 모델링 연습 (3)">
+<meta name="twitter:image" content="/post_images/Database/subject-openlecture-teacher.png">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -154,7 +162,7 @@
 
 
 
-  <title>PK 설계 시 고려 사항 | Seung il's Blog</title>
+  <title>성적 관리 모델링 연습 (3) | Seung il's Blog</title>
   
 
 
@@ -326,7 +334,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/09/PK%EC%84%A4%EA%B3%84/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/grades-manage3/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Bang Seung IL">
@@ -346,7 +354,7 @@
           <h1 class="post-title" itemprop="name headline">
           
           
-            PK 설계 시 고려 사항
+            성적 관리 모델링 연습 (3)
           
         </h1>
         
@@ -360,8 +368,8 @@
               
                 <span class="post-meta-item-text">작성일</span>
               
-              <time title="" itemprop="dateCreated datePublished" datetime="2024-05-09T00:00:00+09:00">
-                2024-05-09
+              <time title="" itemprop="dateCreated datePublished" datetime="2024-06-18T00:00:00+09:00">
+                2024-06-18
               </time>
             
 
@@ -414,9 +422,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/09/PK%EC%84%A4%EA%B3%84/#comments" itemprop="discussionUrl">
+                <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/grades-manage3/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/09/PK%EC%84%A4%EA%B3%84/" itemprop="commentCount"></span>
+                        data-disqus-identifier="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/grades-manage3/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -432,7 +440,7 @@
           
             
                 <div class="post-description">
-                    데이터베이스 중급(Modeling) - PK 설계 방법
+                    데이터베이스 중급(Modeling) - 성적 관리 모델링 연습 (3)
                 </div>
             
           
@@ -462,50 +470,88 @@
 
 
 
-  <blockquote>
-  <p>PK를 어떻게 선정하고 설계하는지 알아보자.</p>
+  <!-- more -->
+
+<figure align="center">
+<img src="/post_images/Database/subject-openlecture-teacher.png" />
+<figcaption>과목-개강-선생님 관계도</figcaption>
+</figure>
+
+<ul>
+  <li>과목과 선생님은 M:N 관계이다. 그 가운데서 비즈니스 로직을 담당하는 관계 테이블인 개강 테이블이 존재한다.</li>
+  <li>개강 테이블(OpenLecture)의 PK는 <code class="language-plaintext highlighter-rouge">TeacherID</code> , <code class="language-plaintext highlighter-rouge">SubjectId</code> , <code class="language-plaintext highlighter-rouge">OpenDate</code> 가 합쳐진 복합키이다. 이처럼 상속형 PK를 사용하는 이유는 한 선생님이 동일한 학년 과목을 중복으로 개강할 수 없기 때문이다.</li>
+  <li>개강 테이블의 <code class="language-plaintext highlighter-rouge">Seq</code> 대체키를 선언하여 조회를 편리하게 돕도록 했다.</li>
+</ul>
+
+<figure align="center">
+<img src="/post_images/Database/erd(1).png" />
+<figcaption>현재까지 완성된 ERD</figcaption>
+</figure>
+
+<figure align="center">
+<img src="/post_images/Database/SchoolGrade-OpenLecture.png" />
+<figcaption>학년 마스터 테이블이 개강 관계 테이블과 1:M 관계를 맺었다.</figcaption>
+</figure>
+
+<ul>
+  <li>학년별로 각 과목이 존재하기 때문에 개강 테이블 PK에 SchoolGradeId 를 추가해준다. 이렇듯 관계 테이블에는 여러 집단으로부터 참조되는 테이블이다.</li>
+</ul>
+
+<figure align="center">
+<img src="/post_images/Database/teacherPK-classFK.png" />
+<figcaption>선생님 테이블의 PK가 반 테이블의 FK로 1:M 관계를 맺고 있다.</figcaption>
+</figure>
+
+<ul>
+  <li>선생님 테이블의 PK가 반 테이블의 FK로 1:M 관계를 맺고 있지만, 원칙적으로 1:1 관계이다. 하지만 FK를 설정해준 목적은 담임 선생님이 없는 반 데이터를 만들지 않기 위함이다. 즉, 외래키 제약 조건을 이용하여 반드시 담임 선생님이 존재하도록 FK로 <code class="language-plaintext highlighter-rouge">TeacherId</code> 를 설정한 것이다. <strong>(관계가 1:M 이라서 설정한 것이 아닌 것을 짚고 넘어가자.)</strong> 이렇듯 관계가 1:M은 아니지만, PK와 FK 설정을 맺어줌으로써 FK로 사용되는 컬럼의 도메인 값을 <code class="language-plaintext highlighter-rouge">기준 테이블(선생님 테이블)</code> 의 도메인으로 한정짓고 반드시 값이 입력되도록 하기 위해서 사용되기도 한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">TeacherID</code> 가 반 테이블에 들어옴으로써 언제 담임을 맡게 됐는지에 대한 정보가 존재해야지만 테이블 해석이 가능해진다. 따라서 <code class="language-plaintext highlighter-rouge">AssignedDate</code> 라는 담임을 맡게된 날짜 컬럼을 추가해준다.</li>
+  <li>참고로 <code class="language-plaintext highlighter-rouge">StudentId</code> 타입을 <code class="language-plaintext highlighter-rouge">bigint</code> 로 변경해줘야 한다. <del>(초기 설계 오류)</del>
+    <ul>
+      <li>또는 <code class="language-plaintext highlighter-rouge">entrance_date</code> 를 추가하면 매년 신입생이 입학할 때마다 <code class="language-plaintext highlighter-rouge">StudentId</code> 가 1번부터 다시 시작하는 방법도 존재한다. 이렇게하면 <code class="language-plaintext highlighter-rouge">smallint</code> 로 그대로 사용해도 된다.</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">TearcherId</code> 의 타이블 <code class="language-plaintext highlighter-rouge">tinyint</code> 에서 <code class="language-plaintext highlighter-rouge">int</code> 로 바꿔주자. 새로 발령오거나 퇴직하는 상황이 발생하면 <code class="language-plaintext highlighter-rouge">tinyint</code> 만으로는 부족할 것이다. <del>(초기 설계 오류)</del></li>
+</ul>
+
+<figure align="center">
+<img src="/post_images/Database/gradebook-final-erd.png" />
+<figcaption>최종 ERD - 자동 정렬</figcaption>
+</figure>
+
+<ul>
+  <li>학생과 개강 테이블 간의 시험 점수 관계 테이블을 생성해준다.(M:N 관계)
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">학생ID</code>와 개강 테이블의 <code class="language-plaintext highlighter-rouge">보조키(Seq)</code>를 PK 복합키로 잡는다.</li>
+      <li>시험 점수 테이블(TB_Score)에 시험 점수(<code class="language-plaintext highlighter-rouge">score</code>) 속성을 추가해준다.</li>
+    </ul>
+  </li>
+</ul>
+
+<figure align="center">
+<img src="/post_images/Database/gradebook-final-erd2.png" />
+<figcaption>최종 ERD - 위치 변경</figcaption>
+</figure>
+
+<ul>
+  <li>ERD 테이블 위치 선정 팁
+    <ul>
+      <li>마스터 테이블 또는 기준 테이블들은 바깥에 위치시킨다.</li>
+      <li>관계 테이블들은 가운데에 위치하도록 한다. 관계가 많이 맞물려있을 수록 가운데에 놓도록 하자. 핵심 비즈니스 관계 테이블일 확률이 높다.</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">OpenLecture</code> 개강 테이블의 경우 학년, 과목, 선생님 테이블들의 <strong>관계 테이블 역할을 수행하면서</strong>, 동시에 시험 점수 테이블의 <strong>마스터 테이블로도 이용되고 있다.</strong></li>
+</ul>
+
+<blockquote>
+  <p>1:M, M:N 관계를 모르는 상태에서 설계를 하면 십중팔구 조인 테이블(=결과 테이블, 엑셀)을 설계한다. 잘못된 설계를 하면 데이터 이상 현상(중복, 삭제, 갱신) 등이 발생할 수 있다.</p>
 </blockquote>
 
-<!-- more -->
+<figure align="center">
+<img src="/post_images/Database/erdcloud-studentscore.png" />
+<figcaption>erdcloud 툴을 이용하여 정리한 ERD</figcaption>
+</figure>
 
-<h3 id="1-unique--not-null-인-컬럼들을-찾는다">1. UNIQUE &amp; NOT NULL 인 컬럼들을 찾는다.</h3>
-
-<h3 id="2-후보-식별자가-없는-경우-임의의-식별자인조-식별자를-만들어-부여한다">2. 후보 식별자가 없는 경우 임의의 식별자(인조 식별자)를 만들어 부여한다.</h3>
-
-<ul>
-  <li>인조 식별자를 만들어서 사용하는 경우가 은근 많다.</li>
-  <li>인조 식별자를 PK로 사용하는 경우, <code class="language-plaintext highlighter-rouge">year</code> + <code class="language-plaintext highlighter-rouge">month</code> + <code class="language-plaintext highlighter-rouge">sequence number</code> 처럼 날짜를 식별자에 부여하여 데이터를 파악하기 쉽게 할 수 있다. 시퀀스 넘버는 데이터 발생 횟수(순서)로 보면 된다.</li>
-  <li><code class="language-plaintext highlighter-rouge">year</code>, <code class="language-plaintext highlighter-rouge">month</code>, <code class="language-plaintext highlighter-rouge">day</code> 등 의미를 부여하는 정도는 비즈니스 상황에 따라 결정된다.</li>
-</ul>
-
-<h3 id="3-pk의-데이터-타입-결정">3. PK의 데이터 타입 결정</h3>
-
-<ul>
-  <li>레코드의 발생 가능한 최대 수를 예측한다.
-    <ul>
-      <li>ex) 데이터가 1년에 몇 개 정도 발생하는가?</li>
-      <li>ex) 데이터가 한 달에 몇 개 정도 발생하는가?</li>
-    </ul>
-  </li>
-  <li>발생 가능한 최대 레코드 수를 커버할 수 있는 데이터 타입을 선정한다.
-    <ul>
-      <li>ex) 만일 레코드가 수십 만개 정도라면 <code class="language-plaintext highlighter-rouge">999,999</code>로 커버 가능하다. <code class="language-plaintext highlighter-rouge">int</code> 또는 <code class="language-plaintext highlighter-rouge">varchar(6)</code>를 사용하여 처리 가능하다.</li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="4-pk-데이터-타입-후보를-대상으로-다음을-고려한다">4. PK 데이터 타입 후보를 대상으로 다음을 고려한다.</h3>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">int</code> 등 숫자 타입을 PK로 채택할 경우 자동 증분(<code class="language-plaintext highlighter-rouge">AUTO INCREMENT</code>) 속성을 사용하면 편리하다.</li>
-  <li><code class="language-plaintext highlighter-rouge">String</code> 을 PK로 채택할 경우 숫자가 아닌 <u>문자</u>를 섞어서 PK 값에 의미를 부여할 수 있다.</li>
-  <li><strong>특별한 의미를 부여할 필요가 없을 경우 숫자 타입을 사용하는 것이 바람직하다.</strong></li>
-  <li>PK는 고유 식별자 기능으로 충분하다.
-    <ul>
-      <li>PK 값에 어떤 의미를 부여하는 것은 부담이 될 수 있다.</li>
-    </ul>
-  </li>
-</ul>
+<p>~~ERDCloud 툴에는 개강 테이블의 보조키를 성적 테이블의 PK로 잡는 방법이 없는 것 같다. ~~</p>
 
 <hr />
 
@@ -541,9 +587,6 @@
             
             <a href="/tag/#/Database" rel="tag"># Database</a>
           
-            
-            <a href="/tag/#/Primary%20Key" rel="tag"># Primary Key</a>
-          
         </div>
       
 
@@ -558,8 +601,8 @@
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M%EA%B4%80%EA%B3%84(1)/" rel="next" title="RDB 1:M 관계 (1)">
-                <i class="fa fa-chevron-left"></i> RDB 1:M 관계 (1)
+              <a href="/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/" rel="next" title="Spring Cloud 기반 마이크로 서비스 간 통신">
+                <i class="fa fa-chevron-left"></i> Spring Cloud 기반 마이크로 서비스 간 통신
               </a>
             
           </div>
@@ -568,8 +611,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/06/%EC%A3%BC%EC%8B%9D%EB%B3%84%EC%9E%90&%ED%9B%84%EB%B3%B4%EC%8B%9D%EB%B3%84%EC%9E%90/" rel="prev" title="주식별자와 후보식별자">
-                주식별자와 후보식별자 <i class="fa fa-chevron-right"></i>
+              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1-relation/" rel="prev" title="RDB 1:1 관계">
+                RDB 1:1 관계 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -633,17 +676,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
-            목차
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview">
-            흝어보기
-          </li>
-        </ul>
-      
 
-      <section class="site-overview sidebar-panel">
+      <section class="site-overview sidebar-panel sidebar-panel-active">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/assets/images/avatar.gif"
@@ -727,34 +761,6 @@
 
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-            
-            
-            
-
-
-
-
-
-
-
-
-            
-              <div class="post-toc-content">
-    <ol class=nav>
-      <li class="nav-item nav-level-3"> <a class="nav-link" href="#1-unique--not-null-인-컬럼들을-찾는다"> <span class="nav-number">1</span> <span class="nav-text">1. UNIQUE &amp; NOT NULL 인 컬럼들을 찾는다.</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#2-후보-식별자가-없는-경우-임의의-식별자인조-식별자를-만들어-부여한다"> <span class="nav-number">2</span> <span class="nav-text">2. 후보 식별자가 없는 경우 임의의 식별자(인조 식별자)를 만들어 부여한다.</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#3-pk의-데이터-타입-결정"> <span class="nav-number">3</span> <span class="nav-text">3. PK의 데이터 타입 결정</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#4-pk-데이터-타입-후보를-대상으로-다음을-고려한다"> <span class="nav-number">4</span> <span class="nav-text">4. PK 데이터 타입 후보를 대상으로 다음을 고려한다.</span> </a> </li>
-    </ol>
-  </div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
@@ -916,9 +922,9 @@
       
       <script type="text/javascript">
           var disqus_config = function () {
-              this.page.url = 'http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/09/PK%EC%84%A4%EA%B3%84/';
-              this.page.identifier = '/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/09/PK%EC%84%A4%EA%B3%84/';
-              this.page.title = 'PK 설계 시 고려 사항';
+              this.page.url = 'http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/grades-manage3/';
+              this.page.identifier = '/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/grades-manage3/';
+              this.page.title = '성적 관리 모델링 연습 (3)';
           };
           var d = document, s = d.createElement('script');
           s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';

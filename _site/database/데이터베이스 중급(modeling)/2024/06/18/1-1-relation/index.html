@@ -83,7 +83,7 @@
 <link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Database," />
+  <meta name="keywords" content="Database,Relation," />
 
 
 
@@ -111,20 +111,20 @@
 
 
 
-<meta name="description" content="데이터베이스 중급(Modeling) - 성적 관리 모델링 연습 (1)">
-<meta name="keywords" content="Database">
+<meta name="description" content="데이터베이스 중급(Modeling) - 1:1 관계">
+<meta name="keywords" content="Database, Relation">
 <meta property="og:type" content="article">
-<meta property="og:title" content="성적 관리 모델링 연습 (1)">
-<meta property="og:url" content="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/27/%EC%84%B1%EC%A0%81%EA%B4%80%EB%A6%AC%EC%97%B0%EC%8A%B51/">
+<meta property="og:title" content="RDB 1:1 관계">
+<meta property="og:url" content="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1-relation/">
 <meta property="og:site_name" content="Seung il&apos;s Blog">
-<meta property="og:description" content="데이터베이스 중급(Modeling) - 성적 관리 모델링 연습 (1)">
+<meta property="og:description" content="데이터베이스 중급(Modeling) - 1:1 관계">
 <meta property="og:locale" content="ko">
-<meta property="og:image" content="/post_images/Database/grade-level.png">
-<meta property="og:image" content="/post_images/Database/grade-level-student.png">
+<meta property="og:image" content="/post_images/Database/1-1excel.png">
+<meta property="og:image" content="/post_images/Database/1-1PK.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="성적 관리 모델링 연습 (1)">
-<meta name="twitter:description" content="데이터베이스 중급(Modeling) - 성적 관리 모델링 연습 (1)">
-<meta name="twitter:image" content="/post_images/Database/grade-level.png">
+<meta name="twitter:title" content="RDB 1:1 관계">
+<meta name="twitter:description" content="데이터베이스 중급(Modeling) - 1:1 관계">
+<meta name="twitter:image" content="/post_images/Database/1-1excel.png">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -157,7 +157,7 @@
 
 
 
-  <title>성적 관리 모델링 연습 (1) | Seung il's Blog</title>
+  <title>RDB 1:1 관계 | Seung il's Blog</title>
   
 
 
@@ -329,7 +329,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/27/%EC%84%B1%EC%A0%81%EA%B4%80%EB%A6%AC%EC%97%B0%EC%8A%B51/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1-relation/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Bang Seung IL">
@@ -349,7 +349,7 @@
           <h1 class="post-title" itemprop="name headline">
           
           
-            성적 관리 모델링 연습 (1)
+            RDB 1:1 관계
           
         </h1>
         
@@ -363,8 +363,8 @@
               
                 <span class="post-meta-item-text">작성일</span>
               
-              <time title="" itemprop="dateCreated datePublished" datetime="2024-05-27T00:00:00+09:00">
-                2024-05-27
+              <time title="" itemprop="dateCreated datePublished" datetime="2024-06-18T00:00:00+09:00">
+                2024-06-18
               </time>
             
 
@@ -417,9 +417,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/27/%EC%84%B1%EC%A0%81%EA%B4%80%EB%A6%AC%EC%97%B0%EC%8A%B51/#comments" itemprop="discussionUrl">
+                <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1-relation/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/27/%EC%84%B1%EC%A0%81%EA%B4%80%EB%A6%AC%EC%97%B0%EC%8A%B51/" itemprop="commentCount"></span>
+                        data-disqus-identifier="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1-relation/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -435,7 +435,7 @@
           
             
                 <div class="post-description">
-                    데이터베이스 중급(Modeling) - 성적 관리 모델링 연습 (1)
+                    데이터베이스 중급(Modeling) - 1:1 관계
                 </div>
             
           
@@ -466,154 +466,153 @@
 
 
   <blockquote>
-  <p>중학교 학생들의 성적을 관리하는 시스템의 DB를 설계 해보자!</p>
+  <p>1:1 관계에 대해 알아보자.</p>
 </blockquote>
 
 <!-- more -->
 
-<h2 id="성적-관리-요구-사항">성적 관리 요구 사항</h2>
+<h2 id="11-관계는-부부-관계이다">1:1 관계는 부부 관계이다.</h2>
 
-<ul>
-  <li>중학교(남녀공학) 학생 성적관리 프로젝트</li>
-  <li>과목은 학년별로 담당 선생님이 따로 있다.</li>
-  <li>시험은 중간고사, 기말고사 두 가지가 있다.</li>
-  <li>학생들은 학년, 반에 배정되며 반별로 학생들에게 고유 번호를 부여하고 있다.</li>
-  <li>각 반에는 담임 선생님이 배정되어 있다. 선생님 중에는 담임을 맡지 않는 선생님도 있다.</li>
-  <li>한 반의 학생은 대략 40명 정도이고 남녀 공학이다.</li>
-  <li>석차는 남녀 공통 1등부터 순서대로 정한다.</li>
-</ul>
+<p>1 : 1 관계란 양측 입장에서 상대를 보더라도 반드시 단 하나의 관계를 가지는 것을 말한다.</p>
 
-<h2 id="마스터-테이블">마스터 테이블</h2>
+<p>1:1 관계는 부부관계라고 말한다.</p>
 
-<ul>
-  <li>학생(반당 40명정도, 반별 고유 번호 존재), 학년, 반</li>
-  <li>과목(학년별 담당 선생님 별도로 존재), 선생님(담임/비담임)</li>
-  <li>성적(반 석차/ 학년 석차) ⇒ 시험에 의한 객체 생성</li>
-  <li>시험(중간고사, 기말고사)</li>
-</ul>
+<p>가장 단순한 관계로 보이지만 중급 이상의 고급 기술에 해당된다.</p>
 
-<h2 id="관계-테이블">관계 테이블</h2>
-
-<ul>
-  <li>시험(보다), 배정(하다), 개강(하다)</li>
-</ul>
-
-<blockquote>
-  <p>만약 실무에서 시나리오에 모르는 단어가 있는 경우, 고객에게 그 개념을 물어봐서 확실히 개념을 잡고 설계한다.</p>
-</blockquote>
-
-<h2 id="논리적-설계">논리적 설계</h2>
-
-<h3 id="온전한-명사-선별하기">온전한 명사 선별하기</h3>
-
-<p>가장 먼저 해야할 것은 마스터 테이블로 존재할 수 있는 객체들을 선별하는 것이다.</p>
-
-<p><strong>종속성</strong>, <strong>수식어</strong> 등을 파악하여 마스터 테이블의 객체를 정리해나간다. 예를 들어, 학생과 고유 번호가 있을 때 고유 번호는 학생에 종속되므로 학생 객체의 속성으로 들어가는 것이 맞다. 또한, 담임과 선생님을 생각해보면, 담임은 선생님의 수식어이기 때문에 선생님 객체의 속성으로 들어가는 것이 맞다. 이렇게 <strong>종속성</strong> 또는 <strong>수식어</strong> 등을 파악하여 <strong><u>명사로 온전히 존재할 수 있는 객체를 가려낼 수 있다.</u></strong> 만약 속성으로 들어갔던 컬럼이 알고보니 복잡도가 높다고 판단되면 마스터 테이블로 분리해내면 된다.</p>
-
-<blockquote>
-  <p>더 이상 분열할 수 없을 만큼 작은 단위로 객체를 마스터 테이블로 만들면 된다. 그렇다고 마스터가 아닌 것을 마스터로 만들면 굉장히 어색해진다.</p>
-</blockquote>
-
-<h3 id="1m-관계-찾기">1:M 관계 찾기</h3>
-
-<p>그 다음 해야할 것은 마스터 테이블 간의 <code class="language-plaintext highlighter-rouge">1:M(부자지간)</code> 관계가 있는지 살펴보는 것이다.</p>
-
-<blockquote>
-  <p>1:M 관계는 직관적으로 보이기 마련이다.</p>
-</blockquote>
-
-<p><em>데이터베이스 스키마 설계는 많은 경험치가 필요한 일이다. 처음부터 잘 못하더라도 괜찮다.</em></p>
-
-<h3 id="기준-테이블">기준 테이블</h3>
-
-<p><strong>자식</strong>의 포지션이 되지 않는 테이블을 <strong>절대 마스터 테이블</strong>이라고 하고 다른 말로 <strong>기준 테이블</strong> 이라고 한다.</p>
-
-<p><strong>기준 테이블</strong>에서 오류가 발생하면 그 이하 연결된 자식 테이블에 모두 문제가 발생한다. <u>기준 테이블같은 경우에는 한 번 생성되면 거의 변경이 없는 성격을 가진다.</u> 그렇기 때문에 DBA 입장에서 가장 신경 써야 하는 것은 기준 테이블에 오류가 있느냐를 파악해야 한다. 예제에서 기준 테이블은 <code class="language-plaintext highlighter-rouge">학년</code>으로 볼 수 있다.</p>
-
-<blockquote>
-  <p>기준 테이블의 경우 한 번 생성되면 그 이후에는 변경될 일이 거의 없다. 따라서 생성된 이후에는  <code class="language-plaintext highlighter-rouge">INSERT</code> , <code class="language-plaintext highlighter-rouge">DELETE</code> , <code class="language-plaintext highlighter-rouge">UPDATE</code> 를 막아버리는 것이 좋다. 즉, <code class="language-plaintext highlighter-rouge">SELECT</code> 만 열어줘서 <strong>read-only</strong> 로 설정하는 것이 좋다.</p>
-</blockquote>
-
-<h3 id="고정-관념-버리기">고정 관념 버리기</h3>
-
-<p>데이터 타입을 정할 때 주의해야 할 점은 고정 관념에 빠져서 잘못된 데이터 타입을 설정해주는 것이다.</p>
-
-<p>예를 들어, 반이름의 경우 보통 1반, 2반, … 이런 식일텐데, 개나리반, 무궁화반 처럼 이럴수도 있다. 이럴때 varchar의 글자수를 전자에 맞췄을 경우 글자수 부족 문제가 발생할 수도 있다. 따라서, <u>고정 관념에 빠져서 데이터 타입을 설정하는 것에 주의해야 한다.</u> 이런 것은 <strong>확장성</strong>을 고려하지 않은 설계 방식이다.</p>
-
-<h3 id="코드-레벨에서-할-일">코드 레벨에서 할 일</h3>
-
-<p>확장성을 고려한 설계 이후에는 개발 단계에서 <strong>요구 사항에 맞도록 검증 로직을 추가</strong>하면 된다. 예를 들어, 반의 개수는 최대 12반 까지 있어야 한다면, <code class="language-plaintext highlighter-rouge">tinyint</code>로 충분하다. 그리고 코드 레벨에서 1반 부터 12반까지만 입력되도록 검증 로직을 추가하면 된다. <u>즉, 입력되는 값에 대한 컨트롤은 설계 단계에서 할 필요가 없다.</u></p>
-
-<p><br /></p>
-
-<h2 id="erd-그리기">ERD 그리기</h2>
+<p>1:M, M:N 관계로 해결할 수 없는 많은 문제들이 이 관계를 통해서 해결되는 것을 알 수 있다.</p>
 
 <figure align="center">
-<img src="/post_images/Database/grade-level.png" />
-<figcaption>학년과 반 1:M 관계</figcaption>
+<img src="/post_images/Database/1-1excel.png" />
+<figcaption>신랑, 신부 1대1 관계를 나타낸 엑셀 표</figcaption>
 </figure>
 
-<ul>
-  <li>반ID가 학년별로 1반, 2반 … 체계를 갖기 위해 <strong>상속형 PK</strong>를 사용했다.</li>
-</ul>
+<table>
+  <thead>
+    <tr>
+      <th>신랑ID</th>
+      <th>신랑명</th>
+      <th>신부ID</th>
+      <th>신부명</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>홍길동</td>
+      <td>B</td>
+      <td>이난영</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>김종남</td>
+      <td>A</td>
+      <td>황금자</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>이하선</td>
+      <td>C</td>
+      <td>박상순</td>
+    </tr>
+  </tbody>
+</table>
 
-<p>앞서 말했듯이 <code class="language-plaintext highlighter-rouge">학년</code> 기준 테이블은 거의 변경될 일이 없으므로 미리 값을 넣어놔서 <code class="language-plaintext highlighter-rouge">DML</code>을 사용하지 않도록 한다.</p>
+<p>위 테이블은 조인 테이블의 형태이다. 1:1 관계를 나타나는 데 PK가 신랑ID, 신부ID 두 개로 잡아야 하는데 PK의 최소성을 만족하지 않는것 같다.</p>
 
-<pre><code class="language-SQL">INSERT INTO 학년 VALUES (1, '1학년'), (2, '2학년'), (3, '3학년');
-SELECT * FROM 학년;
-</code></pre>
+<p>테이블을 다시 설계해보자.(부부 테이블 생성)</p>
 
-<h3 id="학년-테이블">학년 테이블</h3>
+<h2 id="부부-테이블">부부 테이블</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>열 이름</th>
+      <th>데이터 형식</th>
+      <th>NULL 허용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>부부Id</td>
+      <td>int</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td>신랑명</td>
+      <td>varchar(50)</td>
+      <td>o</td>
+    </tr>
+    <tr>
+      <td>신부명</td>
+      <td>varchar(50)</td>
+      <td>o</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2</pre></td><td class="code"><pre class="highlight"><code><span class="k">INSERT</span> <span class="k">INTO</span> <span class="err">부부</span>
+<span class="k">VALUES</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'홍길동'</span><span class="p">,</span> <span class="s1">'어우동'</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">'김길동'</span><span class="p">,</span> <span class="s1">'황진이'</span><span class="p">);</span>
+</code></pre></td></tr></tbody></table></div></div>
 
 <table>
   <thead>
     <tr>
       <th> </th>
-      <th>학년ID</th>
-      <th>학년명</th>
+      <th>부부Id</th>
+      <th>신랑명</th>
+      <th>신부명</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>1</td>
       <td>1</td>
-      <td>1학년</td>
+      <td>홍길동</td>
+      <td>어우동</td>
     </tr>
     <tr>
       <td>2</td>
       <td>2</td>
-      <td>2학년</td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>3</td>
-      <td>3학년</td>
+      <td>김길동</td>
+      <td>황진이</td>
     </tr>
   </tbody>
 </table>
 
-<p>반면에  <code class="language-plaintext highlighter-rouge">반</code> 테이블은 값이 바뀔 수 있는 있기 때문에 <code class="language-plaintext highlighter-rouge">DML</code>을 허용해야 한다. 이처럼 비즈니스 상황에 따라 또는 고객의 요구사항에 따라 <code class="language-plaintext highlighter-rouge">DML</code>을 허용해야 할 지 파악하고 데이터를 미리 넣을지 말지 결정하면 된다.</p>
-
-<h3 id="학년-반-학생-객체">학년, 반, 학생 객체</h3>
-
-<figure align="center">
-<img src="/post_images/Database/grade-level-student.png" />
-<figcaption></figcaption>
-</figure>
-
-<p>학년, 반, 학생 객체들에 대해 PK와 최소한의 속성으로만 ERD를 구성했다.</p>
-
 <blockquote>
-  <p>PK에 어떤 의미를 부여하는 행동은 지양해야 한다. 확장성과 유연성을 망가뜨리는 행위이다. PK는 유니크하고 낫널이면 충분하다.</p>
+  <p>우리가 부부 테이블fh 하고 싶은 것은 이 하나의 테이블을 1:1 관계를 유지하되 두 개의 객체(신랑, 신부)로 분리하는 것이다.</p>
 </blockquote>
 
-<ul>
-  <li>예약어와 같은 혼란을 빚을만한 단어로는 테이블명으로 사용하지 않는다. (ex. 학급, 반 → <code class="language-plaintext highlighter-rouge">class</code> 사용 금지)</li>
-  <li>각 테이블명들은 <strong>일관성</strong>있게 작성하는 것이 좋다. (ex. 학년 → school_grade, 반 → school_class)</li>
-  <li>참고로 작명할 때 테이블은 접두어로 <code class="language-plaintext highlighter-rouge">TB</code>, 뷰는 <code class="language-plaintext highlighter-rouge">VW</code>, 스토어드 프로시저는 <code class="language-plaintext highlighter-rouge">SP</code> 가 붙는 경우도 있다. 이름만 보고 테이블인지 뷰인지 스토어드 프로시저인지 바로 파악하기 편리하다.</li>
-</ul>
+<blockquote>
+  <p>왜 분리해야 되는가?</p>
 
-<hr />
+  <p>신랑, 신부별로 각각 자신만의 특성이 존재하기 때문에 서로 마스터 테이블로 분리하는 것이 좋다.</p>
+</blockquote>
+
+<h2 id="11-관계-테이블의-pk">1:1 관계 테이블의 PK</h2>
+
+<blockquote>
+  <p>1:1 관계는 서로의 PK를 FK로 참조하진 않지만, 서로의 PK를 자신의 PK로 사용하는 형태이다. 일심동체</p>
+</blockquote>
+
+<figure align="center">
+<img src="/post_images/Database/1-1PK.png" />
+<figcaption>서로의 PK를 자신의 PK로 사용</figcaption>
+</figure>
+
+<p>1:1 관계를 맺은 두 테이블을 조인하면 위에서 살펴봤던 부부 테이블의 결과(엑셀) 테이블과 동일한 결과를 얻어낼 수 있다.</p>
+
+<h2 id="부부-테이블-vs-신랑신부-개별-테이블">부부 테이블 VS 신랑,신부 개별 테이블</h2>
+
+<p>부부 테이블에 모든 속성들을 추가해서 사용해도 문제는 없지만 부부 테이블이 다른 관계 테이블과 관계를 맺게되면 조회 시 쓸데 없는 컬럼들을 제거 해줘야 하는 불편함이 존재할 수도 있다.</p>
+
+<p>신랑, 신부 개별 테이블로 분리하는 것이 <strong>각각 속성들을 관리하기도 편리</strong>하고,</p>
+
+<p>다른 관계 테이블들과 <strong>관계를 확장해나갈 수 있다</strong>는 장점이 존재하기 때문에 개별 테이블로 분리하여 관리하는 것이 더 좋다고 본다.</p>
+
+<blockquote>
+  <h2 id="️-정리하면-11-관계는-원래-일심동체로-하나이다-하지만-테이블은-두-개로-관리되는-것이-유용한-편이다">⭐️ 정리하면, 1:1 관계는 원래 일심동체로 하나이다. 하지만 테이블은 두 개로 관리되는 것이 유용한 편이다.</h2>
+</blockquote>
 
 
       
@@ -647,6 +646,9 @@ SELECT * FROM 학년;
             
             <a href="/tag/#/Database" rel="tag"># Database</a>
           
+            
+            <a href="/tag/#/Relation" rel="tag"># Relation</a>
+          
         </div>
       
 
@@ -661,8 +663,8 @@ SELECT * FROM 학년;
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/10/%EC%84%B1%EC%A0%81%EA%B4%80%EB%A6%AC%EC%97%B0%EC%8A%B52/" rel="next" title="성적 관리 모델링 연습 (2)">
-                <i class="fa fa-chevron-left"></i> 성적 관리 모델링 연습 (2)
+              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/grades-manage3/" rel="next" title="성적 관리 모델링 연습 (3)">
+                <i class="fa fa-chevron-left"></i> 성적 관리 모델링 연습 (3)
               </a>
             
           </div>
@@ -671,8 +673,8 @@ SELECT * FROM 학년;
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/13/%EB%8F%84%EC%84%9C%EB%8C%80%EC%B6%9C%EA%B4%80%EB%A6%AC%EB%AA%A8%EB%8D%B8%EB%A7%81/" rel="prev" title="도서대출관리 모델링 연습 (1)">
-                도서대출관리 모델링 연습 (1) <i class="fa fa-chevron-right"></i>
+              <a href="/database/transaction/db%20engineering/2024/06/15/Transaction/" rel="prev" title="DB에서 트랜잭션이란 무엇인가?">
+                DB에서 트랜잭션이란 무엇인가? <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -850,7 +852,7 @@ SELECT * FROM 학년;
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-2"> <a class="nav-link" href="#성적-관리-요구-사항"> <span class="nav-number">1</span> <span class="nav-text">성적 관리 요구 사항</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#마스터-테이블"> <span class="nav-number">2</span> <span class="nav-text">마스터 테이블</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#관계-테이블"> <span class="nav-number">3</span> <span class="nav-text">관계 테이블</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#논리적-설계"> <span class="nav-number">4</span> <span class="nav-text">논리적 설계</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#온전한-명사-선별하기"> <span class="nav-number">4.1</span> <span class="nav-text">온전한 명사 선별하기</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#1m-관계-찾기"> <span class="nav-number">4.2</span> <span class="nav-text">1:M 관계 찾기</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#기준-테이블"> <span class="nav-number">4.3</span> <span class="nav-text">기준 테이블</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#고정-관념-버리기"> <span class="nav-number">4.4</span> <span class="nav-text">고정 관념 버리기</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#코드-레벨에서-할-일"> <span class="nav-number">4.5</span> <span class="nav-text">코드 레벨에서 할 일</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#erd-그리기"> <span class="nav-number">5</span> <span class="nav-text">ERD 그리기</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#학년-테이블"> <span class="nav-number">5.1</span> <span class="nav-text">학년 테이블</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#학년-반-학생-객체"> <span class="nav-number">5.2</span> <span class="nav-text">학년, 반, 학생 객체</span> </a> </li> </ol> </li>
+      <li class="nav-item nav-level-2"> <a class="nav-link" href="#11-관계는-부부-관계이다"> <span class="nav-number">1</span> <span class="nav-text">1:1 관계는 부부 관계이다.</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#부부-테이블"> <span class="nav-number">2</span> <span class="nav-text">부부 테이블</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#11-관계-테이블의-pk"> <span class="nav-number">3</span> <span class="nav-text">1:1 관계 테이블의 PK</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#부부-테이블-vs-신랑신부-개별-테이블"> <span class="nav-number">4</span> <span class="nav-text">부부 테이블 VS 신랑,신부 개별 테이블</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#️-정리하면-11-관계는-원래-일심동체로-하나이다-하지만-테이블은-두-개로-관리되는-것이-유용한-편이다"> <span class="nav-number">5</span> <span class="nav-text">⭐️ 정리하면, 1:1 관계는 원래 일심동체로 하나이다. 하지만 테이블은 두 개로 관리되는 것이 유용한 편이다.</span> </a> </li>
     </ol>
   </div>
             
@@ -1019,9 +1021,9 @@ SELECT * FROM 학년;
       
       <script type="text/javascript">
           var disqus_config = function () {
-              this.page.url = 'http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/27/%EC%84%B1%EC%A0%81%EA%B4%80%EB%A6%AC%EC%97%B0%EC%8A%B51/';
-              this.page.identifier = '/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/27/%EC%84%B1%EC%A0%81%EA%B4%80%EB%A6%AC%EC%97%B0%EC%8A%B51/';
-              this.page.title = '성적 관리 모델링 연습 (1)';
+              this.page.url = 'http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1-relation/';
+              this.page.identifier = '/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1-relation/';
+              this.page.title = 'RDB 1:1 관계';
           };
           var d = document, s = d.createElement('script');
           s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';

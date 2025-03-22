@@ -83,7 +83,7 @@
 <link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Database,Primary Key," />
+  <meta name="keywords" content="Database,Relation," />
 
 
 
@@ -111,17 +111,17 @@
 
 
 
-<meta name="description" content="데이터베이스 중급(Modeling) - 주식별자 선정 과정에 대해 알아보자..">
-<meta name="keywords" content="Database, Primary Key">
+<meta name="description" content="데이터베이스 중급(Modeling) - 1:M 관계 (2)">
+<meta name="keywords" content="Database, Relation">
 <meta property="og:type" content="article">
-<meta property="og:title" content="주식별자와 후보식별자">
-<meta property="og:url" content="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/06/%EC%A3%BC%EC%8B%9D%EB%B3%84%EC%9E%90&%ED%9B%84%EB%B3%B4%EC%8B%9D%EB%B3%84%EC%9E%90/">
+<meta property="og:title" content="RDB 1:M 관계 (2)">
+<meta property="og:url" content="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(2)/">
 <meta property="og:site_name" content="Seung il&apos;s Blog">
-<meta property="og:description" content="데이터베이스 중급(Modeling) - 주식별자 선정 과정에 대해 알아보자..">
+<meta property="og:description" content="데이터베이스 중급(Modeling) - 1:M 관계 (2)">
 <meta property="og:locale" content="ko">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="주식별자와 후보식별자">
-<meta name="twitter:description" content="데이터베이스 중급(Modeling) - 주식별자 선정 과정에 대해 알아보자..">
+<meta name="twitter:title" content="RDB 1:M 관계 (2)">
+<meta name="twitter:description" content="데이터베이스 중급(Modeling) - 1:M 관계 (2)">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -154,7 +154,7 @@
 
 
 
-  <title>주식별자와 후보식별자 | Seung il's Blog</title>
+  <title>RDB 1:M 관계 (2) | Seung il's Blog</title>
   
 
 
@@ -326,7 +326,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/06/%EC%A3%BC%EC%8B%9D%EB%B3%84%EC%9E%90&%ED%9B%84%EB%B3%B4%EC%8B%9D%EB%B3%84%EC%9E%90/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(2)/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Bang Seung IL">
@@ -346,7 +346,7 @@
           <h1 class="post-title" itemprop="name headline">
           
           
-            주식별자와 후보식별자
+            RDB 1:M 관계 (2)
           
         </h1>
         
@@ -360,8 +360,8 @@
               
                 <span class="post-meta-item-text">작성일</span>
               
-              <time title="" itemprop="dateCreated datePublished" datetime="2024-05-06T00:00:00+09:00">
-                2024-05-06
+              <time title="" itemprop="dateCreated datePublished" datetime="2024-05-11T00:00:00+09:00">
+                2024-05-11
               </time>
             
 
@@ -414,9 +414,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/06/%EC%A3%BC%EC%8B%9D%EB%B3%84%EC%9E%90&%ED%9B%84%EB%B3%B4%EC%8B%9D%EB%B3%84%EC%9E%90/#comments" itemprop="discussionUrl">
+                <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(2)/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/06/%EC%A3%BC%EC%8B%9D%EB%B3%84%EC%9E%90&%ED%9B%84%EB%B3%B4%EC%8B%9D%EB%B3%84%EC%9E%90/" itemprop="commentCount"></span>
+                        data-disqus-identifier="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(2)/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -432,7 +432,7 @@
           
             
                 <div class="post-description">
-                    데이터베이스 중급(Modeling) - 주식별자 선정 과정에 대해 알아보자..
+                    데이터베이스 중급(Modeling) - 1:M 관계 (2)
                 </div>
             
           
@@ -462,122 +462,167 @@
 
 
 
-  <!-- more -->
-
-<h2 id="주식별자-vs-후보식별자">주식별자 vs 후보식별자</h2>
-
-<p>주식별자와 후보식별자 모두 <code class="language-plaintext highlighter-rouge">유일성</code> 과 <code class="language-plaintext highlighter-rouge">최소성</code> 특징을 만족한다. 둘 중 <code class="language-plaintext highlighter-rouge">NOT NULL</code>을 만족시키면서 <strong>적절한</strong> 키를 주식별자로 정하게 된다. 주식별자 외 식별자들은 후보식별자가 된다. 후보식별자들은 <code class="language-plaintext highlighter-rouge">NULL</code> 을 허용할 수 있다는 것이 주식별자와의 차이점이다.</p>
-
-<blockquote>
-  <p>참고</p>
-
-  <p>후보키의 인덱스 생성 시 물리적으로 인스턴스의 유일성을 보장해주기 위해 UNIQUE 인덱스를 생성하는 것이 바람직하다. 후보키들의 인덱스 테이블을 별도로 만들어 두면 특정 레코드에 빨리 접근하는 데 도움이 될 수 있다.</p>
+  <blockquote>
+  <p>회사와 부서 간의 관계를 고려하여 1:M 관계 모델링 연습을 해보자.</p>
 </blockquote>
 
-<h3 id="어떤-것을-주식별자로-정할-것인지">어떤 것을 주식별자로 정할 것인지?</h3>
+<!-- more -->
 
-<p><strong>중요하면서도 어려운 것이 주식별자를 선정하는 일이다.</strong> 주식별자는 테이블 설계 시 명시적으로 DB에 선언해줘야 한다. 주식별자를 선언해주면 대응하는 인덱스 테이블이 자동으로 생성된다.</p>
+<h2 id="테이블-설계-시-숙지-사항">테이블 설계 시 숙지 사항</h2>
 
-<p>주식별자를 어떻게 선정하는지 아래 테이블 스키마 예제를 통해 살펴보자.</p>
+<p>예제에 들어가기에 앞서, 테이블 설계 시 고려하면 좋을 것들을 숙지하고 가자.</p>
+
+<ol>
+  <li>
+    <p>테이블 스키마를 설계할 때는 <code class="language-plaintext highlighter-rouge">key</code>들을(기본키, 외래키) 먼저 고려하고 <code class="language-plaintext highlighter-rouge">key</code>를 중심으로 어떻게 설계해나갈지 계획을 세운다.</p>
+  </li>
+  <li>
+    <p>초기 설계 시에는 속성들은 간단히 잡아가는 것이 좋다. 처음부터 모든 속성들을 작성하려면 정신 사납다. <strong>테이블 설계의 본질은 key들의(기본키, 외래키) 관계를 잘 설계 해나가는 것이다.</strong></p>
+  </li>
+  <li>
+    <p>고객으로부터 얻은 데이터들은 <code class="language-plaintext highlighter-rouge">key</code>로 사용하지 않는 것이 좋다. 고객으로부터 얻은 데이터들은 부재 또는 변화의 가능성이 존재하기 때문에 <code class="language-plaintext highlighter-rouge">PK</code>에 포함시켜 의미를 부여하는 것은 위험할 수 있다.</p>
+  </li>
+  <li>
+    <p>숫자 타입으로 인조 식별자를 사용하는 경우 자동 증분(AUTO INCREMENT)을 사용하는 것이 편리하고 안전하다. 단, 데이터 발생 규모를 파악하여 데이터 타입을 정하자.</p>
+  </li>
+</ol>
+
+<p><br /></p>
+
+<h2 id="1m-모델링-예제-회사--부서">1:M 모델링 예제 (회사 &amp; 부서)</h2>
+
+<p>회사와 부서 간의 테이블을 설계하기 전에 <code class="language-plaintext highlighter-rouge">1:M</code> 설계 과정을 살펴보자.</p>
+
+<p>일단, 각 테이블의 스키마를 작성하고 <code class="language-plaintext highlighter-rouge">PK</code>를 정해보자.</p>
+
+<h3 id="회사-테이블">회사 테이블</h3>
+
+<p><code class="language-plaintext highlighter-rouge">company_id</code>를 <code class="language-plaintext highlighter-rouge">PK</code>로 잡았다. 초기에 속성은 간단하게 <code class="language-plaintext highlighter-rouge">company_name</code>만 작성했다.</p>
 
 <table>
   <thead>
     <tr>
-      <th>주민 번호</th>
-      <th>고객명</th>
-      <th>폰번호</th>
-      <th>이메일</th>
-      <th>집주소</th>
-      <th>고객번호</th>
+      <th> </th>
+      <th>열 이름</th>
+      <th>데이터 형식</th>
+      <th>NULL 허용</th>
+      <th>AUTO INCREMENT</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>000000-xxxxxxx</td>
-      <td>홍길동</td>
-      <td>010-xxxx-oooo</td>
-      <td>email@gmail.com</td>
-      <td>서울시 강남구 111-1</td>
-      <td>12345</td>
+      <td>PK</td>
+      <td>company_id</td>
+      <td>int</td>
+      <td>x</td>
+      <td>o</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>company_name</td>
+      <td>varchar(50)</td>
+      <td>x</td>
+      <td>x</td>
     </tr>
   </tbody>
 </table>
 
-<p><strong>1. 위 필드 중 <code class="language-plaintext highlighter-rouge">UNIQUE</code> 특징을 만족하는 필드는???</strong></p>
-<ul>
-  <li>주민 번호</li>
-  <li>폰 번호</li>
-  <li>이메일</li>
-  <li>고객 번호(=회사에서 지정한 고객 식별 번호)</li>
-</ul>
+<h3 id="부서-테이블">부서 테이블</h3>
+
+<p><code class="language-plaintext highlighter-rouge">department_id</code>를 <code class="language-plaintext highlighter-rouge">PK</code>로 잡았다. 마찬가지로 속성을 <code class="language-plaintext highlighter-rouge">department_name</code>만 간단하게 잡았다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>열 이름</th>
+      <th>데이터 형식</th>
+      <th>NULL 허용</th>
+      <th>AUTO INCREMENT</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PK</td>
+      <td>department_id</td>
+      <td>smallint</td>
+      <td>x</td>
+      <td>o</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>department_name</td>
+      <td>varchar(50)</td>
+      <td>x</td>
+      <td>x</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><code class="language-plaintext highlighter-rouge">PK</code> 결정이 끝났다면 그 이후 두 테이블 간의 관계를 보는 것이다.</p>
 
 <blockquote>
-  <p><code class="language-plaintext highlighter-rouge">UNIQUE</code> 속성을 만족하지 않으면 주식별자의 자격이 없다.</p>
+  <p>⭐️ 관계를 볼 때는 각 테이블의 입장에서 관계를 고려해야 한다.</p>
+
+  <p>회사 입장에서 부서와의 관계, 부서 입장에서 회사와의 관계를 모두 살펴본 다음 1:1 인지 1:M 인지, M:N 인지 결정하는 것이다. <strong>따라서 양쪽에서 살펴봤을 때 반드시 동일한 관계 양상이 나와야 한다.</strong></p>
 </blockquote>
 
-<p>고객명은 동명이인이 존재할 수 있고, 집 주소는 한 집에 여럿이 사는 경우 중복이 발생할 수 있다. 따라서 고객명과 집 주소는 <code class="language-plaintext highlighter-rouge">UNIQUE</code> 속성을 만족하지 않는다.</p>
+<h3 id="회사와-부서의-관계는">회사와 부서의 관계는?</h3>
 
-<p><strong>2. 1번 을 만족하면서, <code class="language-plaintext highlighter-rouge">NOT NULL</code> 을 만족하는 필드는?</strong></p>
-<ul>
-  <li>주민 번호</li>
-  <li>고객 번호</li>
-</ul>
+<p>양쪽 입장에서 살펴봤을 때 회사와 부서의 관계는 <strong>1(회사):M(부서)</strong> 관계이다.</p>
 
-<blockquote>
-  <p><code class="language-plaintext highlighter-rouge">NOT NULL</code> 속성을 만족하지 않으면 주식별자의 자격이 없다.</p>
-</blockquote>
+<p>즉, 1(회사)의 <code class="language-plaintext highlighter-rouge">PK</code>가 M(부서)의 <code class="language-plaintext highlighter-rouge">FK</code>로 나타나야 한다.</p>
 
-<p>핸드폰이 없는 사람이 존재할 수도 있고, 이메일이 없는 사람도 존재할 수 있기 때문에 <code class="language-plaintext highlighter-rouge">NOT NULL</code> 을 만족하지 않을 있다.</p>
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>열 이름</th>
+      <th>데이터 형식</th>
+      <th>NULL 허용</th>
+      <th>AUTO INCREMENT</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PK, FK</td>
+      <td>company_id</td>
+      <td>int</td>
+      <td>x</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td>PK</td>
+      <td>department_id</td>
+      <td>smallint</td>
+      <td>x</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>department_name</td>
+      <td>varchar(50)</td>
+      <td>x</td>
+      <td>x</td>
+    </tr>
+  </tbody>
+</table>
 
-<p>결국 주식별자로 채택될 만한 필드는 <code class="language-plaintext highlighter-rouge">주민 번호</code>, <code class="language-plaintext highlighter-rouge">고객 번호</code>가 있다.</p>
+<p>이렇게 PK, FK 등을 설정하는 과정이 끝나면 테이블 스키마의 주된 골격을 설계했다고 볼 수 있다.</p>
 
-<h3 id="그럼-둘-중에-어떤-것이-주식별자로-채택하기-적합할까">그럼 둘 중에 어떤 것이 주식별자로 채택하기 적합할까???</h3>
+<p>이 다음 과정이 회사, 부서의 나머지 컬럼(속성)들을 조사 및 분석하여 채워나가는 것이다.</p>
 
-<p><code class="language-plaintext highlighter-rouge">주민 번호</code> 와 <code class="language-plaintext highlighter-rouge">고객 번호</code> 의 데이터가 어떤 측면에서 제공되는지 살펴봐야 한다.</p>
+<h3 id="회사-id와-부서-id를-묶어서-복합키를-pk로-잡으면-어떤-차이가-있을까">회사 ID와 부서 ID를 묶어서 복합키를 PK로 잡으면 어떤 차이가 있을까?</h3>
 
-<p><code class="language-plaintext highlighter-rouge">주민 번호</code>는 고객 쪽에서 제공하는 데이터이고, <code class="language-plaintext highlighter-rouge">고객 번호</code>는 DB를 관리하는 주체(회사)에서 제공하는 데이터다.</p>
+<p>결론부터 말하자면, <strong>부서 ID(department_id) 생성 체계가 달라진다.</strong> 복합키를 PK로 잡는다면, 각 회사마다 부서 ID를 1번으로 시작할 수 있다. 복합키가 아닌 부서 ID만을 PK로 잡는다면, 자동 증분을 이용해서 PK 값이 계속 증가하는 수 밖에 없다. 따라서 회사별로 동일한 부서에 대해서 동일한 부서 ID를 부여하고 싶으면 묶어서 PK를 만들면 된다. 즉, <strong>복합키를 PK(기본키)로 잡는 것은 회사-부서 관계에 있어서 의미부여 효과가 생긴다.</strong></p>
 
-<blockquote>
-  <p>일반적으로 고객들이 제공하는 데이터들은 주식별자로 채택 하지 않는다.</p>
+<h3 id="1m-관계에서-어떤-테이블의-데이터가-먼저-들어가야할까">1:M 관계에서 어떤 테이블의 데이터가 먼저 들어가야할까?</h3>
 
-  <p>고객쪽에서 제공하는 데이터는 100% 확률로 안전하다고 볼 수 없다. 반면에 회사측에서 제공 또는 부여하는 데이터는 100% 확률로 보장할 수 있기 때문에 고객쪽 데이터는 주식별자로 채택하지 않는 것이 좋다.</p>
-</blockquote>
+<p><strong>항상 반드시 부모가 먼저 삽입되어야 한다.</strong></p>
 
-<p>주민번호 경우에도 100% 확률로 확인할 수 있다는 보장이 없다. 따라서, <code class="language-plaintext highlighter-rouge">고객 번호</code>를 주식별자로 정하는 것이 적합하다.</p>
-
-<p><br /></p>
-
-<h2 id="결정자-vs-종속자">결정자 vs 종속자</h2>
-
-<p>방금 살펴폰 테이블 스키마를 가지고 결정자와 종속자를 구분해보자.</p>
-
-<ul>
-  <li>결정자(Determinant attribute): 이 값을 알면 나머지 속성 값도 알 수 있는(정해지는) 속성이다.
-    <ul>
-      <li>고객 번호</li>
-    </ul>
-  </li>
-  <li>종속자(Dependent attribute): 결정자에 의해 정해지는 속성이다.
-    <ul>
-      <li>주민 번호</li>
-      <li>고객명</li>
-      <li>폰 번호</li>
-      <li>이메일</li>
-      <li>집 주소</li>
-    </ul>
-  </li>
-</ul>
-
-<h2 id="functional-dependency함수-종속성">Functional Dependency(함수 종속성)</h2>
-
-<p>두 개의 애트리뷰트 집합 간의 제약의 일종이다. 애트리뷰트 <strong>X</strong>의 값 각각에 대해 시간에 관계없이 항상 애트리뷰트 <strong>Y</strong>의 값이 오직 하나만 연관되어 있을 때 <strong>Y</strong>는 <strong>X</strong>에 함수 종속이라 하고, <code class="language-plaintext highlighter-rouge">X -&gt; Y</code>라고 표기한다.</p>
-
-<ul>
-  <li>고객 번호 -&gt; 고객명</li>
-  <li>주민 번호 -&gt; 고객명</li>
-  <li>폰 번호 -&gt; 고객명</li>
-  <li>이메일 -&gt; 고객명</li>
-</ul>
+<div class="language-sql highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2</pre></td><td class="code"><pre class="highlight"><code><span class="k">insert</span> <span class="k">into</span> <span class="err">회사</span> <span class="k">values</span><span class="p">(</span><span class="s1">'삼성전자'</span><span class="p">);</span>
+<span class="k">insert</span> <span class="k">into</span> <span class="err">부서</span> <span class="k">values</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'총무부'</span><span class="p">);</span>
+</code></pre></td></tr></tbody></table></div></div>
 
 <hr />
 
@@ -614,7 +659,7 @@
             <a href="/tag/#/Database" rel="tag"># Database</a>
           
             
-            <a href="/tag/#/Primary%20Key" rel="tag"># Primary Key</a>
+            <a href="/tag/#/Relation" rel="tag"># Relation</a>
           
         </div>
       
@@ -630,8 +675,8 @@
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/09/PK%EC%84%A4%EA%B3%84/" rel="next" title="PK 설계 시 고려 사항">
-                <i class="fa fa-chevron-left"></i> PK 설계 시 고려 사항
+              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(3)_recursive/" rel="next" title="RDB 1:M 관계 (3)">
+                <i class="fa fa-chevron-left"></i> RDB 1:M 관계 (3)
               </a>
             
           </div>
@@ -640,8 +685,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/06/dataType/" rel="prev" title="데이터 타입">
-                데이터 타입 <i class="fa fa-chevron-right"></i>
+              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(1)/" rel="prev" title="RDB 1:M 관계 (1)">
+                RDB 1:M 관계 (1) <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -819,7 +864,7 @@
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-2"> <a class="nav-link" href="#주식별자-vs-후보식별자"> <span class="nav-number">1</span> <span class="nav-text">주식별자 vs 후보식별자</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#어떤-것을-주식별자로-정할-것인지"> <span class="nav-number">1.1</span> <span class="nav-text">어떤 것을 주식별자로 정할 것인지?</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#그럼-둘-중에-어떤-것이-주식별자로-채택하기-적합할까"> <span class="nav-number">1.2</span> <span class="nav-text">그럼 둘 중에 어떤 것이 주식별자로 채택하기 적합할까???</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#결정자-vs-종속자"> <span class="nav-number">2</span> <span class="nav-text">결정자 vs 종속자</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#functional-dependency함수-종속성"> <span class="nav-number">3</span> <span class="nav-text">Functional Dependency(함수 종속성)</span> </a> </li>
+      <li class="nav-item nav-level-2"> <a class="nav-link" href="#테이블-설계-시-숙지-사항"> <span class="nav-number">1</span> <span class="nav-text">테이블 설계 시 숙지 사항</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#1m-모델링-예제-회사--부서"> <span class="nav-number">2</span> <span class="nav-text">1:M 모델링 예제 (회사 &amp; 부서)</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#회사-테이블"> <span class="nav-number">2.1</span> <span class="nav-text">회사 테이블</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#부서-테이블"> <span class="nav-number">2.2</span> <span class="nav-text">부서 테이블</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#회사와-부서의-관계는"> <span class="nav-number">2.3</span> <span class="nav-text">회사와 부서의 관계는?</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#회사-id와-부서-id를-묶어서-복합키를-pk로-잡으면-어떤-차이가-있을까"> <span class="nav-number">2.4</span> <span class="nav-text">회사 ID와 부서 ID를 묶어서 복합키를 PK로 잡으면 어떤 차이가 있을까?</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#1m-관계에서-어떤-테이블의-데이터가-먼저-들어가야할까"> <span class="nav-number">2.5</span> <span class="nav-text">1:M 관계에서 어떤 테이블의 데이터가 먼저 들어가야할까?</span> </a> </li> </ol> </li>
     </ol>
   </div>
             
@@ -988,9 +1033,9 @@
       
       <script type="text/javascript">
           var disqus_config = function () {
-              this.page.url = 'http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/06/%EC%A3%BC%EC%8B%9D%EB%B3%84%EC%9E%90&%ED%9B%84%EB%B3%B4%EC%8B%9D%EB%B3%84%EC%9E%90/';
-              this.page.identifier = '/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/06/%EC%A3%BC%EC%8B%9D%EB%B3%84%EC%9E%90&%ED%9B%84%EB%B3%B4%EC%8B%9D%EB%B3%84%EC%9E%90/';
-              this.page.title = '주식별자와 후보식별자';
+              this.page.url = 'http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(2)/';
+              this.page.identifier = '/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(2)/';
+              this.page.title = 'RDB 1:M 관계 (2)';
           };
           var d = document, s = d.createElement('script');
           s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';

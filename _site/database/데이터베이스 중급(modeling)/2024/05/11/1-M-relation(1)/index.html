@@ -111,20 +111,19 @@
 
 
 
-<meta name="description" content="데이터베이스 중급(Modeling) - 1:1 관계">
+<meta name="description" content="데이터베이스 중급(Modeling) - 1:M 관계 (1)">
 <meta name="keywords" content="Database, Relation">
 <meta property="og:type" content="article">
-<meta property="og:title" content="RDB 1:1 관계">
-<meta property="og:url" content="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1%EA%B4%80%EA%B3%84/">
+<meta property="og:title" content="RDB 1:M 관계 (1)">
+<meta property="og:url" content="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(1)/">
 <meta property="og:site_name" content="Seung il&apos;s Blog">
-<meta property="og:description" content="데이터베이스 중급(Modeling) - 1:1 관계">
+<meta property="og:description" content="데이터베이스 중급(Modeling) - 1:M 관계 (1)">
 <meta property="og:locale" content="ko">
-<meta property="og:image" content="/post_images/Database/1-1excel.png">
-<meta property="og:image" content="/post_images/Database/1-1PK.png">
+<meta property="og:image" content="/post_images/Database/1-MRelation.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="RDB 1:1 관계">
-<meta name="twitter:description" content="데이터베이스 중급(Modeling) - 1:1 관계">
-<meta name="twitter:image" content="/post_images/Database/1-1excel.png">
+<meta name="twitter:title" content="RDB 1:M 관계 (1)">
+<meta name="twitter:description" content="데이터베이스 중급(Modeling) - 1:M 관계 (1)">
+<meta name="twitter:image" content="/post_images/Database/1-MRelation.png">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -157,7 +156,7 @@
 
 
 
-  <title>RDB 1:1 관계 | Seung il's Blog</title>
+  <title>RDB 1:M 관계 (1) | Seung il's Blog</title>
   
 
 
@@ -329,7 +328,7 @@
   
 
   <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
-    <link itemprop="mainEntityOfPage" href="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1%EA%B4%80%EA%B3%84/">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(1)/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Bang Seung IL">
@@ -349,7 +348,7 @@
           <h1 class="post-title" itemprop="name headline">
           
           
-            RDB 1:1 관계
+            RDB 1:M 관계 (1)
           
         </h1>
         
@@ -363,8 +362,8 @@
               
                 <span class="post-meta-item-text">작성일</span>
               
-              <time title="" itemprop="dateCreated datePublished" datetime="2024-06-18T00:00:00+09:00">
-                2024-06-18
+              <time title="" itemprop="dateCreated datePublished" datetime="2024-05-11T00:00:00+09:00">
+                2024-05-11
               </time>
             
 
@@ -417,9 +416,9 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1%EA%B4%80%EA%B3%84/#comments" itemprop="discussionUrl">
+                <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(1)/#comments" itemprop="discussionUrl">
                   <span class="post-comments-count disqus-comment-count"
-                        data-disqus-identifier="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1%EA%B4%80%EA%B3%84/" itemprop="commentCount"></span>
+                        data-disqus-identifier="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(1)/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -435,7 +434,7 @@
           
             
                 <div class="post-description">
-                    데이터베이스 중급(Modeling) - 1:1 관계
+                    데이터베이스 중급(Modeling) - 1:M 관계 (1)
                 </div>
             
           
@@ -466,153 +465,334 @@
 
 
   <blockquote>
-  <p>1:1 관계에 대해 알아보자.</p>
+  <p>관계형 데이터베이스에서 1:M 관계에 대해 알아보자.</p>
 </blockquote>
 
 <!-- more -->
 
-<h2 id="11-관계는-부부-관계이다">1:1 관계는 부부 관계이다.</h2>
+<h2 id="1m-관계는-부자지간-관계이다">1:M 관계는 부자지간 관계이다.</h2>
 
-<p>1 : 1 관계란 양측 입장에서 상대를 보더라도 반드시 단 하나의 관계를 가지는 것을 말한다.</p>
+<p><code class="language-plaintext highlighter-rouge">1:M</code> 관계를 <code class="language-plaintext highlighter-rouge">부자지간</code>으로 볼 수 있다. <strong>가장 중요하고 근본적인 관계이다.</strong> 가장 흔하게 나타나는 일반적인 관계이기도 하다.</p>
 
-<p>1:1 관계는 부부관계라고 말한다.</p>
-
-<p>가장 단순한 관계로 보이지만 중급 이상의 고급 기술에 해당된다.</p>
-
-<p>1:M, M:N 관계로 해결할 수 없는 많은 문제들이 이 관계를 통해서 해결되는 것을 알 수 있다.</p>
+<ul>
+  <li>파일(트리) 구조도 1:M 관계이다.</li>
+</ul>
 
 <figure align="center">
-<img src="/post_images/Database/1-1excel.png" />
-<figcaption>신랑, 신부 1대1 관계를 나타낸 엑셀 표</figcaption>
+<img src="/post_images/Database/1-MRelation.png" />
+<figcaption>부모와 자식간 1:M 관계를 맺고 있다.</figcaption>
 </figure>
 
+<p><strong>❓만약 <code class="language-plaintext highlighter-rouge">자식</code>과 <code class="language-plaintext highlighter-rouge">손자</code>라는 테이블이 또 다시 1:M 관계를 맺는다고 했을 때, <code class="language-plaintext highlighter-rouge">부모</code>와 <code class="language-plaintext highlighter-rouge">손자</code>간의 관계가 존재할까???</strong></p>
+
+<p><strong>답은, NO 이다.</strong></p>
+
+<blockquote>
+  <p>✅ 관계는 3개 테이블 간의 관계를 표현하지 않는다. 반드시 2개 테이블 간의 관계에만 관심이 있다.</p>
+</blockquote>
+
+<h3 id="pk--fk">PK &amp; FK</h3>
+
+<ul>
+  <li>부모 테이블의 <code class="language-plaintext highlighter-rouge">PK</code>가 자식 테이블에서 표현되는 것을 <code class="language-plaintext highlighter-rouge">FK(foreign key)</code>라고 한다.</li>
+  <li>자식 테이블의 <code class="language-plaintext highlighter-rouge">FK</code>는 중복될 수 있지만 부모 테이블의 <code class="language-plaintext highlighter-rouge">PK</code>는 반드시 하나이다.</li>
+</ul>
+
+<blockquote>
+  <p>🚨 권고사항</p>
+
+  <p>PK 명칭과 FK 명칭은 일치하도록 사용하는 것이 좋다.</p>
+</blockquote>
+
+<p><br /></p>
+
+<h2 id="️-관계형-데이터베이스rdb는-부모-없는-자식을-막아준다">⭐️ 관계형 데이터베이스(RDB)는 부모 없는 자식을 막아준다.</h2>
+
+<p>부모 없는 자식을 막아준다는 것이 무슨 뜻일까?</p>
+
+<p><code class="language-plaintext highlighter-rouge">RDBMS</code>는 부모 없는 자식의 관계를 허용하지 않는다. 따라서 다음과 같은 제약이 존재한다.</p>
+
+<ul>
+  <li>어떤 부모의 <code class="language-plaintext highlighter-rouge">PK</code>가 자식 테이블의 <code class="language-plaintext highlighter-rouge">FK</code>로 사용될 때, 해당 부모의 데이터를 <code class="language-plaintext highlighter-rouge">DELETE</code> 할 수 없다. 해당 부모를 삭제하면 해당 부모의 <code class="language-plaintext highlighter-rouge">PK</code>를 <code class="language-plaintext highlighter-rouge">FK</code>로 들고 있는 자식이 고아가 되기 때문이다.</li>
+  <li>부모 없는 자식은 <code class="language-plaintext highlighter-rouge">INSERT</code> 할 수 없다. 즉, <code class="language-plaintext highlighter-rouge">FK</code>가 걸려있는 테이블에 데이터를 삽입할 때는 <code class="language-plaintext highlighter-rouge">FK</code>를 반드시 설정해줘야지만 <code class="language-plaintext highlighter-rouge">INSERT</code> 할 수 있다.</li>
+</ul>
+
+<p><strong>❓만약 부모 없는 자식 데이터가 생기면 무슨 일이 벌어질까.</strong></p>
+
+<p>부모 없는 자식 데이터는 <strong>가비지 데이터(Garbage Data)</strong>가 된다. <code class="language-plaintext highlighter-rouge">outer join</code>으로 조회할 때 가비지 데이터가 드러나게 된다. 가비지 데이터가 생기면 <code class="language-plaintext highlighter-rouge">COUNT</code> 함수와 같은 집계 함수 결과에 치명적인 오차를 발생시킨다.</p>
+
+<blockquote>
+  <p>✅ 프로그래밍으로 가비지 데이터를 커버치는 행위는 쓰레기 코드를 만드는 것이다. 따라서, DB 스키마 설계 시 관계를 잘 설정해서 가비지 데이터가 생기지 않도록 하는 것이 매우 중요하다.</p>
+</blockquote>
+
+<p><br /></p>
+
+<h2 id="1m-관계-pk-fk-설정-예제">1:M 관계 PK, FK 설정 예제</h2>
+
+<p><code class="language-plaintext highlighter-rouge">학년</code>과 <code class="language-plaintext highlighter-rouge">반</code>이라는 테이블들을 설계해보자. <code class="language-plaintext highlighter-rouge">학년</code>과 <code class="language-plaintext highlighter-rouge">반</code>은 <code class="language-plaintext highlighter-rouge">1:M</code> 관계를 지닌다.</p>
+
+<h3 id="학년-테이블">학년 테이블</h3>
+
+<p>학년 번호를 <code class="language-plaintext highlighter-rouge">PK</code>로 설정했다.</p>
+
 <table>
   <thead>
     <tr>
-      <th>신랑ID</th>
-      <th>신랑명</th>
-      <th>신부ID</th>
-      <th>신부명</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>1</td>
-      <td>홍길동</td>
-      <td>B</td>
-      <td>이난영</td>
-    </tr>
-    <tr>
-      <td>2</td>
-      <td>김종남</td>
-      <td>A</td>
-      <td>황금자</td>
-    </tr>
-    <tr>
-      <td>3</td>
-      <td>이하선</td>
-      <td>C</td>
-      <td>박상순</td>
-    </tr>
-  </tbody>
-</table>
-
-<p>위 테이블은 조인 테이블의 형태이다. 1:1 관계를 나타나는 데 PK가 신랑ID, 신부ID 두 개로 잡아야 하는데 PK의 최소성을 만족하지 않는것 같다.</p>
-
-<p>테이블을 다시 설계해보자.(부부 테이블 생성)</p>
-
-<h2 id="부부-테이블">부부 테이블</h2>
-
-<table>
-  <thead>
-    <tr>
-      <th>열 이름</th>
-      <th>데이터 형식</th>
+      <th> </th>
+      <th>열이름</th>
+      <th>데이터 타입</th>
       <th>NULL 허용</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td>부부Id</td>
-      <td>int</td>
+      <td>PK</td>
+      <td>학년번호</td>
+      <td>tinyint</td>
       <td>x</td>
     </tr>
     <tr>
-      <td>신랑명</td>
-      <td>varchar(50)</td>
-      <td>o</td>
-    </tr>
-    <tr>
-      <td>신부명</td>
+      <td> </td>
+      <td>학년이름</td>
       <td>varchar(50)</td>
       <td>o</td>
     </tr>
   </tbody>
 </table>
 
-<div class="language-sql highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2</pre></td><td class="code"><pre class="highlight"><code><span class="k">INSERT</span> <span class="k">INTO</span> <span class="err">부부</span>
-<span class="k">VALUES</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'홍길동'</span><span class="p">,</span> <span class="s1">'어우동'</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">'김길동'</span><span class="p">,</span> <span class="s1">'황진이'</span><span class="p">);</span>
+<div class="language-sql highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5</pre></td><td class="code"><pre class="highlight"><code><span class="k">insert</span> <span class="k">into</span> <span class="err">학년</span> <span class="k">values</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">'1학년'</span><span class="p">);</span>
+<span class="k">insert</span> <span class="k">into</span> <span class="err">학년</span> <span class="k">values</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="s1">'2학년'</span><span class="p">);</span>
+<span class="k">insert</span> <span class="k">into</span> <span class="err">학년</span> <span class="k">values</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="s1">'3학년'</span><span class="p">);</span>
+
+<span class="k">select</span> <span class="o">*</span> <span class="k">from</span> <span class="err">학년</span><span class="p">;</span>
 </code></pre></td></tr></tbody></table></div></div>
 
 <table>
   <thead>
     <tr>
       <th> </th>
-      <th>부부Id</th>
-      <th>신랑명</th>
-      <th>신부명</th>
+      <th>학년번호</th>
+      <th>학년이름</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <td>1</td>
       <td>1</td>
-      <td>홍길동</td>
-      <td>어우동</td>
+      <td>1학년</td>
     </tr>
     <tr>
       <td>2</td>
       <td>2</td>
-      <td>김길동</td>
-      <td>황진이</td>
+      <td>2학년</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>3</td>
+      <td>3학년</td>
     </tr>
   </tbody>
 </table>
 
-<blockquote>
-  <p>우리가 부부 테이블fh 하고 싶은 것은 이 하나의 테이블을 1:1 관계를 유지하되 두 개의 객체(신랑, 신부)로 분리하는 것이다.</p>
-</blockquote>
+<h3 id="반-테이블">반 테이블</h3>
+
+<p>현재 <code class="language-plaintext highlighter-rouge">PK</code>만 설정되어 있다.</p>
 
 <blockquote>
-  <p>왜 분리해야 되는가?</p>
-
-  <p>신랑, 신부별로 각각 자신만의 특성이 존재하기 때문에 서로 마스터 테이블로 분리하는 것이 좋다.</p>
+  <p>💡 학년번호와 반번호를 함께 복합키로 설정한 이유는 학년별로 반 번호를 1반 부터 시작하도록 하기 위함이다. 만약, 반 테이블의 PK로 반 번호만을 설정하면 반 번호의 중복이 불가능하기 때문에 학년 별로 1반부터 시작하지 못한다. 이처럼 복합키를 이용하면 두 번째 필드(반 번호)의 중복을 허용할 수 있게 된다.</p>
 </blockquote>
 
-<h2 id="11-관계-테이블의-pk">1:1 관계 테이블의 PK</h2>
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>열이름</th>
+      <th>데이터 타입</th>
+      <th>NULL 허용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PK</td>
+      <td>학년번호</td>
+      <td>tinyint</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td>PK</td>
+      <td>반번호</td>
+      <td>tinyint</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>반이름</td>
+      <td>varchar(50)</td>
+      <td>o</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4</pre></td><td class="code"><pre class="highlight"><code><span class="k">insert</span> <span class="k">into</span> <span class="err">반</span> <span class="k">values</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'1반'</span><span class="p">);</span>
+<span class="k">insert</span> <span class="k">into</span> <span class="err">반</span> <span class="k">values</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'1반'</span><span class="p">);</span>
+
+<span class="k">select</span> <span class="o">*</span> <span class="k">from</span> <span class="err">반</span><span class="p">;</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<p>두 번째 행(row) 데이터는 부모가  없다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>학년번호</th>
+      <th>반번호</th>
+      <th>반이름</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1반</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>4</td>
+      <td>1</td>
+      <td>1반</td>
+    </tr>
+  </tbody>
+</table>
+
+<p><strong>외래 키 설정이 없기 때문</strong>에 부모 없는 자식 데이터(가비지 데이터)가 삽입되어 버렸다.</p>
+
+<p>가비지 데이터를 우선 삭제해주자.</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1</pre></td><td class="code"><pre class="highlight"><code><span class="k">delete</span> <span class="k">from</span> <span class="err">반</span> <span class="k">where</span> <span class="err">학년번호</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<p>학년 테이블의 <code class="language-plaintext highlighter-rouge">학년번호</code>를 반 테이블의 학년번호의 <code class="language-plaintext highlighter-rouge">외래키</code>로 설정해준다.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>열이름</th>
+      <th>데이터 타입</th>
+      <th>NULL 허용</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>PK, FK</td>
+      <td>학년번호</td>
+      <td>tinyint</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td>PK</td>
+      <td>반번호</td>
+      <td>tinyint</td>
+      <td>x</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td>반이름</td>
+      <td>varchar(50)</td>
+      <td>o</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>다시 INSERT 구문을 실행해보면</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5</pre></td><td class="code"><pre class="highlight"><code><span class="k">insert</span> <span class="k">into</span> <span class="err">반</span> <span class="k">values</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'1반'</span><span class="p">);</span>
+<span class="k">insert</span> <span class="k">into</span> <span class="err">반</span> <span class="k">values</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'1반'</span><span class="p">);</span>
+<span class="k">insert</span> <span class="k">into</span> <span class="err">반</span> <span class="k">values</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'3반'</span><span class="p">);</span>
+
+<span class="k">select</span> <span class="o">*</span> <span class="k">from</span> <span class="err">반</span><span class="p">;</span>
+</code></pre></td></tr></tbody></table></div></div>
 
 <blockquote>
-  <p>1:1 관계는 서로의 PK를 FK로 참조하진 않지만, 서로의 PK를 자신의 PK로 사용하는 형태이다. 일심동체</p>
+  <p>✅ FOREIGN KEY 제약 조건에 위배되는 데이터는 INSERT 되지 않는다. 즉, FK가 설정된 테이블은 해당 FK 값이 부모 테이블의 PK 값으로 존재하는지 먼저 탐색한다. 그러고나서 부모(PK)가 정상적으로 있는 경우에만 INSERT가 수행된다.</p>
 </blockquote>
 
-<figure align="center">
-<img src="/post_images/Database/1-1PK.png" />
-<figcaption>서로의 PK를 자신의 PK로 사용</figcaption>
-</figure>
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>학년번호</th>
+      <th>반번호</th>
+      <th>반이름</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1반</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>3</td>
+      <td>1</td>
+      <td>1반</td>
+    </tr>
+  </tbody>
+</table>
 
-<p>1:1 관계를 맺은 두 테이블을 조인하면 위에서 살펴봤던 부부 테이블의 결과(엑셀) 테이블과 동일한 결과를 얻어낼 수 있다.</p>
+<p>학년과 반 테이블을 조인하여 한 번에 조회해보자.</p>
 
-<h2 id="부부-테이블-vs-신랑신부-개별-테이블">부부 테이블 VS 신랑,신부 개별 테이블</h2>
+<div class="language-sql highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3</pre></td><td class="code"><pre class="highlight"><code><span class="k">select</span> <span class="o">*</span> 
+<span class="k">from</span> <span class="err">학년</span> <span class="n">a</span>
+<span class="k">join</span> <span class="err">반</span> <span class="n">b</span> <span class="k">on</span> <span class="n">a</span><span class="p">.</span><span class="err">학년번호</span> <span class="o">=</span> <span class="n">b</span><span class="p">.</span><span class="err">학년번호</span><span class="p">;</span>
+</code></pre></td></tr></tbody></table></div></div>
 
-<p>부부 테이블에 모든 속성들을 추가해서 사용해도 문제는 없지만 부부 테이블이 다른 관계 테이블과 관계를 맺게되면 조회 시 쓸데 없는 컬럼들을 제거 해줘야 하는 불편함이 존재할 수도 있다.</p>
+<table>
+  <thead>
+    <tr>
+      <th> </th>
+      <th>학년번호</th>
+      <th>학년이름</th>
+      <th>학년번호</th>
+      <th>반번호</th>
+      <th>반이름</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>1</td>
+      <td>1학년</td>
+      <td>1</td>
+      <td>1</td>
+      <td>1반</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>3</td>
+      <td>3학년</td>
+      <td>3</td>
+      <td>1</td>
+      <td>1반</td>
+    </tr>
+  </tbody>
+</table>
 
-<p>신랑, 신부 개별 테이블로 분리하는 것이 <strong>각각 속성들을 관리하기도 편리</strong>하고,</p>
+<p><br /></p>
 
-<p>다른 관계 테이블들과 <strong>관계를 확장해나갈 수 있다</strong>는 장점이 존재하기 때문에 개별 테이블로 분리하여 관리하는 것이 더 좋다고 본다.</p>
+<h2 id="요약-및-정리">요약 및 정리</h2>
 
-<blockquote>
-  <h2 id="️-정리하면-11-관계는-원래-일심동체로-하나이다-하지만-테이블은-두-개로-관리되는-것이-유용한-편이다">⭐️ 정리하면, 1:1 관계는 원래 일심동체로 하나이다. 하지만 테이블은 두 개로 관리되는 것이 유용한 편이다.</h2>
-</blockquote>
+<ul>
+  <li>1:M 관계는 부자지간 관계이다.</li>
+  <li>PK &amp; FK 설정이 제대로 되어 있다면 RDB는 부모 없는 자식 데이터 발생을 막아준다.</li>
+  <li>PK 설정 전략에 따라 특정 필드의 중복을 허용할 수도 있고 방지할 수도 있다.</li>
+</ul>
+
+<hr />
 
 
       
@@ -663,8 +843,8 @@
         <div class="post-nav" id="post-nav-id">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/%EC%84%B1%EC%A0%81%EA%B4%80%EB%A6%AC%EC%97%B0%EC%8A%B53/" rel="next" title="성적 관리 모델링 연습 (3)">
-                <i class="fa fa-chevron-left"></i> 성적 관리 모델링 연습 (3)
+              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(2)/" rel="next" title="RDB 1:M 관계 (2)">
+                <i class="fa fa-chevron-left"></i> RDB 1:M 관계 (2)
               </a>
             
           </div>
@@ -673,8 +853,8 @@
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/database/transaction/db%20engineering/2024/06/15/Transaction/" rel="prev" title="DB에서 트랜잭션이란 무엇인가?">
-                DB에서 트랜잭션이란 무엇인가? <i class="fa fa-chevron-right"></i>
+              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/09/PK-design/" rel="prev" title="PK 설계 시 고려 사항">
+                PK 설계 시 고려 사항 <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -852,7 +1032,7 @@
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-2"> <a class="nav-link" href="#11-관계는-부부-관계이다"> <span class="nav-number">1</span> <span class="nav-text">1:1 관계는 부부 관계이다.</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#부부-테이블"> <span class="nav-number">2</span> <span class="nav-text">부부 테이블</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#11-관계-테이블의-pk"> <span class="nav-number">3</span> <span class="nav-text">1:1 관계 테이블의 PK</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#부부-테이블-vs-신랑신부-개별-테이블"> <span class="nav-number">4</span> <span class="nav-text">부부 테이블 VS 신랑,신부 개별 테이블</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#️-정리하면-11-관계는-원래-일심동체로-하나이다-하지만-테이블은-두-개로-관리되는-것이-유용한-편이다"> <span class="nav-number">5</span> <span class="nav-text">⭐️ 정리하면, 1:1 관계는 원래 일심동체로 하나이다. 하지만 테이블은 두 개로 관리되는 것이 유용한 편이다.</span> </a> </li>
+      <li class="nav-item nav-level-2"> <a class="nav-link" href="#1m-관계는-부자지간-관계이다"> <span class="nav-number">1</span> <span class="nav-text">1:M 관계는 부자지간 관계이다.</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#pk--fk"> <span class="nav-number">1.1</span> <span class="nav-text">PK &amp; FK</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#️-관계형-데이터베이스rdb는-부모-없는-자식을-막아준다"> <span class="nav-number">2</span> <span class="nav-text">⭐️ 관계형 데이터베이스(RDB)는 부모 없는 자식을 막아준다.</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#1m-관계-pk-fk-설정-예제"> <span class="nav-number">3</span> <span class="nav-text">1:M 관계 PK, FK 설정 예제</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#학년-테이블"> <span class="nav-number">3.1</span> <span class="nav-text">학년 테이블</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#반-테이블"> <span class="nav-number">3.2</span> <span class="nav-text">반 테이블</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#요약-및-정리"> <span class="nav-number">4</span> <span class="nav-text">요약 및 정리</span> </a> </li>
     </ol>
   </div>
             
@@ -1021,9 +1201,9 @@
       
       <script type="text/javascript">
           var disqus_config = function () {
-              this.page.url = 'http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1%EA%B4%80%EA%B3%84/';
-              this.page.identifier = '/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/1-1%EA%B4%80%EA%B3%84/';
-              this.page.title = 'RDB 1:1 관계';
+              this.page.url = 'http://localhost:4000/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(1)/';
+              this.page.identifier = '/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/05/11/1-M-relation(1)/';
+              this.page.title = 'RDB 1:M 관계 (1)';
           };
           var d = document, s = d.createElement('script');
           s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
