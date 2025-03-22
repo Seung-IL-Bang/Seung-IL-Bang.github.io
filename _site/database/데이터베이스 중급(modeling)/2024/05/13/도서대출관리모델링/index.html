@@ -119,16 +119,16 @@
 <meta property="og:site_name" content="Seung il&apos;s Blog">
 <meta property="og:description" content="데이터베이스 중급(Modeling) - 도서대출관리 모델링 연습 (1)">
 <meta property="og:locale" content="ko">
-<meta property="og:image" content="/post_images/Database/논리적설계.png">
-<meta property="og:image" content="/post_images/Database/서고와서가.png">
-<meta property="og:image" content="/post_images/Database/서가와책.png">
-<meta property="og:image" content="/post_images/Database/책과목차.png">
-<meta property="og:image" content="/post_images/Database/책-대출-고객.png">
-<meta property="og:image" content="/post_images/Database/초안.png">
+<meta property="og:image" content="/post_images/Database/logical-theory.png">
+<meta property="og:image" content="/post_images/Database/libraries-shelves.png">
+<meta property="og:image" content="/post_images/Database/bookshelves.png">
+<meta property="og:image" content="/post_images/Database/book-lists.png">
+<meta property="og:image" content="/post_images/Database/books-loan-customer.png">
+<meta property="og:image" content="/post_images/Database/Draft.png">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="도서대출관리 모델링 연습 (1)">
 <meta name="twitter:description" content="데이터베이스 중급(Modeling) - 도서대출관리 모델링 연습 (1)">
-<meta name="twitter:image" content="/post_images/Database/논리적설계.png">
+<meta name="twitter:image" content="/post_images/Database/logical-theory.png">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -513,7 +513,7 @@
 </ul>
 
 <figure align="center">
-<img src="/post_images/Database/논리적설계.png" />
+<img src="/post_images/Database/logical-theory.png" />
 <figcaption></figcaption>
 </figure>
 
@@ -528,7 +528,7 @@
 
 <h2 id="서고와-서가">서고와 서가</h2>
 <figure align="center">
-<img src="/post_images/Database/서고와서가.png" />
+<img src="/post_images/Database/libraries-shelves.png" />
 <figcaption>PK를 어떻게 잡는지에 따라 서가ID의 생성체계가 달라진다. 서가2는 서고ID가 null 허용이다.</figcaption>
 </figure>
 
@@ -553,12 +553,12 @@
 <p><strong>상속형 PK</strong>를 사용하는 것이 안전하니 상속형 PK를 사용한다고 가정해보자.</p>
 
 <figure align="center">
-<img src="/post_images/Database/서가와책.png" />
+<img src="/post_images/Database/bookshelves.png" />
 <figcaption>서가와 책 1:M 관계</figcaption>
 </figure>
 
 <figure align="center">
-<img src="/post_images/Database/책과목차.png" />
+<img src="/post_images/Database/book-lists.png" />
 <figcaption>책과 목차 1:M 관계</figcaption>
 </figure>
 
@@ -575,7 +575,7 @@
 <p>즉, <strong>상속형 PK</strong>는 계승될 수록 PK에 참여하는 컬럼 개수가 늘어난다는 단점이 있다.</p>
 
 <figure align="center">
-<img src="/post_images/Database/책-대출-고객.png" />
+<img src="/post_images/Database/books-loan-customer.png" />
 <figcaption>(책 - 대출 - 고객) M:N 관계 테이블</figcaption>
 </figure>
 
@@ -585,7 +585,7 @@
 </ul>
 
 <figure align="center">
-<img src="/post_images/Database/초안.png" />
+<img src="/post_images/Database/Draft.png" />
 <figcaption>1:1 관계를 완성하기 전 초안 ERD</figcaption>
 </figure>
 
