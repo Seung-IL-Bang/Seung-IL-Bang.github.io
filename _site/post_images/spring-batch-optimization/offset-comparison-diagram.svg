@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <!-- Background -->
+  <rect width="800" height="500" fill="#f8f9fa" />
+  
+  <!-- Title -->
+  <text x="400" y="30" font-family="Arial" font-size="20" text-anchor="middle" font-weight="bold">Limit-Offset vs Zero-Offset 비교</text>
+  
+  <!-- Limit-Offset Section -->
+  <text x="200" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Limit-Offset 방식</text>
+  
+  <!-- Page 1 -->
+  <rect x="50" y="90" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
+  <text x="200" y="125" font-family="Arial" font-size="14" text-anchor="middle">Page 1: LIMIT 1000 OFFSET 0</text>
+  <rect x="50" y="90" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" />
+  <text x="200" y="145" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
+  
+  <!-- Page 2 -->
+  <rect x="50" y="160" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
+  <text x="200" y="195" font-family="Arial" font-size="14" text-anchor="middle">Page 2: LIMIT 1000 OFFSET 1000</text>
+  <rect x="50" y="160" width="300" height="60" rx="5" ry="5" fill-opacity="0.2" fill="#ff9999" stroke="none" />
+  <rect x="50" y="160" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" stroke-dasharray="5,5" />
+  <text x="130" y="185" font-family="Arial" font-size="12" text-anchor="middle" fill="#cc0000">스캔 영역</text>
+  <text x="200" y="215" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
+  
+  <!-- Page 3 -->
+  <rect x="50" y="230" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
+  <text x="200" y="265" font-family="Arial" font-size="14" text-anchor="middle">Page 3: LIMIT 1000 OFFSET 2000</text>
+  <rect x="50" y="230" width="300" height="60" rx="5" ry="5" fill-opacity="0.4" fill="#ff6666" stroke="none" />
+  <rect x="50" y="230" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" stroke-dasharray="5,5" />
+  <text x="130" y="255" font-family="Arial" font-size="12" text-anchor="middle" fill="#cc0000">스캔 영역</text>
+  <text x="200" y="285" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
+  
+  <!-- Performance indicator -->
+  <text x="200" y="330" font-family="Arial" font-size="14" text-anchor="middle" font-style="italic" fill="#cc0000">오프셋이 커질수록 성능 저하!</text>
+  <path d="M 100 310 L 300 310 L 250 350 L 100 350 Z" fill-opacity="0.3" fill="#ff0000" stroke="#cc0000" stroke-width="2" />
+  
+  <!-- Zero-Offset Section -->
+  <text x="600" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Zero-Offset 방식</text>
+  
+  <!-- Page 1 -->
+  <rect x="450" y="90" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
+  <text x="600" y="125" font-family="Arial" font-size="14" text-anchor="middle">Page 1: WHERE id > 0 LIMIT 1000</text>
+  <rect x="450" y="90" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" />
+  <text x="600" y="145" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
+  
+  <!-- Page 2 -->
+  <rect x="450" y="160" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
+  <text x="600" y="195" font-family="Arial" font-size="14" text-anchor="middle">Page 2: WHERE id > 1000 LIMIT 1000</text>
+  <rect x="450" y="160" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" />
+  <text x="600" y="215" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
+  
+  <!-- Page 3 -->
+  <rect x="450" y="230" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
+  <text x="600" y="265" font-family="Arial" font-size="14" text-anchor="middle">Page 3: WHERE id > 2000 LIMIT 1000</text>
+  <rect x="450" y="230" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" />
+  <text x="600" y="285" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
+  
+  <!-- Performance indicator -->
+  <text x="600" y="330" font-family="Arial" font-size="14" text-anchor="middle" font-style="italic" fill="#009900">성능 일정하게 유지!</text>
+  <path d="M 500 310 L 700 310 L 650 350 L 500 350 Z" fill-opacity="0.3" fill="#00cc00" stroke="#009900" stroke-width="2" />
+  
+  <!-- Comparison text -->
+  <text x="400" y="400" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">성능 비교</text>
+  
+  <text x="150" y="430" font-family="Arial" font-size="14" text-anchor="middle" fill="#cc3333">• Limit-Offset: O(n²) 복잡도</text>
+  <text x="150" y="455" font-family="Arial" font-size="14" text-anchor="middle" fill="#cc3333">• 데이터량 증가에 따라 지수적 성능 저하</text>
+  
+  <text x="600" y="430" font-family="Arial" font-size="14" text-anchor="middle" fill="#339933">• Zero-Offset: O(n) 복잡도</text>
+  <text x="600" y="455" font-family="Arial" font-size="14" text-anchor="middle" fill="#339933">• 데이터량에 관계없이 일정한 성능</text>
+  
+  <!-- Divider -->
+  <line x1="400" y1="90" x2="400" y2="370" stroke="#ccc" stroke-width="2" stroke-dasharray="5,5" />
+  <line x1="100" y1="380" x2="700" y2="380" stroke="#ccc" stroke-width="2" />
+</svg>

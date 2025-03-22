@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-22T14:15:15+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Batch 대용량 처리의 이해</title><link href="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/" rel="alternate" type="text/html" title="Spring Batch 대용량 처리의 이해" /><published>2025-03-22T00:00:00+09:00</published><updated>2025-03-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-22T18:56:51+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Batch 대용량 처리의 이해</title><link href="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/" rel="alternate" type="text/html" title="Spring Batch 대용량 처리의 이해" /><published>2025-03-22T00:00:00+09:00</published><updated>2025-03-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/"><![CDATA[<blockquote>
   <p>스프링 배치를 통한 대용량 처리에 대해 알아봅시다!</p>
 </blockquote>
 
@@ -65,9 +65,378 @@
 
 <p>사이드 프로젝트를 진행하면서 위 문제들을 어떻게 개선해나갔는지 다음 포스트들에서 하나씩 자세히 살펴보도록 하겠습니다.</p>
 
-<p>감사합니다.</p>
+<h2 id="감사합니다">감사합니다.</h2>]]></content><author><name>Bang Seung IL</name></author><category term="Spring Batch" /><category term="Spring Batch" /><summary type="html"><![CDATA[스프링 배치를 통한 대용량 처리에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Batch 효과적인 대량 데이터 리드(Read) 전략</title><link href="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-Optimized-read-strategy/" rel="alternate" type="text/html" title="Spring Batch 효과적인 대량 데이터 리드(Read) 전략" /><published>2025-03-22T00:00:00+09:00</published><updated>2025-03-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-Optimized-read-strategy</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-Optimized-read-strategy/"><![CDATA[<blockquote>
+  <p>스프링 배치를 이용할 때 효과적인 대량 데이터를 읽기 위한 전략에 대해 알아봅시다!</p>
+</blockquote>
 
-<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Batch" /><category term="Spring Batch" /><summary type="html"><![CDATA[스프링 배치를 통한 대용량 처리에 대해 알아봅시다!]]></summary></entry><entry><title type="html">ELK 스택을 활용한 MSA 중앙 집중식 로그 모니터링</title><link href="http://localhost:4000/msa/elk/2025/02/24/ELK-Stack-Log-Analysis/" rel="alternate" type="text/html" title="ELK 스택을 활용한 MSA 중앙 집중식 로그 모니터링" /><published>2025-02-24T00:00:00+09:00</published><updated>2025-02-24T00:00:00+09:00</updated><id>http://localhost:4000/msa/elk/2025/02/24/ELK-Stack-Log-Analysis</id><content type="html" xml:base="http://localhost:4000/msa/elk/2025/02/24/ELK-Stack-Log-Analysis/"><![CDATA[<blockquote>
+<!-- more -->
+
+<h1 id="-들어가기">🚀 들어가기</h1>
+
+<p>본 포스트에서는 스프링 배치의 핵심 개념인 청크 프로세싱(Chunk Processing)에 대해 알아보고, 대량의 데이터를 효율적으로 읽기 위해 사이드 프로젝트에서 실제 적용한 전략과 그 성능 개선 결과를 공유하고자 합니다.</p>
+
+<h1 id="청크-프로세싱-개념과-중요성">청크 프로세싱 개념과 중요성</h1>
+
+<p>1,000만 개의 데이터를 배치 처리한다고 가정해 보겠습니다. 이러한 대량의 데이터를 한 번에 메모리에 로드하는 것은 물리적으로 불가능하거나 심각한 성능 저하를 초래합니다. 따라서 1,000개씩 나누어 총 10,000번에 걸쳐 처리하는 방식이 필요합니다.</p>
+
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/chunk-processing-diagram.svg" />
+<figcaption></figcaption>
+</figure>
+
+<p>이렇게 메모리 제약을 고려하여 데이터를 일정 크기로 나누어 순차적으로 처리하는 방식을 <strong>청크 프로세싱(Chunk Processing)</strong>이라고 합니다. 스프링 배치는 이러한 청크 단위 처리를 기본 아키텍처로 채택하고 있어 대용량 데이터 처리에 최적화되어 있습니다.</p>
+
+<h1 id="itemreader">ItemReader</h1>
+
+<p>스프링 배치에서 청크 프로세싱을 구현할 때, 데이터 읽기(Read) 역할은 <code class="language-plaintext highlighter-rouge">ItemReader</code> 인터페이스를 구현한 구현체가 담당합니다. 저는 초기에 JPA의 개발 편의성과 페이징 기능을 동시에 활용할 수 있는 <code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>를 사용했습니다. 하지만 실제 대용량 데이터 처리 과정에서 다음과 같은 심각한 한계점을 경험했습니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>의 주요 문제점:</p>
+
+<ol>
+  <li><strong>데이터 일관성 문제</strong>: 조건절에 사용하는 컬럼이 배치 작업 중 업데이트될 경우 페이지네이션 불일치 발생</li>
+  <li><strong>JPA 오버헤드</strong>: 불필요한 JPA 기능으로 인한 성능 오버헤드</li>
+  <li><strong>Limit-Offset 방식의 구조적 한계</strong>: 오프셋이 증가할수록 기하급수적으로 성능 저하</li>
+</ol>
+
+<h1 id="페이지네이션-오류">페이지네이션 오류</h1>
+
+<p><code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>를 사용하면서 가장 먼저 직면한 문제는 페이지네이션이 정확하게 동작하지 않는 현상이었습니다. 예를 들어, 예상했던 10만 건의 처리 대상 데이터 중 약 2만 건만 처리되고 작업이 종료되는 문제가 발생했습니다.</p>
+
+<p>이 문제의 근본 원인은 <code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>의 내부 동작 방식과 <strong>OFFSET 기반 페이징</strong>의 한계에 있었습니다. 스프링 배치는 각 청크 단위로 읽기(<code class="language-plaintext highlighter-rouge">ItemReader</code>) → 처리(<code class="language-plaintext highlighter-rouge">ItemProcessor</code>) → 쓰기(<code class="language-plaintext highlighter-rouge">ItemWriter</code>) 사이클을 반복합니다. <code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>가 동작할 때 발생하는 주요 이슈는 다음과 같습니다:</p>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>는 자체적으로 <code class="language-plaintext highlighter-rouge">EntityManager</code>를 생성하고 관리합니다.</li>
+  <li>트랜잭션 내에서 처리될 때, 읽어온 엔티티들은 영속 상태로 유지됩니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Processor</code>나 <code class="language-plaintext highlighter-rouge">Writer</code>에서 엔티티를 업데이트하면, 이 변경사항은 여전히 <code class="language-plaintext highlighter-rouge">Reader</code>의 <code class="language-plaintext highlighter-rouge">EntityManager</code>에 의해 관리됩니다.</li>
+  <li>다음 청크를 읽기 위해 ItemReader가 실행될 때, 변경된 내용이 데이터베이스에 반영됩니다.</li>
+  <li><strong>LIMIT-OFFSET</strong> 방식의 페이징은 데이터 변경 후에도 원래 개수만큼 <strong>OFFSET</strong>을 증가시키므로 데이터 누락이 발생합니다.</li>
+</ol>
+
+<p>초기 작성했던 다음 코드는 이러한 문제 상황을 보여줍니다:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Override</span>
+<span class="nd">@NonNull</span>
+<span class="kd">public</span> <span class="nc">Query</span> <span class="nf">createQuery</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">getEntityManager</span><span class="o">()</span>
+            <span class="o">.</span><span class="na">createQuery</span><span class="o">(</span>
+                      <span class="s">"SELECT op "</span> <span class="o">+</span>
+                            <span class="s">"FROM OrderProduct op "</span> <span class="o">+</span>
+                            <span class="s">"LEFT JOIN Claim cl ON op.orderProductId = cl.orderProductId "</span> <span class="o">+</span>
+                            <span class="s">"WHERE op.deliveryCompletedAt BETWEEN :startTime AND :endTime "</span> <span class="o">+</span>
+                            <span class="s">"AND op.deliveryStatus = 'DELIVERED' "</span> <span class="o">+</span>
+                            <span class="s">"AND op.purchaseConfirmedAt IS NULL "</span> <span class="o">+</span>
+                            <span class="s">"AND (cl.claimId IS NULL OR cl.completedAt IS NOT NULL) "</span> <span class="o">+</span>
+                            <span class="s">"ORDER BY op.orderProductId ASC"</span><span class="o">,</span> <span class="nc">OrderProduct</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">setParameter</span><span class="o">(</span><span class="s">"startTime"</span><span class="o">,</span> <span class="n">startTime</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">setParameter</span><span class="o">(</span><span class="s">"endTime"</span><span class="o">,</span> <span class="n">endTime</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>위 쿼리와 함께 발생하는 구체적인 문제 시나리오:</p>
+
+<ol>
+  <li>조건절에 <code class="language-plaintext highlighter-rouge">purchaseConfirmedAt IS NULL</code> 조건이 포함되어 있습니다.</li>
+  <li>청크 크기를 1,000으로 설정하여 첫 번째 1,000개 레코드(ID 1~1000)를 읽고 처리합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">ItemWriter</code> 단계에서 처리된 레코드의 <code class="language-plaintext highlighter-rouge">purchaseConfirmedAt</code> 필드가 현재 시간으로 업데이트됩니다.</li>
+  <li>두 번째 청크 작업 시, <code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>는 다음과 같은 내부 쿼리를 생성합니다:</li>
+</ol>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="n">op</span> <span class="k">FROM</span> <span class="n">OrderProduct</span> <span class="n">op</span>
+<span class="k">WHERE</span> <span class="n">op</span><span class="p">.</span><span class="n">deliveryCompletedAt</span> <span class="k">BETWEEN</span> <span class="p">:</span><span class="n">startTime</span> <span class="k">AND</span> <span class="p">:</span><span class="n">endTime</span>
+<span class="k">AND</span> <span class="n">op</span><span class="p">.</span><span class="n">deliveryStatus</span> <span class="o">=</span> <span class="s1">'DELIVERED'</span>
+<span class="k">AND</span> <span class="n">op</span><span class="p">.</span><span class="n">purchaseConfirmedAt</span> <span class="k">IS</span> <span class="k">NULL</span>
+<span class="k">AND</span> <span class="p">(</span><span class="n">cl</span><span class="p">.</span><span class="n">claimId</span> <span class="k">IS</span> <span class="k">NULL</span> <span class="k">OR</span> <span class="n">cl</span><span class="p">.</span><span class="n">completedAt</span> <span class="k">IS</span> <span class="k">NOT</span> <span class="k">NULL</span><span class="p">)</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">op</span><span class="p">.</span><span class="n">orderProductId</span> <span class="k">ASC</span>
+<span class="k">OFFSET</span> <span class="mi">1000</span> <span class="k">LIMIT</span> <span class="mi">1000</span>
+</code></pre></div></div>
+
+<ul>
+  <li>그러나 이 시점에서 처음 1,000개 레코드는 이미 <code class="language-plaintext highlighter-rouge">purchaseConfirmedAt IS NULL</code> 조건을 더 이상 만족하지 않게 됩니다.</li>
+  <li>따라서 원래 데이터베이스에서 1001~2000 ID를 가진 레코드들이 아닌, 새롭게 조건을 만족하는 처음 1,000개 중에서 OFFSET 1000을 적용하게 됩니다.</li>
+  <li>이로 인해 원래 처리되어야 할 데이터 중 일부(OFFSET으로 인해 건너뛰는 데이터)가 누락되는 현상이 발생합니다.</li>
+</ul>
+
+<p>이러한 문제의 근본적인 원인은 <code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>가 내부적으로 채택하고 있는 <strong>LIMIT-OFFSET</strong> 방식의 페이징과 <code class="language-plaintext highlighter-rouge">EntityManager</code>의 영속성 관리 방식이 조합되어 발생하는 구조적 한계에 있습니다.</p>
+
+<p>따라서 <code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>은 <strong>처리 과정에서 조건절의 컬럼이 변경될 경우, 페이지네이션 로직이 정상적으로 동작하지 않아 데이터 누락이 발생</strong>합니다.</p>
+
+<h1 id="limit-offset-방식의-한계">Limit-Offset 방식의 한계</h1>
+
+<p><code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>가 사용하는 <code class="language-plaintext highlighter-rouge">Limit-Offset</code> 페이지네이션 방식은 대용량 데이터 처리 시 치명적인 성능 저하를 초래합니다. 이 방식의 핵심적인 문제는 <strong>오프셋이 커질수록 데이터베이스가 처리해야 하는 작업량이 기하급수적으로 증가</strong>한다는 점입니다.</p>
+
+<p>예를 들어, <code class="language-plaintext highlighter-rouge">LIMIT 1000 OFFSET 9000</code>과 같은 쿼리를 실행할 경우:</p>
+
+<ol>
+  <li>데이터베이스는 처음부터 9,000번째 레코드까지 모두 스캔합니다.</li>
+  <li>그 후 9,001번째부터 10,000번째까지의 1,000개 레코드만 실제로 반환합니다.</li>
+</ol>
+
+<p>즉, 오프셋이 커질수록 실제로 <strong>필요한 데이터는 일정한데 반해, 스캔해야 하는 데이터는 계속 증가</strong>하게 됩니다. 수천만 건의 데이터를 처리해야 하는 배치 작업에서 이러한 방식은 심각한 성능 병목을 야기합니다.</p>
+
+<h1 id="limit-offset-vs-zero-offset-비교-다이어그램">Limit-Offset vs Zero-Offset 비교 다이어그램</h1>
+
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/offset-comparison-diagram.svg" />
+<figcaption></figcaption>
+</figure>
+
+<p>위 다이어그램은 두 방식의 차이점을 명확하게 보여주는 자료입니다. Limit-Offset의 구조적 한계점 때문에 왜 <strong>Zero-Offset</strong> 방식이 필요한지를 이해할 수 있습니다.</p>
+
+<h1 id="zero-offset-아이템-리더-구현과-성능-개선">Zero-Offset 아이템 리더 구현과 성능 개선</h1>
+
+<p><code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code>의 한계를 극복하기 위해, 저는 <code class="language-plaintext highlighter-rouge">Zero-Offset</code> 방식(또는 <strong>키셋 페이징</strong>)을 구현한 커스텀 ItemReader를 개발했습니다.</p>
+
+<p><strong>Zero-Offset</strong> 방식의 핵심 아이디어는 다음과 같습니다:</p>
+
+<ol>
+  <li><strong>항상 오프셋을 0으로 유지</strong>: 페이지 이동 시에도 항상 OFFSET 0을 사용</li>
+  <li><strong>ID 기반 필터링</strong>: 이전 페이지에서 처리한 마지막 레코드의 ID를 기준으로 다음 데이터를 조회</li>
+  <li><strong>PK 인덱스 활용</strong>: 기본키(PK) 인덱스를 최대한 활용하여 조회 성능 최적화</li>
+</ol>
+
+<p>구현을 위한 필수 조건:</p>
+
+<ol>
+  <li>PK를 기준으로 데이터를 명시적으로 정렬 (예: <code class="language-plaintext highlighter-rouge">ORDER BY id ASC</code>)</li>
+  <li>각 페이지 조회 시, 이전 페이지의 마지막 ID 값을 기준으로 필터링 조건 추가 (예: <code class="language-plaintext highlighter-rouge">WHERE id &gt; :lastId</code>)</li>
+</ol>
+
+<p>예를 들어, 첫 번째 페이지에서 1,000건을 조회한 후 마지막 레코드의 ID가 1000이라면, 두 번째 페이지 조회 시에는 다음과 같은 쿼리에 <code class="language-plaintext highlighter-rouge">:lastId</code>에 1000을 설정해주면 됩니다.</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">SELECT</span> <span class="o">*</span> <span class="k">FROM</span> <span class="n">order_product</span> 
+<span class="k">WHERE</span> <span class="p">...</span> <span class="k">AND</span> <span class="n">order_product_id</span> <span class="o">&gt;</span> <span class="p">:</span><span class="n">lastId</span>
+<span class="k">ORDER</span> <span class="k">BY</span> <span class="n">order_product_id</span> <span class="k">ASC</span> 
+<span class="k">LIMIT</span> <span class="mi">1000</span>
+</code></pre></div></div>
+
+<p>이 방식의 장점은 페이지 번호가 아무리 뒤로 가더라도 항상 인덱스를 타는 효율적인 쿼리가 실행된다는 점입니다. 결과적으로 일관된 성능을 유지할 수 있으며, 데이터 일관성 문제도 해결할 수 있습니다.</p>
+
+<h1 id="커서-기반-아이템-리더-활용과-성능-개선">커서 기반 아이템 리더 활용과 성능 개선</h1>
+
+<p><strong>Zero-Offset</strong> 방식 외에도, <strong>커서 기반(Cursor-based)</strong> 아이템 리더를 활용하는 방법도 효과적입니다. 스프링 배치는 <strong>JdbcCursorItemReader</strong>와 같은 커서 기반 구현체를 제공합니다.</p>
+
+<p>커서 기반 방식의 주요 특징:</p>
+
+<ol>
+  <li><strong>스트리밍 방식</strong>: 데이터베이스 커서를 통해 필요한 만큼만 데이터를 스트리밍 방식으로 가져옴</li>
+  <li><strong>메모리 효율성</strong>: 전체 결과셋을 메모리에 로드하지 않고 필요한 만큼만 가져오므로 메모리 효율적</li>
+  <li><strong>성능 일관성</strong>: Limit-Offset 방식의 성능 저하 없이 대량 데이터 처리 가능</li>
+</ol>
+
+<p>🚨 다만, 커서 기반 접근법은 다음과 같은 고려사항이 있습니다:</p>
+
+<ol>
+  <li><strong>데이터베이스 연결 유지</strong>: 처리가 완료될 때까지 데이터베이스 연결을 유지해야 함. (충분한 <code class="language-plaintext highlighter-rouge">Connection-time</code> 설정 필요.)</li>
+  <li><strong>트랜잭션 범위</strong>: 장시간 실행되는 작업의 경우 트랜잭션 관리에 주의 필요.</li>
+  <li><strong>리소스 관리</strong>: 커서를 명시적으로 닫아야 하므로 리소스 관리에 신경 써야 함. (<code class="language-plaintext highlighter-rouge">JdbcCursorItemReader</code>는 리소스를 자동으로 정리.)</li>
+</ol>
+
+<h1 id="최종-선택-커서-기반-접근법-jdbccursoritemreader">최종 선택: 커서 기반 접근법 JdbcCursorItemReader</h1>
+
+<p>이론적으로는 <strong>Zero-Offset</strong> 방식이 매우 효율적이지만, 실제 프로젝트에서는 <strong>커서 기반 접근법(Cursor-based approach)</strong>을 최종적으로 채택했습니다. 이러한 결정을 내린 주요 이유는 다음과 같습니다:</p>
+
+<ul>
+  <li><strong>개발 리소스 효율성</strong>: Zero-Offset 방식은 매번 새로운 Reader를 구현할 때마다 상당한 개발 공수가 필요합니다. 반면 Spring Batch에서 기본 제공하는 <code class="language-plaintext highlighter-rouge">JdbcCursorItemReader</code>를 사용하면 즉시 활용 가능합니다.</li>
+  <li><strong>유지보수 용이성</strong>: 커스텀 구현체보다 Spring Batch의 공식 컴포넌트를 사용함으로써 유지보수가 용이하고 버전 업그레이드 시 호환성 문제가 적습니다.</li>
+  <li><strong>성능 대비 비용</strong>: Zero-Offset 방식이 이론적으로 약간 더 뛰어난 성능을 보일 수 있지만, 커서 기반 접근법도 충분히 우수한 성능을 제공하면서 개발 비용은 크게 절감할 수 있었습니다.</li>
+</ul>
+
+<p>⭐️ 따라서, 성능상 크게 차이가 안 나는 <strong>Zero-Offset</strong> 방식과 <strong>Cursor-Based</strong> 방식 중 실용적인 측면을 생각하여 Cursor-based인 <code class="language-plaintext highlighter-rouge">JdbcCursorItemReader</code> 를 프로젝트에 적용하였습니다.</p>
+
+<p>다음은 실제 구현에 사용한 <code class="language-plaintext highlighter-rouge">JdbcCursorItemReader</code> 설정의 코드입니다:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Bean</span>
+<span class="nd">@StepScope</span>
+<span class="kd">public</span> <span class="nc">JdbcCursorItemReader</span><span class="o">&lt;</span><span class="nc">OrderProduct</span><span class="o">&gt;</span> <span class="nf">deliveryCompletedJdbcItemReader</span><span class="o">(</span>
+        <span class="nd">@Value</span><span class="o">(</span><span class="s">"#{jobParameters['settlementDate']}"</span><span class="o">)</span> <span class="nc">String</span> <span class="n">settlementDateStr</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="nc">LocalDate</span> <span class="n">date</span> <span class="o">=</span> <span class="nc">JobParameterUtils</span><span class="o">.</span><span class="na">parseSettlementDate</span><span class="o">(</span><span class="n">settlementDateStr</span><span class="o">);</span>
+    <span class="nc">LocalDateTime</span> <span class="n">startTime</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="na">atStartOfDay</span><span class="o">();</span>
+    <span class="nc">LocalDateTime</span> <span class="n">endTime</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="na">plusDays</span><span class="o">(</span><span class="mi">1</span><span class="o">).</span><span class="na">atStartOfDay</span><span class="o">();</span>
+
+    <span class="c1">// SQL 쿼리 작성</span>
+    <span class="nc">String</span> <span class="n">sql</span> <span class="o">=</span> <span class="s">"""
+        SELECT op.*
+        FROM order_product op
+        LEFT JOIN claim cl ON op.order_product_id = cl.order_product_id
+        WHERE op.delivery_completed_at BETWEEN ? AND ?
+        AND op.delivery_status = 'DELIVERED'
+        AND op.purchase_confirmed_at IS NULL
+        AND (cl.claim_id IS NULL OR cl.completed_at IS NOT NULL)
+        ORDER BY op.order_product_id ASC
+        """</span><span class="o">;</span>
+
+    <span class="c1">// PreparedStatement 파라미터 설정</span>
+    <span class="nc">Object</span><span class="o">[]</span> <span class="n">parameters</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Object</span><span class="o">[]</span> <span class="o">{</span>
+            <span class="n">startTime</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="nc">DateTimeFormatter</span><span class="o">.</span><span class="na">ofPattern</span><span class="o">(</span><span class="s">"yyyy-MM-dd HH:mm:ss"</span><span class="o">)),</span>
+            <span class="n">endTime</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="nc">DateTimeFormatter</span><span class="o">.</span><span class="na">ofPattern</span><span class="o">(</span><span class="s">"yyyy-MM-dd HH:mm:ss"</span><span class="o">))</span>
+    <span class="o">};</span>
+
+    <span class="k">return</span> <span class="k">new</span> <span class="nc">JdbcCursorItemReaderBuilder</span><span class="o">&lt;</span><span class="nc">OrderProduct</span><span class="o">&gt;()</span>
+            <span class="o">.</span><span class="na">name</span><span class="o">(</span><span class="s">"deliveryCompletedJdbcItemReader"</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">dataSource</span><span class="o">(</span><span class="n">dataSource</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">sql</span><span class="o">(</span><span class="n">sql</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">preparedStatementSetter</span><span class="o">(</span><span class="k">new</span> <span class="nc">ArgumentPreparedStatementSetter</span><span class="o">(</span><span class="n">parameters</span><span class="o">))</span>
+            <span class="o">.</span><span class="na">rowMapper</span><span class="o">(</span><span class="k">new</span> <span class="nc">BeanPropertyRowMapper</span><span class="o">&lt;&gt;(</span><span class="nc">OrderProduct</span><span class="o">.</span><span class="na">class</span><span class="o">))</span>
+            <span class="o">.</span><span class="na">build</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li><strong>Zero-Offset</strong> 방식의 <code class="language-plaintext highlighter-rouge">ItemReader</code>를 직접 개발하는 것보다 Spring Batch에서 지원해주는 <code class="language-plaintext highlighter-rouge">JdbcCursorItemReader</code>를 사용함으로써 매번 <code class="language-plaintext highlighter-rouge">:lastId</code>를 신경쓰지 않고도 편리하게 개발할 수 있습니다.</li>
+</ul>
+
+<h1 id="성능-비교-jpa-paging-vs-cursor-based">성능 비교: JPA Paging vs Cursor-based</h1>
+
+<p>실제 동일한 데이터셋(최대 100만 건의 주문 데이터)에 대해 두 가지 방식을 적용한 성능 비교 결과는 다음과 같습니다:</p>
+
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/realistic-performance-comparison.svg" />
+<figcaption></figcaption>
+</figure>
+
+<p>참고로, <code class="language-plaintext highlighter-rouge">JpaPagingItemReader</code> 읽기가 2만건 처리에 6분이 걸렸고, 그 이상의 데이터는 테스트하기 어려웠던 현실적인 상황을 반영하여 추정치를 표시했습니다.</p>
+
+<p>성능 테스트 결과 분석:</p>
+
+<ul>
+  <li><strong>JPA Paging</strong>: 데이터량이 증가할수록 처리 시간이 <strong>기하급수적으로 증가</strong>함.</li>
+  <li><strong>Cursor-based</strong>: 빠른 처리 속도를 보이며, 데이터량이 증가하더라도 처리 시간이 <strong>선형적으로 증가</strong>함.</li>
+</ul>
+
+<h1 id="보완할-점">보완할 점</h1>
+
+<p>현재 구현에서 가장 큰 개선점은 타입 안전성입니다. 문자열 기반 쿼리를 사용하는 현재 방식은 오타나 컬럼명 변경 시 컴파일 타임에 오류를 잡아내기 어렵습니다.</p>
+
+<p>향후 개선 방향:</p>
+
+<ul>
+  <li><strong>QueryDSL 도입</strong>: Java 코드로 타입 안전한 쿼리를 작성하여 컴파일 타임에 오류 감지</li>
+  <li><strong>테스트 커버리지 강화</strong>: 다양한 데이터 패턴에 대한 테스트 케이스 추가</li>
+  <li><strong>모니터링 기능 개선</strong>: 배치 작업의 진행 상황 및 성능 지표 실시간 모니터링</li>
+</ul>
+
+<p>Kotlin 기반 프로젝트의 경우, <strong>Exposed 라이브러리</strong>를 활용하면 더욱 간결하고 타입 안전한 방식으로 쿼리를 작성하실 수 있으니 참고하시면 좋을 것 같습니다.</p>
+
+<h1 id="️-결론">⭐️ 결론</h1>
+
+<p>대용량 데이터 처리 시 Spring Batch의 <code class="language-plaintext highlighter-rouge">ItemReader</code> 전략은 전체 배치 프로세스의 성능과 안정성에 결정적인 영향을 미칩니다. 특히 <code class="language-plaintext highlighter-rouge">Limit-Offset</code> 방식의 페이징 대신 <strong>Zero-Offset</strong> 또는 <strong>커서 기반 접근법</strong>을 활용함으로써 다음과 같은 이점을 얻을 수 있습니다:</p>
+
+<ul>
+  <li><strong>일관된 성능</strong>: 처리 데이터량에 관계없이 예측 가능한 성능 유지</li>
+  <li><strong>데이터 일관성</strong>: 배치 처리 중 데이터 변경에도 페이지네이션 정확성 보장</li>
+  <li><strong>리소스 효율성</strong>: 데이터베이스와 애플리케이션 서버의 리소스 효율적 활용</li>
+</ul>
+
+<p>대규모 배치 작업을 설계할 때는 단순히 <strong>코드 작성의 편의성보다 성능과 확장성을 우선적으로 고려하는 것이 중요</strong>합니다. 본 포스트에서 소개한 전략들이 효율적인 배치 시스템 구축에 도움이 되길 바랍니다.</p>
+
+<h1 id="참고-자료">참고 자료</h1>
+
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=2IIwQDIi3ys&amp;t=1534s" target="_blank">Batch Performance 극한으로 끌어올리기: 1억 건 데이터 처리를 위한 노력 / if(kakao)dev2022</a></li>
+  <li><a herf="https://www.youtube.com/watch?v=VSwWHHkdQI4&amp;t=1369s" target="_blank">Spring Batch 애플리케이션 성능 향상을 위한 주요 팁 (kakao tech)</a></li>
+  <li><a href="https://docs.spring.io/spring-batch/reference/5.2-SNAPSHOT/readers-and-writers/database.html#JdbcCursorItemReader" target="_blank">Spring Batch Documentation: Cursor-based ItemReader Implementations</a></li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Batch" /><category term="Spring Batch" /><category term="Zero Offset" /><category term="Limit-Offset" /><category term="Cursor-Based" /><summary type="html"><![CDATA[스프링 배치를 이용할 때 효과적인 대량 데이터를 읽기 위한 전략에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축</title><link href="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/" rel="alternate" type="text/html" title="Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축" /><published>2025-02-24T00:00:00+09:00</published><updated>2025-02-24T00:00:00+09:00</updated><id>http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring</id><content type="html" xml:base="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/"><![CDATA[<blockquote>
+  <p>Prometheus와 Grafana를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링 하는 방법에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>현대의 마이크로서비스 아키텍처는 여러 개의 독립적인 서비스가 유기적으로 협력하여 하나의 큰 시스템을 구성합니다. 마이크로서비스 환경에서는 각 서비스가 독립적으로 배포되고 운영되기 때문에, 특정 서비스의 장애나 성능 저하가 전체 시스템에 영향을 줄 수 있습니다. 만약 모니터링 시스템이 없다면 서비스 장애나 성능 저하 발생 시 원이 파악에 오랜 시간이 소요되어 비즈니스에 심각한 영향을 미칠 수 있습니다. 이런 서비스 장애가 지속되면 사용자 경험이 악화되고, 결과적으로 서비스의 신뢰를 잃어버리는 최악의 상황이 올 수 있습니다. 따라서 MSA 환경에서는 각 서비스의 상태와 성능을 실시간으로 모니터링하는 것이 필수적입니다.</p>
+
+<p>본 포스트에서는 <code class="language-plaintext highlighter-rouge">Prometheus</code>와 <code class="language-plaintext highlighter-rouge">Grafana</code>를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링하는 방법에 대해 알아보도록 하겠습니다.</p>
+
+<h1 id="promethus--grafana">Promethus &amp; Grafana</h1>
+
+<p>우선 Prometheus와 Grafana가 각각 무엇인지 알아봅시다.</p>
+
+<h2 id="prometheus란">Prometheus란?</h2>
+
+<p><code class="language-plaintext highlighter-rouge">Prometheus</code>는 오픈소스 모니터링 및 경고 도구로, 주로 <strong>시계열 데이터</strong>를 수집하여 저장, 쿼리, 분석하는 데 사용되는 저장소입니다. 특히 시계열 데이터에 특화된 쿼리 언어인 <strong>PromQL</strong>을 제공하여, 수집한 메트릭을 조회할 수 있습니다.</p>
+
+<h2 id="grafana란">Grafana란?</h2>
+
+<p><code class="language-plaintext highlighter-rouge">Grafana</code>는 <code class="language-plaintext highlighter-rouge">Prometheus</code>에서 수집한 데이터를 직관적인 대시보드 형태로 시각화하는 시각화 도구입니다. Prometheus 뿐만 아니라 다양한 데이터 소스와의 연동도 지원합니다. 대시보드를 커스텀할 수 있을 뿐만 아니라 경고 시스템도 구축 가능합니다.</p>
+
+<h1 id="spring-boot와-prometheus-연동">Spring Boot와 Prometheus 연동</h1>
+
+<p>Spring Boot는 <strong>Actuator</strong> 모듈을 통해 애플리케이션의 다양한 상태 정보(<strong>metrics</strong>)를 쉽게 노출할 수 있습니다. 이를 활용하여 Prometheus가 <strong>Pull 방식</strong>으로 메트릭 데이터를 수집할 수 있도록 설정할 수 있습니다.</p>
+
+<p>Actuator 모듈을 통해 스프링 애플리케이션의 메트릭 정보들을 Prometheus에게 노출하기 위해 다음 의존성을 추가해줘야 합니다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
+<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-registry-prometheus'</span>
+</code></pre></div></div>
+
+<p>그리고, Prometheus가 Pull 방식으로 메트릭을 조회할 Actuator 엔드포인트를 활성화시켜 줘야 합니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">management</span><span class="pi">:</span>
+  <span class="na">endpoints</span><span class="pi">:</span>
+    <span class="na">web</span><span class="pi">:</span>
+      <span class="na">exposure</span><span class="pi">:</span>
+        <span class="na">include</span><span class="pi">:</span> <span class="s">prometheus</span>
+</code></pre></div></div>
+
+<p>마지막으로 Promethues.yml 설정 파일을 통해 Prometheus가 Pull 하고자 하는 애플리케이션의 위치 정보를 설정해주어야 합니다.</p>
+
+<p>아래 설정은 동일한 도커 네트워크 상에 존재하는 <code class="language-plaintext highlighter-rouge">user service</code>, <code class="language-plaintext highlighter-rouge">product service</code>, <code class="language-plaintext highlighter-rouge">order service</code>에 대한 메트릭을 Pull을 5초 간격으로 진행하겠단 설정입니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">global</span><span class="pi">:</span>
+  <span class="na">scrape_interval</span><span class="pi">:</span> <span class="s">15s</span>
+  <span class="na">external_labels</span><span class="pi">:</span>
+    <span class="na">monitor</span><span class="pi">:</span> <span class="s1">'</span><span class="s">codelab-monitor'</span>
+<span class="na">scrape_configs</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">job_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">prometheus'</span>
+    <span class="na">scrape_interval</span><span class="pi">:</span> <span class="s">5s</span>
+    <span class="na">static_configs</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">localhost:9090'</span><span class="pi">]</span>
+  <span class="pi">-</span> <span class="na">job_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">user-actuator'</span>
+    <span class="na">metrics_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/actuator/prometheus'</span>
+    <span class="na">scrape_interval</span><span class="pi">:</span> <span class="s">5s</span>
+    <span class="na">static_configs</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">user-service:8080'</span><span class="pi">]</span>
+      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">product-service:8081'</span><span class="pi">]</span>
+      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">order-service:8082'</span><span class="pi">]</span>
+</code></pre></div></div>
+
+<p>만약 로컬에 설치된 Prometheus가 아닌 도커로 실행 시, Prometheus의 <code class="language-plaintext highlighter-rouge">/etc/prometheus/prometheus.yml</code> 경로와 커스텀 설정 파일을 볼륨 마운팅 해주어야 합니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.8'</span>
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">prometheus</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">prom/prometheus:latest</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">prometheus</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">./prometheus.yml:/etc/prometheus/prometheus.yml</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">9090:9090"</span>
+</code></pre></div></div>
+
+<p>위 설정이 완료되면 Prometheus는 <code class="language-plaintext highlighter-rouge">http://&lt;호스트&gt;:&lt;포트&gt;/actuator/prometheus</code> 엔드포인트를 통해 Spring Boot 애플리케이션들의 메트릭 데이터를 수집할 수 있습니다.</p>
+
+<h1 id="prometheus-메트릭---grafana-시각화">Prometheus 메트릭 -&gt; Grafana 시각화</h1>
+
+<p>메트릭 데이터들이 Prometheus에 저장되면 이와 연동하여 Grafana를 통해 시각화할 수 있습니다.</p>
+
+<p>Grafana 관리 페이지에서 데이터 소스로 Prometheus를 추가한 다음, URL에 Prometheus 서버의 주소(<code class="language-plaintext highlighter-rouge">http://&lt;prometheus-host&gt;:9090</code>)를 입력합니다.</p>
+
+<p>대시보드를 개인이 직접 커스터마이징할 수도 있지만, 이미 잘 만들어진 대시보드 템플릿을 가져다 사용하면 편리합니다.</p>
+
+<h1 id="-결론">🚀 결론</h1>
+
+<p><strong>Prometheus</strong>와 <strong>Grafana</strong>를 활용한 모니터링 시스템은 마이크로서비스 환경에서 서비스의 상태를 실시간으로 확인하고, 장애 발생 시 빠른 대응을 가능하게 합니다. 모니터링 시스템은 필수적이며, 이를 부재할 경우 심각한 비즈니스 리스크를 초래할 수 있다는 것을 명심해야 됩니다.</p>
+
+<h1 id="추가로-공부하면-좋을-내용">추가로 공부하면 좋을 내용</h1>
+
+<ul>
+  <li>Grafana Alerting 기능 (특정 메트릭 값이 임계치 초과 시 알림 발송)</li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="MSA" /><category term="Monitoring" /><category term="Prometheus" /><category term="Grafana" /><category term="Prometheus" /><category term="Grafana" /><summary type="html"><![CDATA[Prometheus와 Grafana를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링 하는 방법에 대해 알아봅시다!]]></summary></entry><entry><title type="html">ELK 스택을 활용한 MSA 중앙 집중식 로그 모니터링</title><link href="http://localhost:4000/msa/elk/2025/02/24/ELK-Stack-Log-Analysis/" rel="alternate" type="text/html" title="ELK 스택을 활용한 MSA 중앙 집중식 로그 모니터링" /><published>2025-02-24T00:00:00+09:00</published><updated>2025-02-24T00:00:00+09:00</updated><id>http://localhost:4000/msa/elk/2025/02/24/ELK-Stack-Log-Analysis</id><content type="html" xml:base="http://localhost:4000/msa/elk/2025/02/24/ELK-Stack-Log-Analysis/"><![CDATA[<blockquote>
   <p>마이크로서비스 아키텍처에서 ELK(Elasticsearch + Logstash + Kibana) 스택을 활용한 중앙 집중식 로그 모니터링에 대해 알아봅시다!</p>
 </blockquote>
 
@@ -235,105 +604,7 @@
   <li><a href="https://engineering.linecorp.com/ko/blog/line-ads-msa-opentracing-zipkin">LINE 광고 플랫폼의 MSA 환경에서 Zipkin을 활용해 로그 트레이싱하기</a></li>
 </ul>
 
-<hr />]]></content><author><name>Bang Seung IL</name></author><category term="MSA" /><category term="ELK" /><category term="Elatsticsearch" /><category term="Logstash" /><category term="Kibana" /><category term="Logback" /><category term="Zipkin" /><summary type="html"><![CDATA[마이크로서비스 아키텍처에서 ELK(Elasticsearch + Logstash + Kibana) 스택을 활용한 중앙 집중식 로그 모니터링에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축</title><link href="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/" rel="alternate" type="text/html" title="Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축" /><published>2025-02-24T00:00:00+09:00</published><updated>2025-02-24T00:00:00+09:00</updated><id>http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring</id><content type="html" xml:base="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/"><![CDATA[<blockquote>
-  <p>Prometheus와 Grafana를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링 하는 방법에 대해 알아봅시다!</p>
-</blockquote>
-
-<!-- more -->
-
-<h1 id="-들어가기">📌 들어가기</h1>
-
-<p>현대의 마이크로서비스 아키텍처는 여러 개의 독립적인 서비스가 유기적으로 협력하여 하나의 큰 시스템을 구성합니다. 마이크로서비스 환경에서는 각 서비스가 독립적으로 배포되고 운영되기 때문에, 특정 서비스의 장애나 성능 저하가 전체 시스템에 영향을 줄 수 있습니다. 만약 모니터링 시스템이 없다면 서비스 장애나 성능 저하 발생 시 원이 파악에 오랜 시간이 소요되어 비즈니스에 심각한 영향을 미칠 수 있습니다. 이런 서비스 장애가 지속되면 사용자 경험이 악화되고, 결과적으로 서비스의 신뢰를 잃어버리는 최악의 상황이 올 수 있습니다. 따라서 MSA 환경에서는 각 서비스의 상태와 성능을 실시간으로 모니터링하는 것이 필수적입니다.</p>
-
-<p>본 포스트에서는 <code class="language-plaintext highlighter-rouge">Prometheus</code>와 <code class="language-plaintext highlighter-rouge">Grafana</code>를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링하는 방법에 대해 알아보도록 하겠습니다.</p>
-
-<h1 id="promethus--grafana">Promethus &amp; Grafana</h1>
-
-<p>우선 Prometheus와 Grafana가 각각 무엇인지 알아봅시다.</p>
-
-<h2 id="prometheus란">Prometheus란?</h2>
-
-<p><code class="language-plaintext highlighter-rouge">Prometheus</code>는 오픈소스 모니터링 및 경고 도구로, 주로 <strong>시계열 데이터</strong>를 수집하여 저장, 쿼리, 분석하는 데 사용되는 저장소입니다. 특히 시계열 데이터에 특화된 쿼리 언어인 <strong>PromQL</strong>을 제공하여, 수집한 메트릭을 조회할 수 있습니다.</p>
-
-<h2 id="grafana란">Grafana란?</h2>
-
-<p><code class="language-plaintext highlighter-rouge">Grafana</code>는 <code class="language-plaintext highlighter-rouge">Prometheus</code>에서 수집한 데이터를 직관적인 대시보드 형태로 시각화하는 시각화 도구입니다. Prometheus 뿐만 아니라 다양한 데이터 소스와의 연동도 지원합니다. 대시보드를 커스텀할 수 있을 뿐만 아니라 경고 시스템도 구축 가능합니다.</p>
-
-<h1 id="spring-boot와-prometheus-연동">Spring Boot와 Prometheus 연동</h1>
-
-<p>Spring Boot는 <strong>Actuator</strong> 모듈을 통해 애플리케이션의 다양한 상태 정보(<strong>metrics</strong>)를 쉽게 노출할 수 있습니다. 이를 활용하여 Prometheus가 <strong>Pull 방식</strong>으로 메트릭 데이터를 수집할 수 있도록 설정할 수 있습니다.</p>
-
-<p>Actuator 모듈을 통해 스프링 애플리케이션의 메트릭 정보들을 Prometheus에게 노출하기 위해 다음 의존성을 추가해줘야 합니다.</p>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
-<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-registry-prometheus'</span>
-</code></pre></div></div>
-
-<p>그리고, Prometheus가 Pull 방식으로 메트릭을 조회할 Actuator 엔드포인트를 활성화시켜 줘야 합니다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">management</span><span class="pi">:</span>
-  <span class="na">endpoints</span><span class="pi">:</span>
-    <span class="na">web</span><span class="pi">:</span>
-      <span class="na">exposure</span><span class="pi">:</span>
-        <span class="na">include</span><span class="pi">:</span> <span class="s">prometheus</span>
-</code></pre></div></div>
-
-<p>마지막으로 Promethues.yml 설정 파일을 통해 Prometheus가 Pull 하고자 하는 애플리케이션의 위치 정보를 설정해주어야 합니다.</p>
-
-<p>아래 설정은 동일한 도커 네트워크 상에 존재하는 <code class="language-plaintext highlighter-rouge">user service</code>, <code class="language-plaintext highlighter-rouge">product service</code>, <code class="language-plaintext highlighter-rouge">order service</code>에 대한 메트릭을 Pull을 5초 간격으로 진행하겠단 설정입니다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">global</span><span class="pi">:</span>
-  <span class="na">scrape_interval</span><span class="pi">:</span> <span class="s">15s</span>
-  <span class="na">external_labels</span><span class="pi">:</span>
-    <span class="na">monitor</span><span class="pi">:</span> <span class="s1">'</span><span class="s">codelab-monitor'</span>
-<span class="na">scrape_configs</span><span class="pi">:</span>
-  <span class="pi">-</span> <span class="na">job_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">prometheus'</span>
-    <span class="na">scrape_interval</span><span class="pi">:</span> <span class="s">5s</span>
-    <span class="na">static_configs</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">localhost:9090'</span><span class="pi">]</span>
-  <span class="pi">-</span> <span class="na">job_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">user-actuator'</span>
-    <span class="na">metrics_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/actuator/prometheus'</span>
-    <span class="na">scrape_interval</span><span class="pi">:</span> <span class="s">5s</span>
-    <span class="na">static_configs</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">user-service:8080'</span><span class="pi">]</span>
-      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">product-service:8081'</span><span class="pi">]</span>
-      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">order-service:8082'</span><span class="pi">]</span>
-</code></pre></div></div>
-
-<p>만약 로컬에 설치된 Prometheus가 아닌 도커로 실행 시, Prometheus의 <code class="language-plaintext highlighter-rouge">/etc/prometheus/prometheus.yml</code> 경로와 커스텀 설정 파일을 볼륨 마운팅 해주어야 합니다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.8'</span>
-<span class="na">services</span><span class="pi">:</span>
-  <span class="na">prometheus</span><span class="pi">:</span>
-    <span class="na">image</span><span class="pi">:</span> <span class="s">prom/prometheus:latest</span>
-    <span class="na">container_name</span><span class="pi">:</span> <span class="s">prometheus</span>
-    <span class="na">volumes</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="s">./prometheus.yml:/etc/prometheus/prometheus.yml</span>
-    <span class="na">ports</span><span class="pi">:</span>
-      <span class="pi">-</span> <span class="s2">"</span><span class="s">9090:9090"</span>
-</code></pre></div></div>
-
-<p>위 설정이 완료되면 Prometheus는 <code class="language-plaintext highlighter-rouge">http://&lt;호스트&gt;:&lt;포트&gt;/actuator/prometheus</code> 엔드포인트를 통해 Spring Boot 애플리케이션들의 메트릭 데이터를 수집할 수 있습니다.</p>
-
-<h1 id="prometheus-메트릭---grafana-시각화">Prometheus 메트릭 -&gt; Grafana 시각화</h1>
-
-<p>메트릭 데이터들이 Prometheus에 저장되면 이와 연동하여 Grafana를 통해 시각화할 수 있습니다.</p>
-
-<p>Grafana 관리 페이지에서 데이터 소스로 Prometheus를 추가한 다음, URL에 Prometheus 서버의 주소(<code class="language-plaintext highlighter-rouge">http://&lt;prometheus-host&gt;:9090</code>)를 입력합니다.</p>
-
-<p>대시보드를 개인이 직접 커스터마이징할 수도 있지만, 이미 잘 만들어진 대시보드 템플릿을 가져다 사용하면 편리합니다.</p>
-
-<h1 id="-결론">🚀 결론</h1>
-
-<p><strong>Prometheus</strong>와 <strong>Grafana</strong>를 활용한 모니터링 시스템은 마이크로서비스 환경에서 서비스의 상태를 실시간으로 확인하고, 장애 발생 시 빠른 대응을 가능하게 합니다. 모니터링 시스템은 필수적이며, 이를 부재할 경우 심각한 비즈니스 리스크를 초래할 수 있다는 것을 명심해야 됩니다.</p>
-
-<h1 id="추가로-공부하면-좋을-내용">추가로 공부하면 좋을 내용</h1>
-
-<ul>
-  <li>Grafana Alerting 기능 (특정 메트릭 값이 임계치 초과 시 알림 발송)</li>
-</ul>
-
-<hr />]]></content><author><name>Bang Seung IL</name></author><category term="MSA" /><category term="Monitoring" /><category term="Prometheus" /><category term="Grafana" /><category term="Prometheus" /><category term="Grafana" /><summary type="html"><![CDATA[Prometheus와 Grafana를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링 하는 방법에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Zipkin을 활용한 마이크로서비스 분산 트레이싱</title><link href="http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/" rel="alternate" type="text/html" title="Zipkin을 활용한 마이크로서비스 분산 트레이싱" /><published>2025-02-23T00:00:00+09:00</published><updated>2025-02-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/"><![CDATA[<blockquote>
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="MSA" /><category term="ELK" /><category term="Elatsticsearch" /><category term="Logstash" /><category term="Kibana" /><category term="Logback" /><category term="Zipkin" /><summary type="html"><![CDATA[마이크로서비스 아키텍처에서 ELK(Elasticsearch + Logstash + Kibana) 스택을 활용한 중앙 집중식 로그 모니터링에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Zipkin을 활용한 마이크로서비스 분산 트레이싱</title><link href="http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/" rel="alternate" type="text/html" title="Zipkin을 활용한 마이크로서비스 분산 트레이싱" /><published>2025-02-23T00:00:00+09:00</published><updated>2025-02-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/"><![CDATA[<blockquote>
   <p>분산 환경에서 Zipkin을 활용한 요청의 전체 흐름을 추적해봅시다!</p>
 </blockquote>
 
@@ -1377,332 +1648,4 @@
   <li><a href="https://en.wikipedia.org/wiki/Netty_(software)">Netty</a></li>
 </ul>
 
-<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="Spring Cloud Gateway" /><summary type="html"><![CDATA[Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리</title><link href="http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/" rel="alternate" type="text/html" title="Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리" /><published>2025-02-17T00:00:00+09:00</published><updated>2025-02-17T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/"><![CDATA[<blockquote>
-  <p>분산 환경에서 각 마이크로서비스가 Config Server로부터 설정 파일을 읽어오는 방법을 알아봅시다!</p>
-</blockquote>
-
-<!-- more -->
-
-<h1 id="-들어가기">📌 들어가기</h1>
-
-<p>이전에 Spring Cloud Config Server에 관한 내용을 다룬 포스트가 있습니다.</p>
-
-<p>이번 포스트에서는 Config Server를 사용하는 환경에서, <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code>와 <code class="language-plaintext highlighter-rouge">Spring boot Actuator</code>를 이용하여 애플리케이션을 재시작하지 않고도 설정 변경을 실시간으로 반영하는 방법에 대해 탐구해보겠습니다!</p>
-
-<h2 id="실시간-설정-변경이-왜-중요한가">실시간 설정 변경이 왜 중요한가?</h2>
-
-<p>분산된 마이크로서비스 환경에서는 각각의 서비스가 개별적으로 재시작 없이 설정을 업데이트해야 운영 효율성이 높아집니다.</p>
-
-<p>동적 설정 변경을 통해 서비스 중단 없이 빠르게 환경 변화에 대응할 수 있기 때문입니다.</p>
-
-<p>이로 인해 설정 값들의 일관성을 쉽게 유지할 수 있게 됩니다.</p>
-
-<h2 id="해당-기술이-없다면">해당 기술이 없다면?</h2>
-
-<p>설정을 변경할 때마다 각 서비스마다 재시작해야 하는 번거로움이 존재합니다. 이 과정에서 오타나, 잘못된 값이 설정된다면 또 다시 재시작 과정을 반복해야 하죠.</p>
-
-<p>또한 변경 사항이 즉각적으로 반영되지 않기 때문에(재시작으로 인해), 설정 불일치로 인한 오류가 발생할 수 있습니다.</p>
-
-<p>마지막으로, 분산 환경에서 개별적으로 설정을 관리하게 된다면 유지보수의 비용이 크게 증가할 것입니다.</p>
-
-<blockquote>
-  <p>Config Server를 사용한다면 애플리케이션을 재시작하지 않고도 설정 변경을 실시간으로 반영할 수 있도록 지원하는 Spring Cloud Bus, Spring Boot Actuator 기술 도입이 필수라고 생각합니다.</p>
-</blockquote>
-
-<h1 id="마이크로서비스와-config-server-연동하기">마이크로서비스와 Config Server 연동하기</h1>
-
-<p>클라이언트(마이크로서비스)는 Config Server에서 설정 파일을 읽어올 수 있어야 하기 때문에, Config Server와 연결을 진행해야 합니다.</p>
-
-<h2 id="dependency">Dependency</h2>
-
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.cloud:spring-cloud-starter-config'</span>
-<span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
-</code></pre></div></div>
-
-<ul>
-  <li>Config Server와 연결을 위해 <code class="language-plaintext highlighter-rouge">spring-cloud-starter-config</code> 의존성을 추가해줍니다.</li>
-  <li>Config Server에게 설정 파일 조회 또는 갱신 요청을 위해 <code class="language-plaintext highlighter-rouge">actuator</code> 의존성을 추가해줍니다.</li>
-  <li>actuator의 엔드포인트로 <code class="language-plaintext highlighter-rouge">/refresh</code>, <code class="language-plaintext highlighter-rouge">/busrefresh</code> 를 사용할 예정입니다.</li>
-</ul>
-
-<h2 id="applicationyml">application.yml</h2>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
-  <span class="na">cloud</span><span class="pi">:</span>
-    <span class="na">config</span><span class="pi">:</span>
-      <span class="na">name</span><span class="pi">:</span> <span class="c1"># 읽어올 파일명</span>
-  <span class="na">config</span><span class="pi">:</span>
-    <span class="na">import</span><span class="pi">:</span> <span class="s">optional:configserver:http://localhost:8888</span>
-  <span class="na">profiles</span><span class="pi">:</span>
-    <span class="na">active</span><span class="pi">:</span> <span class="c1"># 프로파일명</span>
-    
-<span class="na">management</span><span class="pi">:</span>
-  <span class="na">endpoints</span><span class="pi">:</span>
-    <span class="na">web</span><span class="pi">:</span>
-      <span class="na">exposure</span><span class="pi">:</span>
-        <span class="na">include</span><span class="pi">:</span> <span class="s">refresh, busrefresh</span>
-</code></pre></div></div>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">spring.cloud.config.name</code>: Config Server로 부터 읽어올 파일명을 지정해줍니다.</li>
-  <li><code class="language-plaintext highlighter-rouge">spring.config.import</code>: Config Server 연결 URL을 지정해줍니다. (로컬 테스트: Config Server가 port 번호 8888로 실행 가정)</li>
-  <li><code class="language-plaintext highlighter-rouge">spring.profiles.active</code>: 읽어올 파일의 프로파일을 지정할 수 있습니다. (기본 프로파일: <code class="language-plaintext highlighter-rouge">default</code>)</li>
-  <li><code class="language-plaintext highlighter-rouge">management.endpoints.web.exposure.include</code>: actuator에서 활성화시킬 엔드포인트 입니다.
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">/refresh</code>: 개별 클라이언트만 설정을 갱신합니다.</li>
-      <li><code class="language-plaintext highlighter-rouge">/busrefresh</code>: Bus(RabbitMQ 또는 Kafka)에 연결된 모든 클라이언트의 설정을 갱신합니다.</li>
-    </ul>
-  </li>
-</ul>
-
-<p>여기까지 설정을 마치면, <code class="language-plaintext highlighter-rouge">/refresh</code> 엔드포인트 요청으로 Config Server로 부터 설정 파일을 읽어와서 클라이언트의 설정을 동적으로 실시간 변경할 수 있게 됩니다.</p>
-
-<p>하지만, 이것은 개별 클라이언트에만 변화가 생깁니다.</p>
-
-<p>만약 변경된 설정 값을 여러 마이크로서비스들에게 공통적으로 동시에 적용하고 싶다면 어떡해야 할까요?</p>
-
-<p>개별 클라이언트마다 <code class="language-plaintext highlighter-rouge">/refresh</code> 요청을 날려야 할까요? (아마도 매우 번거롭고 귀찮은 작업일 것입니다.)</p>
-
-<p>이럴 때 사용하는 것이 <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code> 입니다.</p>
-
-<h1 id="spring-cloud-bus란">Spring Cloud Bus란?</h1>
-
-<p><code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code>는 <strong>메시지 브로커(RabbitMQ, Kafka 등)를 이용해 여러 마이크로서비스 간에 설정 변경 이벤트를 실시간으로 전파</strong>합니다.</p>
-
-<p>이제 <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code> 도 추가 설정하여 동시에 여러 마이크로서비스들의 설정 값들을 실시간으로 반영하도록 해봅시다.</p>
-
-<p>Bus 작동 테스트를 위해 <strong>RabbitMQ</strong>와 <strong>Kafka</strong> 두 개를 이용하여 테스트를 진행해봤습니다.</p>
-
-<p>두 메시지 브로커 모두 Bus를 쉽게 구성할 수 있었습니다.</p>
-
-<p>하지만 백엔드 개발자라면, 기술을 채택하는 데 있어 근거를 가지고 있어야겠죠?</p>
-
-<p>결과적으로 저는 개인 사이드 프로젝트를 위해 Kafka를 적용하긴 했습니다만, 두 메시지 브로커 설정 방식에 대해 모두 설명 해드리겠습니다.</p>
-
-<h2 id="bus로-사용하기-적합한-메시지-브로커">Bus로 사용하기 적합한 메시지 브로커?</h2>
-
-<p>설정 방식을 알아보기 전에, Spring Cloud Bus의 메시지 브로커로 RabbitMQ와 Kafka를 선택할 때 고려할 수 있는 장단점을 비교해보겠습니다.</p>
-
-<h3 id="rabbitmq">RabbitMQ</h3>
-
-<p><strong>장점</strong></p>
-
-<ul>
-  <li>비교적 간단하게 설치 및 운영할 수 있으며, 관리 UI도 직관적입니다.</li>
-  <li>AMQP를 기반으로 하여 Pub/Sub, Work Queue, RPC 등 다양한 패턴을 쉽게 구현할 수 있는 <strong>유연한 메시징 패턴</strong>을 제공합니다.</li>
-  <li>일반적인 애플리케이션 환경에서는 충분한 성능을 제공하며, <strong>소규모 시스템에 적합합니다.</strong></li>
-</ul>
-
-<p><strong>단점</strong></p>
-
-<ul>
-  <li>대용량 데이터 처리에는 적합하지 않습니다.</li>
-  <li>Kafka에 비해 수평 클러스터 확장성이 떨어집니다.</li>
-</ul>
-
-<h3 id="kafka">Kafka</h3>
-
-<p><strong>장점</strong></p>
-
-<ul>
-  <li><strong>대용량 메시지를 빠르게 처리</strong>할 수 잇으며, <strong>클러스터 확장이 용이</strong>합니다.</li>
-  <li>메시지를 디스크에 지속적으로 저장하여 <strong>내구성을 제공</strong>합니다.</li>
-  <li><strong>스트리밍 데이터 처리에 최적화</strong>되어 있습니다.</li>
-</ul>
-
-<p><strong>단점</strong></p>
-
-<ul>
-  <li>초기 설정과 운영 및 모니터링이 RabbitMQ보다 복잡합니다.</li>
-  <li>메시지 시스템의 개념과 운영 전략에 대한 Kafka 학습 비용이 필요합니다.</li>
-  <li>단순한 시스템에 도입하기에는 오버엔지니어링이 될 수 있습니다.</li>
-</ul>
-
-<h3 id="선택-기준-정리">선택 기준 정리</h3>
-
-<ul>
-  <li>소규모 시스템이나 간단한 메시징 패턴이 필요하다면 <strong>RabbitMQ</strong>가 빠르고 쉽게 도입할 수 있는 선택입니다.</li>
-  <li>대규모 분산 환경이나 높은 처리량, 내구성이 요구되는 경우에는 <strong>Kafka</strong>가 적합합니다.</li>
-</ul>
-
-<p>두 메시지 브로커 모두 Spring Cloud Bus를 활용한 동적 설정 변경을 지원하므로, 시스템 규모와 메시지 처리량, 확장성을 고려하여 적절한 브로커를 선택하시면 됩니다.</p>
-
-<hr />
-
-<h1 id="spring-cloud-bus-설정">Spring Cloud Bus 설정</h1>
-
-<h2 id="kafka를-이용한-bus">Kafka를 이용한 Bus</h2>
-
-<h3 id="dependency-1">Dependency</h3>
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.cloud:spring-cloud-starter-bus-kafka'</span>
-</code></pre></div></div>
-<ul>
-  <li>클라이언트가 Kafka를 통해 Bus 이벤트를 수신 및 발신할 수 있도록 의존성 추가해줍니다.</li>
-</ul>
-
-<h3 id="클라이언트-applicationyml">클라이언트 application.yml</h3>
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
-  <span class="na">kafka</span><span class="pi">:</span>
-    <span class="na">bootstrap-servers</span><span class="pi">:</span> <span class="s">http://localhost:9092</span> <span class="c1"># Kafka URL</span>
-  <span class="na">cloud</span><span class="pi">:</span>
-    <span class="na">bus</span><span class="pi">:</span>
-      <span class="na">destination</span><span class="pi">:</span> <span class="s">bus-topic</span> <span class="c1"># Bus 이벤트를 주고받을 토픽</span>
-</code></pre></div></div>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">spring.kafka.bootstrap-servers</code>: Bus로 이용할 Kafka 브로커 서버의 URL (클러스터링이 된 경우 <code class="language-plaintext highlighter-rouge">,</code>를 기준으로 여러 브로커 URL을 명시하면 됩니다.)</li>
-  <li><code class="language-plaintext highlighter-rouge">spring.cloud.bus.destination</code>: Bus 이벤트를 Pub/Sub 할 토픽을 명시해줍니다.</li>
-  <li>⚠️ 위 설정은 <strong>Config Server도 마찬가지로 동일하게 설정</strong>되어 있어야 합니다!</li>
-</ul>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">management</span><span class="pi">:</span>
-  <span class="na">endpoints</span><span class="pi">:</span>
-    <span class="na">web</span><span class="pi">:</span>
-      <span class="na">exposure</span><span class="pi">:</span>
-        <span class="na">include</span><span class="pi">:</span> <span class="s">refresh, busrefresh</span>
-</code></pre></div></div>
-<ul>
-  <li>클라이언트의 <code class="language-plaintext highlighter-rouge">actuator</code> 엔드포인트 <code class="language-plaintext highlighter-rouge">/busrefresh</code>를 이용하면 메시지 브로커의 설정된 토픽으로 이벤트가 발송됩니다.</li>
-  <li>해당 토픽을 Consume(소비/구독)하는 클라이언트들은 모두 Config Server로 부터 설정 파일의 갱신을 요청하게 됩니다.</li>
-  <li>이로써 동시에 여러 마이크로서비스들의 설정 값을 실시간으로 업데이트 할 수 있게 됩니다.</li>
-</ul>
-
-<h2 id="busrefresh">/busrefresh</h2>
-
-<figure align="center">
-<img src="/post_images/spring-cloud-side-project/config-server3.png" />
-<figcaption>/busrefresh 성공 응답으로 204(no-content) 응답이 옵니다.</figcaption>
-</figure>
-
-<h2 id="bus-topic-log">bus topic Log</h2>
-
-<p><code class="language-plaintext highlighter-rouge">/busrefresh</code> 이벤트가 발생하여 Kafka 토픽에 메시지가 도달하면 아래와 같은 <strong>JSON 포맷</strong>으로 기록되는 것을 확인하실 수 있습니다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">type</code> 필드와 <code class="language-plaintext highlighter-rouge">originService</code> 를 살펴보면 어떤 클라이언트에서 이벤트를 발송했고, 어떤 클라이언트가 이벤트를 수신했는지 확인할 수 있습니다.</p>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">type</code>: 어떤 클라이언트에서 <code class="language-plaintext highlighter-rouge">/busrefresh</code> 요청이 발생했고, 어디서 그 이벤트를 수신했는지 확인할 수 있습니다.
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">RefreshRemoteApplicationEvent</code>: <code class="language-plaintext highlighter-rouge">/busrefresh</code>를 호출한 이벤트입니다.</li>
-      <li><code class="language-plaintext highlighter-rouge">AckRemoteApplicationEvent</code>: <code class="language-plaintext highlighter-rouge">/busrefresh</code> 요청을 수신했다는 응답 이벤트입니다.</li>
-    </ul>
-  </li>
-  <li><code class="language-plaintext highlighter-rouge">originService</code>: 이벤트를 처리한 클라이언트(마이크로서비스)의 애플리케이션 이름 정보가 담겨있습니다.</li>
-</ul>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="w">
-  </span><span class="p">{</span><span class="w">
-    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RefreshRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394015516</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"order-service:default:8082:48ea6afcb8f6479b592a8cf041d2927b"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="w">
-  </span><span class="p">},</span><span class="w">
-  </span><span class="p">{</span><span class="w">
-    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394015600</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"order-service:default:8082:48ea6afcb8f6479b592a8cf041d2927b"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"f7c31aa1-a1df-4952-9e6c-a2ddd51c65f9"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
-  </span><span class="p">},</span><span class="w">
-  </span><span class="p">{</span><span class="w">
-    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394018002</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"config-service:8888:5cadfc3cecb50346571c4e594886d273"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ce0d38d8-bd5a-43ce-b9cf-ea96456265d1"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
-  </span><span class="p">},</span><span class="w">
-  </span><span class="p">{</span><span class="w">
-    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394021382</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"user-service:default:8080:4938cf08c833b263a04aa56c247721d3"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5bb5898f-a570-475d-b6c6-3efa7516b4b6"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
-  </span><span class="p">},</span><span class="w">
-  </span><span class="p">{</span><span class="w">
-    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394022065</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"product-service:8081:2dc75521f12081519f46be8f3441ee00"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"949d77da-9861-4066-8aca-b9b3aaacb678"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
-  </span><span class="p">}</span><span class="w">
-</span><span class="p">]</span><span class="w">
-</span></code></pre></div></div>
-
-<ul>
-  <li>위 Json 파일을 살펴보면, <code class="language-plaintext highlighter-rouge">order-service</code>에서 <code class="language-plaintext highlighter-rouge">/busrefresh</code>를 호출한 것을 알 수 있습니다.</li>
-  <li>그리고 <code class="language-plaintext highlighter-rouge">order-service</code>, <code class="language-plaintext highlighter-rouge">config-service</code>, <code class="language-plaintext highlighter-rouge">user-service</code>, <code class="language-plaintext highlighter-rouge">product-service</code> 가 확인 응답을 하여, 설정 파일이 갱신되었다는 것을 알 수 있습니다.</li>
-</ul>
-
-<blockquote>
-  <p>참고로 Kafka는 도커 이미지를 이용하여 구동하였습니다. 이번 포스트는 Kafka에 대한 포스트가 아니므로, Kafka 도커 실행에 대한 내용은 생략하도록 하겠습니다.</p>
-</blockquote>
-
-<p>여기까지 Kafka를 이용한 Spring Cloud Bus 를 알아보았습니다.</p>
-
-<h2 id="rabbitmq를-이용한-bus">RabbitMQ를 이용한 Bus</h2>
-
-<p>이번에는 RabbitMQ를 이용한 Spring Cloud Bus 설정 방법을 알아보겠습니다.</p>
-
-<p>동작 흐름은 Kafka와 동일하기 때문에, RabbitMQ는 설정법만 간단히 짚고 넘어가도록 하겠습니다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
-  <span class="na">application</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">user-service</span>
-  <span class="na">config</span><span class="pi">:</span>
-    <span class="na">import</span><span class="pi">:</span> <span class="s">optional:configserver:http://localhost:8888</span>
-  <span class="na">profiles</span><span class="pi">:</span>
-    <span class="na">active</span><span class="pi">:</span> <span class="s">default</span>
-  <span class="na">cloud</span><span class="pi">:</span>
-    <span class="na">config</span><span class="pi">:</span>
-      <span class="na">name</span><span class="pi">:</span> <span class="s">test</span>
-  <span class="na">rabbitmq</span><span class="pi">:</span>
-    <span class="na">host</span><span class="pi">:</span> <span class="s">localhost</span> <span class="c1"># RabbitMQ Host</span>
-    <span class="na">port</span><span class="pi">:</span> <span class="m">5672</span> <span class="c1"># RabbitMQ Port</span>
-    <span class="na">username</span><span class="pi">:</span> <span class="s">guest</span> 
-    <span class="na">password</span><span class="pi">:</span> <span class="s">guest</span>
-
-<span class="na">management</span><span class="pi">:</span>
-  <span class="na">endpoints</span><span class="pi">:</span>
-    <span class="na">web</span><span class="pi">:</span>
-      <span class="na">exposure</span><span class="pi">:</span>
-        <span class="na">include</span><span class="pi">:</span> <span class="s">refresh, busrefresh</span>
-</code></pre></div></div>
-
-<ul>
-  <li>Spring Cloud Bus를 위해서 Config Server와 연결 설정과 RabbitMQ 설정 그리고 액추에이터의 <code class="language-plaintext highlighter-rouge">/busrefresh</code> 엔드포인트를 설정해주기만 하면 됩니다.</li>
-  <li><code class="language-plaintext highlighter-rouge">/busrefresh</code> 를 호출하면 RabbitMQ에 메시지를 발송하여, RabbitMQ(Bus 역할)에 연결된 서비스들의 설정 파일들을 갱신시키게 됩니다.</li>
-</ul>
-
-<blockquote>
-  <p>RabbitMQ는 도커 이미지를 이용하여 구동하였습니다.</p>
-</blockquote>
-
-<h1 id="-정리">🚀 정리</h1>
-
-<p>이번 포스트에서는 Spring Cloud Bus와 Spring Boot Actuator를 활용하여 Config Server에서 읽어온 설정 파일을 애플리케이션 재시작 없이 동적으로 갱신하는 방법을 다뤘습니다.</p>
-
-<p>Kafka와 RabbitMQ 두 가지 메시지 브로커를 통한 Bus 설정 방법과 각각의 장단점에 대해서도 알아봤습니다.</p>
-
-<p><code class="language-plaintext highlighter-rouge">/refresh</code>와 <code class="language-plaintext highlighter-rouge">/busrefresh</code> 엔드포인트를 활용해 개별 서비스와 전체 마이크로서비스에 동시에 설정 변경 이벤트를 전파하는 과정도 살펴봤습니다.</p>
-
-<h1 id="-요약">🎯 요약</h1>
-
-<ul>
-  <li>Spring Cloud Bus와 Actuator를 사용하면 Config Server의 설정 변경을 각 마이크로서비스에 실시간으로 적용할 수 있습니다.</li>
-  <li>Kafka는 대용량 처리와 확장성이 뛰어나고, RabbitMQ는 설치와 운영이 간편하다는 장점을 제공합니다.</li>
-</ul>
-
-<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="Spring Cloud Config" /><category term="Spring Cloud Bus" /><summary type="html"><![CDATA[분산 환경에서 각 마이크로서비스가 Config Server로부터 설정 파일을 읽어오는 방법을 알아봅시다!]]></summary></entry></feed>
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="Spring Cloud Gateway" /><summary type="html"><![CDATA[Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!]]></summary></entry></feed>
