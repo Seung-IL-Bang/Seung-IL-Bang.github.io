@@ -1,0 +1,1374 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Distributed Tracing,b3 propagation,Micrometer," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="분산 환경에서 Zipkin을 활용한 요청의 전체 흐름을 추적해봅시다!">
+<meta name="keywords" content="Distributed Tracing, b3 propagation, Micrometer">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Zipkin을 활용한 마이크로서비스 분산 트레이싱">
+<meta property="og:url" content="http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="분산 환경에서 Zipkin을 활용한 요청의 전체 흐름을 추적해봅시다!">
+<meta property="og:locale" content="ko">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Zipkin을 활용한 마이크로서비스 분산 트레이싱">
+<meta name="twitter:description" content="분산 환경에서 Zipkin을 활용한 요청의 전체 흐름을 추적해봅시다!">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Zipkin을 활용한 마이크로서비스 분산 트레이싱 | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Zipkin을 활용한 마이크로서비스 분산 트레이싱
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-02-23T00:00:00+09:00">
+                2025-02-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Cloud" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Zipkin" itemprop="url" rel="index">
+                    <span itemprop="name">Zipkin</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/MSA" itemprop="url" rel="index">
+                    <span itemprop="name">MSA</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>분산 환경에서 Zipkin을 활용한 요청의 전체 흐름을 추적해봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>마이크로서비스 아키텍처는 독립적으로 배포되고 관리되는 작은 서비스들이 모여 애플리케이션을 구성하게 됩니다. 이러한 환경에서는 서비스 간의 통신이 빈번하게 발생하며, 각 서비스가 독자적인 로그를 남기기 때문에 전체 트랜잭션의 흐름을 파악하기가 어렵습니다. 예를 들어, 주문 서비스 -&gt; 결제 서비스 -&gt; 배송 서비스 등의 여러 서비스가 순차적으로 호출되는 과정에서 각 서비스는 별도의 로그를 각자 남기기 때문에 어떤 서비스에서 문제가 발생했는지 확인하기 어렵습니다.</p>
+
+<p>이러한 문제점 때문에 <strong>분산 트레이싱</strong>은 문제 발생 시 원인을 신속하게 파악하고, 성능 병목을 찾아내는 데 필수적인 도구로 등장합니다.</p>
+
+<p>본 포스트에서는 분산 트레이싱 도구 중 <code class="language-plaintext highlighter-rouge">Zipkin</code>을 활용한 분산 트레이싱을 다루도록 하겠습니다.</p>
+
+<h1 id="마이크로서비스-환경의-복잡성">마이크로서비스 환경의 복잡성</h1>
+
+<p>마이크로서비스 아키텍처에서는 <strong>하나의 사용자 요청이 여러 서비스를 거치며 처리</strong>됩니다. 주문, 결제, 배송 서비스 등 여러 서비스를 거치게 되는 것이죠. 이러한 <strong>분산된 호출 구조</strong>는 여러 <strong>문제점</strong>을 유발할 수 있습니다.</p>
+
+<p>각 서비스마다 <strong>별도의 로그</strong>를 남기기 때문에 하나의 트랜잭션이 어디에서 지연되거나 장애가 발생했는지 확인하기 어렵습니다. 그리고 전체 흐름에서 어느 부분이 응답 시간을 지연시키는지도 파악하기 어렵습니다.</p>
+
+<p><strong>모놀리식(Monolihic)</strong>의 경우 하나의 서비스로 애플리케이션이 구동되기 때문에, 전체 흐름에 대한 로그를 하나의 서비스에서 디버깅 할 수 있습니다. 하지만 <strong>MSA</strong>에서는 문제를 파악하기 위해 관련된 모든 서비스들의 로그를 하나하나 다 살펴봐야 하는 번거로움이 존재합니다.</p>
+
+<p>만약 분산 트레이싱 도구가 없다면, 위와 같은 문제를 해결하기 위해 각 서비스에서 개별적으로 로그를 분석해야 하며, 이는 시간 소모적이이고 비효율적일 뿐만 아니라, 문제 진단의 어려움이 따르기 때문에 신속하게 대응하지 못할 위험이 높아집니다.</p>
+
+<h1 id="zipkin을-활용한-요청-추적">Zipkin을 활용한 요청 추적</h1>
+
+<p><code class="language-plaintext highlighter-rouge">Zipkin</code>은 <strong>오픈 소스 분산 트레이싱 시스템</strong>으로, 마이크로서비스 환경에서 서비스 간 호출 흐름을 <strong>시각화하고 분석할 수 있도록 도와주는 도구</strong>입니다. <code class="language-plaintext highlighter-rouge">Zipkin</code>을 활용하면 각 서비스의 호출 데이터를 중앙에서 수집하여 아래 문제점들을 해결해줍니다.</p>
+
+<ol>
+  <li><strong>전체 호출 흐름 시각화</strong>: 사용자 요청이 어떤 경로로 전달되는지 시각화하여 한 눈에 파악 할수 있도록 해줍니다.</li>
+  <li><strong>Latency 분석</strong>: 각 서비스 간 호출의 응답 시간 정보를 제공하여 어떤 서비스의 어떤 로직에서 성능 병목이 일어나는지 쉽게 식별할 수 있습니다.</li>
+  <li><strong>장애 원인 분석</strong>: 트랜잭션 중 발생한 예외나 오류를 신속하게 탐지하고, 어느 서비스에서 문제가 발생했는지 분석 할 수 있습니다.</li>
+</ol>
+
+<h1 id="zipkin-적용-방법">Zipkin 적용 방법</h1>
+
+<p>예전에는 Spring Boot 애플리케이션에 쉽게 분산 트레이싱 기능을 추가할 수 있도록 도와주는 <code class="language-plaintext highlighter-rouge">Spring Cloud Sleuth</code>라는 라이브러리를 사용했었습니다. 하지만 최근 버전으로 업데이트 되면서 <code class="language-plaintext highlighter-rouge">Spring Cloud Sleuth</code>는 Deprecated 될 라이브러리가 되었습니다. 따라서 최근 버전에서는 <code class="language-plaintext highlighter-rouge">Micrometer</code>로 분산 트레이싱 기능을 추가하도록 변경되었습니다.</p>
+
+<h2 id="dependency">Dependency</h2>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5</pre></td><td class="code"><pre class="highlight"><code>	<span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
+	<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-observation'</span>
+	<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-tracing-bridge-brave'</span>
+	<span class="n">implementation</span> <span class="s1">'io.zipkin.brave:brave-instrumentation-spring-web'</span>
+	<span class="n">implementation</span> <span class="s1">'io.zipkin.reporter2:zipkin-reporter-brave'</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<h2 id="applicationyml">application.yml</h2>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12</pre></td><td class="code"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">product-service</span>
+<span class="na">management</span><span class="pi">:</span>
+  <span class="na">tracing</span><span class="pi">:</span>
+    <span class="na">sampling</span><span class="pi">:</span>
+      <span class="na">probability</span><span class="pi">:</span> <span class="m">1.0</span>
+    <span class="na">propagation</span><span class="pi">:</span>
+      <span class="na">type</span><span class="pi">:</span> <span class="s">b3</span>
+  <span class="na">zipkin</span><span class="pi">:</span>
+    <span class="na">tracing</span><span class="pi">:</span>
+      <span class="na">endpoint</span><span class="pi">:</span> <span class="s">${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li>여기서 <code class="language-plaintext highlighter-rouge">spring.application.name</code>은 서비스 태깅에 활용되며, 각 서비스의 이름이 <strong>Zipkin UI</strong>에 표시되어 호출 흐름을 쉽게 파악할 수 있습니다.</li>
+  <li>위와 같이 의존성과 설정을 마치면, 자동으로 <strong>각 요청에 고유한 Trace ID와 Span ID를 부여하여, 서비스 간의 호출 관계를 추적</strong>하게 됩니다.</li>
+</ul>
+
+<h1 id="zipkin-ui를-활용한-트레이스-분석">Zipkin UI를 활용한 트레이스 분석</h1>
+
+<h2 id="서비스-간-호출-흐름-시각화">서비스 간 호출 흐름 시각화</h2>
+
+<p><strong>Zipkin UI</strong>는 수집된 트레이스 데이터를 기반으로, 서비스 간 호출 흐름을 직관적으로 시각화해줍니다. 개발자는 UI를 통해 각 서비스가 호출한 순서와 관계를 그래픽으로 확인할 수 있습니다. 또한 특정 트랜잭션의 세부적인 스팬 정보와 타임라인을 분석할 수도 있습니다.</p>
+
+<h2 id="latency-분석-및-장애-감지">Latency 분석 및 장애 감지</h2>
+
+<p>Zipkin UI에서는 각 스팬의 응답 시간을 시각적으로 표시하여, 어느 부분에서 지연이 발생했는지 쉽게 식별할 수 있습니다. 이를 통해 성능 병목 구간을 찾아내고, 장애 발생 시 원인 분석에 필요한 정보를 제공합니다. 만약 이러한 시각화 도구가 없으면, 로그 파일만으로 각 서비스 간의 호출 관계와 지연 시간을 분석해야 하므로, 문제 발생 시 즉각적인 대응이 어려워질 것입니다.</p>
+
+<h1 id="spring-aop를-활용한-미들웨어-간의-요청-추적">Spring AOP를 활용한 미들웨어 간의 요청 추적</h1>
+
+<p>마이크로서비스에서는 HTTP 호출 외에도 Kafka, Redis와 같은 미들웨어를 활용하는 경우가 많습니다. Zipkin과 Micrometer의 기본 의존성과 설정만으로는 미들웨어 통신 경로를 자동 추적하진 않습니다. 미들웨어간의 호출 흐름까지 추적하기 위해, 추적에 필요한 로직을 <strong>스프링 AOP</strong>를 활용하여 <strong>사용자 정의 트레이싱</strong> 코드를 삽입할 수 있었습니다.</p>
+
+<p>예를 들어, 스프링 AOP를 활용하여 Kafka를 통한 메시지 발행/구독 흐름도 추적할 수 있습니다. 이를 통해 메시지 큐를 통한 비동기 호출도 명확하게 추적할 수 있으며, 메시지 손실이나 지연 문제를 쉽게 추적할 수 있습니다.</p>
+
+<p>만약 이러한 미들웨어 추적 메커니즘이 없다면, 각 미들웨어 간의 호출 흐름이 단절되어 문제 발생 시 원인 파악에 큰 어려움이 따를 것입니다. 이는 디버깅 하는 시간이 급격히 증가할 수 있습니다.</p>
+
+<h1 id="-결론">🚀 결론</h1>
+
+<p>마이크로서비스 아키텍처에서는 서비스 간 호출 흐름이 복잡해짐에 따라, 단순 로그 분석만으로는 문제의 원인을 파악하기 어렵습니다. <code class="language-plaintext highlighter-rouge">Zipkin</code>과 <code class="language-plaintext highlighter-rouge">Micrometer</code>를 활용하면, 전체 트랜잭션의 흐름을 시각화하고 각 서비스의 성능을 모니터링할 수 있어 문제 발생 시 신속하게 대응할 수 있습니다. 이러한 도구들이 없다면, 시스템 장애나 성능 병목을 찾아내는 데에 많은 시간과 리소스가 소모되며, 이는 비즈니스에 심각한 영향을 미칠 것입니다. MSA 환경에서 <code class="language-plaintext highlighter-rouge">Zipkin</code>을 통한 <strong>분산 트레이싱</strong>은 단순히 로그를 남기는 것을 넘어, 시스템의 <strong>전체적인 건강 상태를 관리</strong>하고, 장애 발생 시 <strong>신속한 원인 분석 및 대응</strong> 전략을 마련하는 데 <strong>필수적인 요소</strong>라 볼 수 있습니다.</p>
+
+<h1 id="참고-자료">참고 자료</h1>
+
+<ul>
+  <li><a href="https://engineering.linecorp.com/ko/blog/line-ads-msa-opentracing-zipkin">LINE 광고 플랫폼의 MSA 환경에서 Zipkin을 활용해 로그 트레이싱하기</a></li>
+  <li><a href="https://github.com/openzipkin/b3-propagation">b3-propagation</a></li>
+</ul>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Distributed%20Tracing" rel="tag"># Distributed Tracing</a>
+          
+            
+            <a href="/tag/#/b3%20propagation" rel="tag"># b3 propagation</a>
+          
+            
+            <a href="/tag/#/Micrometer" rel="tag"># Micrometer</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/msa/elk/2025/02/24/ELK-Stack-Log-Analysis/" rel="next" title="ELK 스택을 활용한 MSA 중앙 집중식 로그 모니터링">
+                <i class="fa fa-chevron-left"></i> ELK 스택을 활용한 MSA 중앙 집중식 로그 모니터링
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture/" rel="prev" title="Spring Cloud + Kafka로 구현하는 마이크로서비스 이벤트 아키텍처">
+                Spring Cloud + Kafka로 구현하는 마이크로서비스 이벤트 아키텍처 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-들어가기"> <span class="nav-number">1</span> <span class="nav-text">📌 들어가기</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#마이크로서비스-환경의-복잡성"> <span class="nav-number">2</span> <span class="nav-text">마이크로서비스 환경의 복잡성</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#zipkin을-활용한-요청-추적"> <span class="nav-number">3</span> <span class="nav-text">Zipkin을 활용한 요청 추적</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#zipkin-적용-방법"> <span class="nav-number">4</span> <span class="nav-text">Zipkin 적용 방법</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#dependency"> <span class="nav-number">4.1</span> <span class="nav-text">Dependency</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#applicationyml"> <span class="nav-number">4.2</span> <span class="nav-text">application.yml</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#zipkin-ui를-활용한-트레이스-분석"> <span class="nav-number">5</span> <span class="nav-text">Zipkin UI를 활용한 트레이스 분석</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#서비스-간-호출-흐름-시각화"> <span class="nav-number">5.1</span> <span class="nav-text">서비스 간 호출 흐름 시각화</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#latency-분석-및-장애-감지"> <span class="nav-number">5.2</span> <span class="nav-text">Latency 분석 및 장애 감지</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#spring-aop를-활용한-미들웨어-간의-요청-추적"> <span class="nav-number">6</span> <span class="nav-text">Spring AOP를 활용한 미들웨어 간의 요청 추적</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-결론"> <span class="nav-number">7</span> <span class="nav-text">🚀 결론</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#참고-자료"> <span class="nav-number">8</span> <span class="nav-text">참고 자료</span> </a> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/';
+              this.page.identifier = '/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/';
+              this.page.title = 'Zipkin을 활용한 마이크로서비스 분산 트레이싱';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

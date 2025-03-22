@@ -1,0 +1,1601 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Transaction,Database,Isolation," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="트랜잭션의 ACID 속성중 Isolation 속성에 대해 알아보자.">
+<meta name="keywords" content="Transaction, Database, Isolation">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Isolation 고립성">
+<meta property="og:url" content="http://localhost:4000/database/db%20engineering/transaction/2024/06/15/Isolation/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="트랜잭션의 ACID 속성중 Isolation 속성에 대해 알아보자.">
+<meta property="og:locale" content="ko">
+<meta property="og:image" content="/post_images/DBEngineering/ACID/DirtyReads.png">
+<meta property="og:image" content="/post_images/DBEngineering/ACID/Non-repeatableRead.png">
+<meta property="og:image" content="/post_images/DBEngineering/ACID/PhantomRead.png">
+<meta property="og:image" content="/post_images/DBEngineering/ACID/LostUpdate.png">
+<meta property="og:image" content="/post_images/DBEngineering/ACID/IsolationLevelVsReadPhenomena.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Isolation 고립성">
+<meta name="twitter:description" content="트랜잭션의 ACID 속성중 Isolation 속성에 대해 알아보자.">
+<meta name="twitter:image" content="/post_images/DBEngineering/ACID/DirtyReads.png">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Isolation 고립성 | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/database/db%20engineering/transaction/2024/06/15/Isolation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Isolation 고립성
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2024-06-15T00:00:00+09:00">
+                2024-06-15
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Database" itemprop="url" rel="index">
+                    <span itemprop="name">Database</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/DB%20Engineering" itemprop="url" rel="index">
+                    <span itemprop="name">DB Engineering</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Transaction" itemprop="url" rel="index">
+                    <span itemprop="name">Transaction</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/database/db%20engineering/transaction/2024/06/15/Isolation/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/database/db%20engineering/transaction/2024/06/15/Isolation/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    트랜잭션의 ACID 속성중 Isolation 속성에 대해 알아보자.
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <!-- more -->
+
+<h2 id="read-phenomena">Read Phenomena</h2>
+
+<p>여러 트랜잭션이 동시에 실행된다면 데이터를 읽어들일 때마다 값이 변할까?</p>
+
+<p>변화된 값을 읽는게 좋을까 아니면 일관된 값을 읽어들이는 것이 좋을까?</p>
+
+<p>사실, 정답은 없지만 일관된 값을 읽어들이는 것이 더 바람직하다.</p>
+
+<p>트랜잭션이 동시에 수행되면서 여러 가지 읽기 현상들이 존재하는데 이것을,</p>
+
+<p><strong>Read Phenomena</strong> 라고 한다.</p>
+
+<p>여러 트랜잭션이 수행되더라도 예상되고 바람직한 결과를 얻기 위해서 트랜잭션 간 <strong>고립성(Isolation)</strong>이 필요한 것이다.</p>
+
+<h3 id="dirty-reads">Dirty Reads</h3>
+
+<p><code class="language-plaintext highlighter-rouge">Dirty</code> 의 의미는 데이터가 완전히 <code class="language-plaintext highlighter-rouge">flush</code> 되지 않았거나 완전히 <code class="language-plaintext highlighter-rouge">commit</code> 되지 않았다는 것을 의미한다. 즉, 다른 트랜잭션이 쓴 내용을 읽지만 실제로 아직 커밋되지 않은 것을 읽는 현상을 말한다.</p>
+
+<h3 id="non-repeatable-reads">Non-repeatable Reads</h3>
+
+<p>트랜잭션 내에서 어떤 데이터를 읽은 이후, 동일한 자원을 다시 읽으려고 할 때 그 값이 변경되어져 있는 현상을 말한다.</p>
+
+<h3 id="phantom-reads">Phantom Reads</h3>
+
+<p>범위의 해당하는 값을 읽어들이는 쿼리가 있을 때, 첫 번째 범위 쿼리로부터 얻었던 결과에 없었던 값이 두 번째 범위 쿼리에는 새로운 행이 삽입되어 처음에는 없던 값을 읽는 현상을 말한다. 즉, 다른 트랜잭션의 쓰기 작업으로 인해 처음에 읽지 않았던 것을 두 번째 쿼리에서 읽게 된 것을 말한다.</p>
+
+<h3 id="lost-updates">Lost Updates</h3>
+
+<p>한 트랜잭션 내에서 수정한 데이터 값을 커밋하기 전에 다른 트랜잭션이 커밋 전의 데이터를 읽는 현상을 말한다. 결국 커밋 이후 시점에서 보면 다른 트랜잭션은 과거의 데이터를 읽어버린 꼴이다.</p>
+
+<p><br /></p>
+
+<h2 id="dirty-reads-예시">Dirty Reads 예시</h2>
+
+<figure align="center">
+<img src="/post_images/DBEngineering/ACID/DirtyReads.png" />
+<figcaption>Dirty Reads 예시</figcaption>
+</figure>
+
+<ol>
+  <li>TX1 Read =&gt; (Product1, 50), (Product2, 80)</li>
+  <li>TX2 Update =&gt; Product1이 5개가 더 팔려서 <code class="language-plaintext highlighter-rouge">QNT</code> 5개를 추가하였다.(10 -&gt; 15)</li>
+  <li>TX1 Read =&gt; TX2의 커밋되지 않은 값을 읽어서 155 합의 결과를 도출했다. (일관성이 있으려면 사실 130이라는 합이 나왔어야 했다.)</li>
+  <li>TX2 Rollback =&gt; TX2의 롤백으로 인해 결국 TX1이 읽은 155값(Dirty Value)에 대한 원인도 사라진 셈이다.</li>
+</ol>
+
+<h2 id="non-repeatable-read-예시">Non-repeatable Read 예시</h2>
+
+<figure align="center">
+<img src="/post_images/DBEngineering/ACID/Non-repeatableRead.png" />
+<figcaption>Non-repeatable Read 예시</figcaption>
+</figure>
+
+<ol>
+  <li>TX1 Read =&gt; (Product1, 50), (Product2, 80)</li>
+  <li>TX2 Update =&gt; Product1이 5개가 더 팔려서 <code class="language-plaintext highlighter-rouge">QNT</code> 5개를 추가하였다.(10 -&gt; 15)</li>
+  <li>TX2 COMMIT</li>
+  <li>TX1 Read =&gt; TX2 커밋 이후 read 했기 때문에 Dirty Value를 읽어들인 것은 아니다. 하지만 <u>여전히 일관성</u>이 깨진 155이라는 합을 내놓고 있다.</li>
+</ol>
+
+<blockquote>
+  <p>비즈니스 요구사항과 성능 사이의 trade-off 를 고려했을 때, Non-repeatable read를 허용하더라도 문제가 생기지 않는 상황이라면 Non-repeatable read를 허용할 수도 있다.</p>
+</blockquote>
+
+<h2 id="phantom-read-예시">Phantom Read 예시</h2>
+
+<p><strong>Phantom Read(유령 읽기)</strong>는 범위 쿼리에서 발생한다. 특히 <code class="language-plaintext highlighter-rouge">where</code> 절이 존재할 경우 유령읽기가 발생하지 않을 수 있는 예시를 생각해 내기 어려울 정도로 흔하게 발생 가능한 현상이다.</p>
+
+<figure align="center">
+<img src="/post_images/DBEngineering/ACID/PhantomRead.png" />
+<figcaption>Phantom Read 예시</figcaption>
+</figure>
+
+<ol>
+  <li>TX1 Read =&gt; (Product1, 50), (Product2, 80)</li>
+  <li>TX2 Insert =&gt; (Product3, 10개, 1$) 새로운 상품 삽입</li>
+  <li>TX2 COMMIT</li>
+  <li>TX1 Read =&gt; 새로 삽입된 행까지 조회하기 때문에 일관성이 깨진 $140의 값을 도출한다.</li>
+</ol>
+
+<blockquote>
+  <p>Non-repeatable Read VS Phantom Read</p>
+
+  <p>반복되지 않는 읽기는 기존에 읽었던 데이터가 그 다음에 읽을 때 일관성이 깨지는 경우이고, 유령 읽기는 기존에 없던 데이터가 그 다음에 읽을 때 새로 생기는 데이터 때문에 일관성이 깨지는 경우이다.</p>
+</blockquote>
+
+<h2 id="lost-updates-예시">Lost Updates 예시</h2>
+
+<figure align="center">
+<img src="/post_images/DBEngineering/ACID/LostUpdate.png" />
+<figcaption>Lost Update 예시</figcaption>
+</figure>
+
+<ul>
+  <li>두 개의 트랜잭션 TX1, TX2가 거의 동시에 BEGIN하여 둘 다 Product1의 <code class="language-plaintext highlighter-rouge">QNT</code>를 10으로 바라본다.</li>
+  <li>TX1 Update =&gt; Product1의 QNT에 10을 더한다. (10 -&gt; 20)</li>
+  <li>TX2 Update =&gt; Product2의 QNT에 5를 더한다. (10 -&gt; 15)</li>
+  <li>TX2 COMMIT =&gt; TX1에서 업데이트한 값이 TX2이 업데이트한 값으로 덮어쓰여졌다.</li>
+  <li>TX1 Read =&gt; TX1이 업데이트한 값을 토대로 $180 값을 얻어야 하지만 TX2의 덮어쓰기로 인해 TX1의 업데이트 값을 잃어버리고 일관성이 깨진 $155 값을 얻게 되었다.</li>
+</ul>
+
+<h2 id="일관성consistence에-도달하기-위해">일관성(Consistence)에 도달하기 위해</h2>
+
+<p>한 트랜잭션 내에서 읽는(read) 데이터들의 값들은 일관성(consistence)이 유지되길 기대한다. 다시 말해, 한 트랜잭션 내에서 특정 데이터에 대해 100번의 조회를 하더라도 100번 전부 같은 값을 얻을 수 있어야 한다는 것이다. 쉽게 생각하면 다른 트랜잭션의 영향없이 본인 트랜잭션 내에서만 데이터 정보가 일관되어야 한다고 볼 수 있다. 하지만 실제 시스템은 여러 트랜잭션이 동시에 실행된다. <strong>여기서 우리는 일관성을 얻기 위해 고립이 필요한 것이다.</strong></p>
+
+<h2 id="isolation-levels">Isolation Levels</h2>
+
+<blockquote>
+  <p>Isolation Level(격리 수준)을 구현하는 방식은 각 DBMS마다 다르다.</p>
+</blockquote>
+
+<p>성능과 데이터의 일관성, 둘 사이의 trade-off를 고려하여 고립 수준을 정하면 된다.</p>
+
+<h3 id="read-uncommitted">Read Uncommitted</h3>
+
+<ul>
+  <li>고립이 전혀 없는 단계이다. 커밋 여부에 상관없이 다른 트랜잭션에 의해 발생된 변화가 즉각적으로 보여진다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Dirty read</code>가 발생하기 때문에 일관성이 깨진 값을 조회할 수 있다.</li>
+  <li>트랜잭션의 처리 속도는 가장 빠르다. 데이터를 처리할 때 트랜잭션 간 어떠한 제약도 없기 때문이다.</li>
+</ul>
+
+<h3 id="read-committed">Read Committed</h3>
+
+<ul>
+  <li>한 트랜잭션 안의 각 쿼리들은 다른 트랜잭션이 커밋 완료된 변화들만 볼 수 있다.</li>
+  <li>커밋된 변경사항만 읽지만, Non-Repeatable Read 와 같은 일관성이 깨질 수도 있다.</li>
+</ul>
+
+<h3 id="repeatable-read">Repeatable Read</h3>
+
+<ul>
+  <li>트랜잭션이 실행되는 동안 쿼리가 행을 읽을 때, 해당 행이 변경되지 않도록 트랜잭션이 보장한다.</li>
+  <li>반복되지 않는 읽기(Non-repeatable Read)를 해결하기 위해 고안된 격리 수준이다.</li>
+  <li>동일한 트랜잭션 내에서는 값을 몇 번이나 읽든 항상 같은 값을 읽게 된다.</li>
+</ul>
+
+<h3 id="snapshot">Snapshot</h3>
+
+<ul>
+  <li>트랜잭션의 각 쿼리는 트랜잭션 시작 시점까지 커밋된 변경 사항만 볼 수 있다. 이것은 그 순간의 데이터베이스 스냅샷 버전의 데이터를 읽는 것과 같다.</li>
+  <li><strong>PostgreSQL</strong>의 <code class="language-plaintext highlighter-rouge">Repeatable Read</code>는 <code class="language-plaintext highlighter-rouge">Snapshot</code> 격리 수준으로 동작한다.</li>
+  <li>트랜잭션이 시작하면 타임 스탬프로 버전을 표시한 스냅샷을 생성하고 트랜잭션이 실행중에 항상 해당 버전 스냅샷의 데이터들을 읽게 된다. 이로써 <strong>유령 읽기를 해결</strong>할 수 있다.</li>
+</ul>
+
+<h3 id="serializable">Serializable</h3>
+
+<ul>
+  <li>트랜잭션은 하나씩 차례대로 직렬화된 것처럼 실행된다.</li>
+  <li>모든 Read Phenomena 현상들이 사라진다.</li>
+  <li>속도가 가장 느린 격리 수준이다.</li>
+</ul>
+
+<h3 id="snapshot-vs-serializable">Snapshot vs Serializable</h3>
+
+<p><strong>Snapshot Isolation</strong></p>
+
+<p>트랜잭션이 시작될 때 데이터베이스의 스냅샷(데이터 읽기 전용 복사본)을 생성한다. 트랜잭션 동안 모든 읽기 작업은 이 스냅샷을 기준으로 수행되며, 트랜잭션이 수행되는 동안 다른 트랜잭션의 변경사항을 보지 않는다.</p>
+
+<p><u>특징</u></p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">Non-blocking reads</code>: 읽기 작업은 다른 틀내잭션의 쓰기 작업을 차단하지 않는다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Non-blocking writes</code>: 쓰기 작업은 다른 트랜잭션의 읽기 작업을 차단하지 않는다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Write Skew</code>: 두 트랜잭션이 동시에 같은 데이터를 업데이트하려 할 때 충돌이 발생할 수 있으며, 이는 쓰기 스큐(write skew) 현상으로 이어질 수 있다. 이는 데이터 불일치 문제를 유발할 수 있다.</li>
+</ul>
+
+<p><u>사용 사례</u></p>
+
+<p>많은 읽기 작업이 필요하지만 약간의 쓰기 스큐를 허용할 수 있는 시스템에서 사용된다.</p>
+
+<p><br /></p>
+
+<p><strong>Serializable Isolation</strong></p>
+
+<p>트랜잭션이 직렬적으로(즉, 순차적으로) 실행된 것처럼 보이도록 보장한다. 이는 트랜잭션 간의 <strong>완전한 격리</strong>를 보장하며, 한 트랜잭션이 다른 트랜잭션의 중간 상태를 보지 않도록 한다.</p>
+
+<p><u>특징</u></p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">Strict isolation</code>: 가장 높은 수준의 격리를 제공하며, 트랜잭션 간의 상호 간섭을 방지한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Locking</code>: 일반적으로 잠금(Locking)을 사용하여 동시성을 제공한다. 이로 인해 잠금 경합(lock contention)이 발생할 수 있으며, 이는 성능 저하로 이어질 수 있다.</li>
+  <li><code class="language-plaintext highlighter-rouge">No anomalies</code>: 읽기 스큐, 유령 읽기, 반복되지 않는 읽기와 같은 이상 현상을 방지 한다.</li>
+</ul>
+
+<p><u>사용 사례</u></p>
+
+<p>데이터 일관성이 매우 중요하고 트랜잭션 간의 충돌을 허용할 수 없는 시스템에서 사용된다.</p>
+
+<p><br /></p>
+
+<p><strong>주요 차이점</strong></p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">동시성</code>: <strong>Snapshot</strong> 격리 수준은 높은 동시성을 제공하지만, 쓰기 스큐와 같은 데이터 불일치 문제를 유발할 수 있다. <strong>Serializable</strong> 격리 수준은 동시성을 제한하지만, 데이터 일관성을 반드시 보장한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">잠금</code>: <strong>Serializable</strong> 격리 수준은 잠금을 사용하여 트랜잭션 간의 간섭을 방지하는 반면, <strong>Snapshot</strong> 격리 수준은 스냅샷을 사용하여 동일한 데이터를 읽는 동안에도 트랜잭션이 서로 간섭하지 않도록 한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">성능</code>: <strong>Snapshot</strong> 격리 수준은 일반적으로 성능이 더 우수하며, 특히 읽기 작업이 많은 환경에서 더욱 효과적이다. 반면, <strong>Serializable</strong> 격리 수준은 잠금 경합으로 인해 성능이 저하될 수 있다.</li>
+</ul>
+
+<p><br /></p>
+
+<p><strong>요약</strong></p>
+
+<p><code class="language-plaintext highlighter-rouge">Snapshot</code> 격리 수준은 높은 동시성을 제공하지만 일부 데이터 불일치 문제를 허용할 수 있는 환경에서 유용하며, <code class="language-plaintext highlighter-rouge">Serializable</code> 격리 수준은 데이터 일관성이 최우선인 환경에서 사용된다.</p>
+
+<h2 id="isolation-levels-vs-read-phenomena">Isolation Levels vs Read Phenomena</h2>
+
+<p>아래 이미지는 격리 수준에 따른 Read Phenomena 발생 여부를 나타낸 표이다.</p>
+
+<figure align="center">
+<img src="/post_images/DBEngineering/ACID/IsolationLevelVsReadPhenomena.png" />
+<figcaption></figcaption>
+</figure>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">Snapshot level</code>도 위 4가지 Read Phenomena 현상을 예방한다.</li>
+</ul>
+
+<p><br /></p>
+
+<h2 id="database-implementation-of-isolation">Database Implementation Of Isolation</h2>
+
+<p>각 DBMS는 격리 수준을 서로 다른 방식으로 구현한다.</p>
+
+<p>데이터베이스 격리 수준을 구현하는 방식은 낙관적(Optimistic) 접근법과 비관적(Pessimistic) 접근법으로 나뉜다. 두 접근법은 트랜잭션 간의 <u>동시성</u>을 제어하는 두 가지 상반된 전략으로 구분된다.</p>
+
+<h3 id="비관적pessimistic-접근법">비관적(Pessimistic) 접근법</h3>
+
+<p>트랜잭션이 충돌한 가능성이 있다고 가정하여, 데이터에 접근할 때마다 잠금을 걸어 충돌을 방지한다.</p>
+
+<p>비관적(Pessimistic) 구현 방식은 동시성을 제어하는 것인데, 구체적으로 잠금(Lock)을 사용하는 방법이다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">row levle locks</code>, <code class="language-plaintext highlighter-rouge">table locks</code>, <code class="language-plaintext highlighter-rouge">page locks</code> 등을 사용하여 <code class="language-plaintext highlighter-rouge">Lost Updates</code>를 예방할 수 있다.</p>
+
+<p>락을 사용하는 것은 비용이 많이 들 뿐더러 다른 트랜잭션들이 대기 상태에 놓일 수 있기 때문에 성능 이슈를 야기할 수 있다.</p>
+
+<p><u>특징</u></p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">Lock-based</code>: 데이터에 접근하는 시점에서 읽기 또는 쓰기 잠금을 설정하여 다른 트랜잭션이 동시에 동일한 데이터에 접근하지 못하게 한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">충돌 방지</code>: 잠금을 통해 트랜잭션 간의 충돌을 미리 방지하며, 충돌이 발생할 가능성이 낮다.</li>
+  <li><code class="language-plaintext highlighter-rouge">성능</code>: 잠금으로 인한 오버헤드와 잠금 경합(lock contention)으로 인해 성능이 저하될 수 있다. 쓰기 작업이 많고 충돌 가능성이 높은 환경에서 적합하다.</li>
+  <li><code class="language-plaintext highlighter-rouge">장점</code>: 트랜잭션 간의 충돌을 효과적으로 방지할 수 있으며, 데이터 일관성을 보장한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">단점</code>: 잠금으로 인한 교착 상태가 발생할 수 있으며, 높은 동시성을 제공하기 어렵다.</li>
+</ul>
+
+<p><u>사용 사례</u></p>
+
+<ul>
+  <li>은행 거래 시스템</li>
+</ul>
+
+<h3 id="낙관적optimistic-접근법">낙관적(Optimistic) 접근법</h3>
+
+<p>트랜잭션이 충돌하지 않을 것이라고 가정하여, 주로 트랜잭션 종료 시점에 충돌 검사를 수행한다.</p>
+
+<p>낙관적(Optimistic) 구현 방식은 락을 사용하지 않기 때문에 다른 트랜잭션들이 대기하지 않으므로 비관적 방식에 비해 성능 부분의 이점이 있다. 많이 선호되는 방식이며 NoSQL 데이터베이스에서 선호되는 방식이다.</p>
+
+<p>변경 사항들을 메모리에 유지했다가 트랜잭션 간 충돌이 발생하면 트랜잭션을 롤백시킨다. 이렇게 충돌하여 발생한 오류를 <code class="language-plaintext highlighter-rouge">직렬화 오류</code>라고 부른다.</p>
+
+<p><u>특징</u></p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">Lock-free</code>: 데이터에 대한 접근 시점에서 잠금을 걸지 않으며, 대신 트랜잭션이 커밋되기 전까지 변경 사항을 추적한다.</li>
+  <li><code class="language-plaintext highlighter-rouge">충돌 검사</code>: 트랜잭션이 커밋될 때, 다른 트랜잭션이 동일한 데이터를 수정했는지 확인하고 충돌이 발생할 경우 트랜잭션을 롤백시킨다.</li>
+  <li><code class="language-plaintext highlighter-rouge">성능</code>: 읽기 작업이 많고 쓰기 작업이 상대적으로 적은 시스템에서 성능이 뛰어나다. 충돌이 적은 환경에서 특히 유리하다.</li>
+  <li><code class="language-plaintext highlighter-rouge">장점</code>: 높은 동시성을 제공하며, 잠금으로 인한 교착 상태(deadlock)가 발생하지 않는다.</li>
+  <li><code class="language-plaintext highlighter-rouge">단점</code>: 충돌이 빈번하게 발생하는 경우 롤백이 자주 일어나며, 이로 인해 오버헤드가 증가할 수 있다.</li>
+</ul>
+
+<p><u>사용 사례</u></p>
+
+<ul>
+  <li>온라인 협업 도우 (예: Google Docs)</li>
+</ul>
+
+<h3 id="주요-차이점">주요 차이점</h3>
+
+<ol>
+  <li>잠금 방식
+    <ul>
+      <li>낙관적 접근법: 잠금을 사용하지 않으며, 트랜잭션 종료 시점에 충돌을 검사한다.</li>
+      <li>비관적 접근법: 데이터 접근 시점에 잠금을 설정하여 충돌을 방지한다.</li>
+    </ul>
+  </li>
+  <li>충돌 처리
+    <ul>
+      <li>낙관적 접근법: 트랜잭션 종료 시점에 충돌을 검사하고, 충돌이 발생하면 롤백한다.</li>
+      <li>비관적 접근법: 잠금을 통해 충돌을 미리 방지한다.</li>
+    </ul>
+  </li>
+  <li>동시성
+    <ul>
+      <li>낙관적 접근법: 높은 동시성을 제공하며, 읽기 작업이 많은 환경에 적합하다.</li>
+      <li>비관적 접근법: 잠금으로 인해 동시성이 낮아질 수 있으며, 쓰기 작업이 많은 환경에 적합하다.</li>
+    </ul>
+  </li>
+  <li>성능
+    <ul>
+      <li>낙관적 접근법: 충돌이 적은 경우 성능이 뛰어나며, 교착 상태가 발생하지 않는다.</li>
+      <li>비관적 접근법: 잠금 경합으로 인해 성능이 저하될 수 있으며, 교착 상태가 발생할 수 있다.</li>
+    </ul>
+  </li>
+</ol>
+
+<p><br /></p>
+
+<h2 id="요약">요약</h2>
+
+<p>각 데이터베이스 시스템은 특정 격리 수준을 구현하는 방식에 따라 비관적 또는 낙관적 접근법을 사용할 수 있으며, 이는 시스템의 동시성 요구 사항과 성능 특성에 따라 다르다.</p>
+
+<p>낙관적 접근법은 충돌이 드문 환경에서 높은 성능과 동시성을 제공하는 반면,</p>
+
+<p>비관적 접근법은 데이터 일관성이 매우 중요하고 충돌 가능성이 높은 환경에서 안정성을 제공한다.</p>
+
+<p>애플리케이션의 특성에 따라 적절한 접근법을 선택하는 것이 중요하다.</p>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Transaction" rel="tag"># Transaction</a>
+          
+            
+            <a href="/tag/#/Database" rel="tag"># Database</a>
+          
+            
+            <a href="/tag/#/Isolation" rel="tag"># Isolation</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/database/transaction/db%20engineering/2024/06/15/Transaction/" rel="next" title="DB에서 트랜잭션이란 무엇인가?">
+                <i class="fa fa-chevron-left"></i> DB에서 트랜잭션이란 무엇인가?
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/database/db%20engineering/transaction/2024/06/15/Atomicity/" rel="prev" title="Atomicity 원자성">
+                Atomicity 원자성 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-2"> <a class="nav-link" href="#read-phenomena"> <span class="nav-number">1</span> <span class="nav-text">Read Phenomena</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#dirty-reads"> <span class="nav-number">1.1</span> <span class="nav-text">Dirty Reads</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#non-repeatable-reads"> <span class="nav-number">1.2</span> <span class="nav-text">Non-repeatable Reads</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#phantom-reads"> <span class="nav-number">1.3</span> <span class="nav-text">Phantom Reads</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#lost-updates"> <span class="nav-number">1.4</span> <span class="nav-text">Lost Updates</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#dirty-reads-예시"> <span class="nav-number">2</span> <span class="nav-text">Dirty Reads 예시</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#non-repeatable-read-예시"> <span class="nav-number">3</span> <span class="nav-text">Non-repeatable Read 예시</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#phantom-read-예시"> <span class="nav-number">4</span> <span class="nav-text">Phantom Read 예시</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#lost-updates-예시"> <span class="nav-number">5</span> <span class="nav-text">Lost Updates 예시</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#일관성consistence에-도달하기-위해"> <span class="nav-number">6</span> <span class="nav-text">일관성(Consistence)에 도달하기 위해</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#isolation-levels"> <span class="nav-number">7</span> <span class="nav-text">Isolation Levels</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#read-uncommitted"> <span class="nav-number">7.1</span> <span class="nav-text">Read Uncommitted</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#read-committed"> <span class="nav-number">7.2</span> <span class="nav-text">Read Committed</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#repeatable-read"> <span class="nav-number">7.3</span> <span class="nav-text">Repeatable Read</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#snapshot"> <span class="nav-number">7.4</span> <span class="nav-text">Snapshot</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#serializable"> <span class="nav-number">7.5</span> <span class="nav-text">Serializable</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#snapshot-vs-serializable"> <span class="nav-number">7.6</span> <span class="nav-text">Snapshot vs Serializable</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#isolation-levels-vs-read-phenomena"> <span class="nav-number">8</span> <span class="nav-text">Isolation Levels vs Read Phenomena</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#database-implementation-of-isolation"> <span class="nav-number">9</span> <span class="nav-text">Database Implementation Of Isolation</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#비관적pessimistic-접근법"> <span class="nav-number">9.1</span> <span class="nav-text">비관적(Pessimistic) 접근법</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#낙관적optimistic-접근법"> <span class="nav-number">9.2</span> <span class="nav-text">낙관적(Optimistic) 접근법</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#주요-차이점"> <span class="nav-number">9.3</span> <span class="nav-text">주요 차이점</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#요약"> <span class="nav-number">10</span> <span class="nav-text">요약</span> </a> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/database/db%20engineering/transaction/2024/06/15/Isolation/';
+              this.page.identifier = '/database/db%20engineering/transaction/2024/06/15/Isolation/';
+              this.page.title = 'Isolation 고립성';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

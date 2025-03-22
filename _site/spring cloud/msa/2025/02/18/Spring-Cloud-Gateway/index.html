@@ -1,0 +1,1457 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Spring Cloud Gateway," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!">
+<meta name="keywords" content="Spring Cloud Gateway">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud Gateway를 활용한 API Gateway 구축">
+<meta property="og:url" content="http://localhost:4000/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!">
+<meta property="og:locale" content="ko">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring Cloud Gateway를 활용한 API Gateway 구축">
+<meta name="twitter:description" content="Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Spring Cloud Gateway를 활용한 API Gateway 구축 | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spring Cloud Gateway를 활용한 API Gateway 구축
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-02-18T00:00:00+09:00">
+                2025-02-18
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Cloud" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/MSA" itemprop="url" rel="index">
+                    <span itemprop="name">MSA</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<h2 id="gateway란-무엇인가">Gateway란 무엇인가?</h2>
+
+<p>Gateway는 클라이언트와 내부 시스템(ex: 마이크로서비스) 간의 <strong>단일 진입점 역할</strong>을 하는 미들 웨어입니다.</p>
+
+<p>모든 외부 요청은 먼저 Gateway를 통해 들어오며, 이곳에서 <strong>인증, 인가, 로깅, 모니터링 등 공통 기능을 처리</strong>한 후 적절한 내부 서비스로 요청을 전달합니다.</p>
+
+<p>이를 통해 <strong>개별 서비스는 본연의 비즈니스 로직에 집중</strong>할 수 있게 됩니다.</p>
+
+<h2 id="왜-spring-cloud-gateway를-사용해야-할까">왜 Spring Cloud Gateway를 사용해야 할까?</h2>
+
+<ol>
+  <li>
+    <p>Spring Cloud Gateway는 Spring Boot, Spring Security 등과 자연스럽게 연동되므로, 기존 Spring 기반 시스템에 쉽게 도입할 수 있습니다.</p>
+  </li>
+  <li>
+    <p><strong>Netty</strong> 기반의 <code class="language-plaintext highlighter-rouge">Spring Cloud Gateway</code>는 비동기, 논블로킹 방식으로 동작하여 높은 동시성 처리가 가능하며, 성능과 확장성 면에서 우수합니다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">application.yml</code> 설정 파일에 <strong>선언적</strong> 설정을 통해 <strong>쉽게 라우팅 규칙을 정의하고, 전/후 처리 필터를 적용</strong>할 수 있습니다. 이는 다양한 요구사항에 맞춰 Gateway를 유연하게 구성할 수 있게 해줍니다.</p>
+  </li>
+</ol>
+
+<p>이와 같이 Spring Cloud Gateway는 Spring 생태계와의 원활한 통합을 지원하며, 마이크로서비스 환경에서 발생할 수 있는 다양한 문제(코드 중복, 보안 취약점, 성능 및 확장성 문제 등)를 효과적으로 해결해줍니다.</p>
+
+<h1 id="기본-라우팅-설정">기본 라우팅 설정</h1>
+
+<p>application.yml 파일에 선언적 라우팅 설정을 통해, 요청 URL에 따라 내부 서비스로 요청을 전달합니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11</pre></td><td class="code"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">gateway</span><span class="pi">:</span>
+      <span class="na">routes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">user-service</span>
+          <span class="na">uri</span><span class="pi">:</span> <span class="s">http://localhost:8080</span> <span class="c1"># lb://USER-SERVICE</span>
+          <span class="na">predicates</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">Path=/user-service/test/**</span>
+            <span class="pi">-</span> <span class="s">Method=GET</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li>위 게이트웨이 라우팅 설정은 HTTP 메서드가 <code class="language-plaintext highlighter-rouge">GET</code> 요청이고, 경로가 <code class="language-plaintext highlighter-rouge">/user-service/test/**</code>에 매칭되는 경우 <code class="language-plaintext highlighter-rouge">http://localhost:8080</code> 에서 실행중인 <code class="language-plaintext highlighter-rouge">user-service</code> 로 라우팅해줍니다.</li>
+  <li>만약 디스커버리 서비스인 Eureka를 사용한다면, 라우팅 URI를 <code class="language-plaintext highlighter-rouge">lb://USER-SERVICE</code> 처럼 서비스 이름으로 작성할 수 있습니다. (<code class="language-plaintext highlighter-rouge">lb://{application.name}</code>)</li>
+</ul>
+
+<h1 id="전역-필터">전역 필터</h1>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10</pre></td><td class="code"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">gateway</span><span class="pi">:</span>
+      <span class="na">default-filters</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MyGlobalFilter</span>
+          <span class="na">args</span><span class="pi">:</span>
+            <span class="na">preFilter</span><span class="pi">:</span> <span class="no">true</span>
+            <span class="na">postFilter</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">spring.cloud.gateway.default-filters</code>: 전역 필터 클래스를 지정해줄 수 있습니다. 이때 필터 객체에 인수(<code class="language-plaintext highlighter-rouge">args</code>)를 전달해줄 수 있습니다.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">name</code>: 전역 필터 클래스명</li>
+      <li><code class="language-plaintext highlighter-rouge">args</code>: 명시된 인수값들이 전역 필터 내부의 중첩 클래스인 <code class="language-plaintext highlighter-rouge">Config</code>와 매핑된 후, 필터 기능을 하는 <code class="language-plaintext highlighter-rouge">apply</code> 메서드의 인자로 전달됩니다. (코드를 보면 쉽게 이해하실 수 있을 겁니다.)</li>
+    </ul>
+  </li>
+  <li>💡 참고로 필터에 인자 값을 전달하려면 필터에 <code class="language-plaintext highlighter-rouge">name</code> 속성값을 적용해야 합니다. 그 다음 아랫줄에 <code class="language-plaintext highlighter-rouge">args</code> 를 작성하면 됩니다.</li>
+</ul>
+
+<h2 id="myglobalfilter">MyGlobalFilter</h2>
+
+<p>Spring Cloud Gateway에서 동작하는 필터 클래스는 만들기 위해서는 <code class="language-plaintext highlighter-rouge">AbstractGatewayFilterFactory</code>를 상속하고 <code class="language-plaintext highlighter-rouge">apply</code> 메서드를 오버라이딩 해줘야 합니다.</p>
+
+<p>그리고, <code class="language-plaintext highlighter-rouge">args</code>를 전달 받을 중첩 클래스(<code class="language-plaintext highlighter-rouge">MyGlobalFilter.Config</code>)를 부모 클래스의 제네릭으로 전달 해줍니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21<br/>22<br/>23<br/>24<br/>25<br/>26<br/>27</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Slf4j</span>
+<span class="nd">@Component</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyGlobalFilter</span> <span class="kd">extends</span> <span class="nc">AbstractGatewayFilterFactory</span><span class="o">&lt;</span><span class="nc">MyGlobalFilter</span><span class="o">.</span><span class="na">Config</span><span class="o">&gt;</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="nf">MyGlobalFilter</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="nc">Config</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">GatewayFilter</span> <span class="nf">apply</span><span class="o">(</span><span class="nc">Config</span> <span class="n">config</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="o">(</span><span class="n">exchange</span><span class="o">,</span> <span class="n">chain</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+            <span class="c1">// Pre Filter</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">isPreFilter</span><span class="o">())</span> <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Global Pre Filter executed"</span><span class="o">);</span>
+
+            <span class="c1">// Post Filter</span>
+            <span class="k">return</span> <span class="n">chain</span><span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="n">exchange</span><span class="o">).</span><span class="na">then</span><span class="o">(</span><span class="nc">Mono</span><span class="o">.</span><span class="na">fromRunnable</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">isPostFilter</span><span class="o">())</span> <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Global Post Filter executed"</span><span class="o">);</span>
+            <span class="o">}));</span>
+        <span class="o">};</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Data</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Config</span> <span class="o">{</span>
+        <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">preFilter</span><span class="o">;</span>
+        <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">postFilter</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">MyGlobalFilter</code> 클래스 내부의 중첩 클래스인 <code class="language-plaintext highlighter-rouge">Config</code> 객체에 <code class="language-plaintext highlighter-rouge">application.yml</code> 에서 설정한 <code class="language-plaintext highlighter-rouge">args</code> 를 전달받게 됩니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">apply</code> 메서드 내부에서 <code class="language-plaintext highlighter-rouge">return</code> <strong>전 영역은 PreFilter</strong> 이고, <code class="language-plaintext highlighter-rouge">return</code> <strong>구문은 PostFilter 영역</strong>입니다.</li>
+  <li>요청을 라우팅 하기 전에 PreFilter가 동작하고, 요청된 라우팅이 마이크로서비스에서 처리를 마친 후 응답이 돌아오면 그제서야 PostFilter가 동작합니다.</li>
+</ul>
+
+<h1 id="custom-filter">Custom Filter</h1>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21<br/>22<br/>23<br/>24</pre></td><td class="code"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">gateway</span><span class="pi">:</span>
+      <span class="na">default-filters</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MyGlobalFilter</span>
+          <span class="na">args</span><span class="pi">:</span>
+            <span class="na">preFilter</span><span class="pi">:</span> <span class="no">true</span>
+            <span class="na">postFilter</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">routes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">user-service</span>
+          <span class="na">uri</span><span class="pi">:</span> <span class="s">http://localhost:8080</span>
+          <span class="na">predicates</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">Path=/user-service/**</span>
+          <span class="na">filters</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">RemoveRequestHeader=Cookie</span>
+            <span class="pi">-</span> <span class="s">RewritePath=/user-service/(?&lt;segment&gt;.*), /$\{segment}</span>
+            <span class="pi">-</span> <span class="err">`</span><span class="s">MyCustomFilter`</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MyLoggingFilter</span>
+              <span class="na">args</span><span class="pi">:</span>
+                <span class="na">baseMessage</span><span class="pi">:</span> <span class="s">MyLoggingFilter start</span>
+                <span class="na">preLogger</span><span class="pi">:</span> <span class="no">true</span>
+                <span class="na">postLogger</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">spring.cloud.gateway.routes.filters</code>: 해당 속성에 선언된 필터들은 라우팅 조건을 만족하는 요청에 대해서만 필터가 작동합니다. 즉, 다른 라우팅 조건을 만족하는 요청에 대해선 필터가 동작하지 않습니다.
+    <ul>
+      <li>예를 들어, 위 설정에서는 uri가 <code class="language-plaintext highlighter-rouge">http://localhost:8080</code> 이고, path(경로)가 <code class="language-plaintext highlighter-rouge">/user-service/**</code> 에 매칭되는 요청에 대해서만 <code class="language-plaintext highlighter-rouge">filters</code> 들이 적용됩니다.</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">RemoveRequestHeader</code>, <code class="language-plaintext highlighter-rouge">RewritePath</code>와 같이 기본적으로 스프링에서 지원하는 선언적 설정도 존재하고, <code class="language-plaintext highlighter-rouge">MyCustomFilter</code>, <code class="language-plaintext highlighter-rouge">MyLoggingFilter</code>와 같이 개발자가 정의한 커스텀 필터를 지정할 수도 있습니다.</li>
+</ul>
+
+<blockquote>
+  <p>✅ 설정 파일(application.yml) 내에서 나열된 라우트(route)나 각 라우트에 정의된 필터(filters)는 선언한 순서(위에서 아래)대로 처리되는 것이 일반적입니다. 즉, 별도의 order 속성을 지정하지 않는 경우에는 위에서 아래로 우선순위가 적용됩니다.</p>
+</blockquote>
+
+<h1 id="discovery-service와-spring-cloud-gateway">Discovery Service와 Spring Cloud Gateway</h1>
+
+<p>Spring Cloud Netflix Eureka를 사용 환경이라면, Spring Cloud Gateway는 <strong>로드밸런서</strong>의 역할도 수행할 수 있습니다.</p>
+
+<p>앞서 살펴봤던 <code class="language-plaintext highlighter-rouge">user-service</code> 의 Uri 경로를 <code class="language-plaintext highlighter-rouge">lb://USER-SERVICE</code> 처럼 애플리케이션 네임을 적어주면 디스커버리 서비스로부터 해당 서비스의 위치를 탐색하여 로드밸런싱 할 수 있습니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11</pre></td><td class="code"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">gateway</span><span class="pi">:</span>
+      <span class="na">routes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">user-service</span>
+          <span class="na">uri</span><span class="pi">:</span> <span class="s">lb://USER-SERVICE</span>
+          <span class="na">predicates</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">Path=/user-service/test/**</span>
+            <span class="pi">-</span> <span class="s">Method=GET</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<p>이때, 만약 user-service 의 인스턴스가 다중화 되어 있다면, Spring Cloud Gateway는 라운드 로빈(Round Robin) 알고리즘으로 로드밸런싱을 처리하게 됩니다. 이와 같이 <strong>Spring Cloud Gateway는 단순한 API 게이트웨이 기능을 넘어, 서비스 디스커버리와 통합되어 여러 인스턴스 간의 로드밸런싱 기능을 제공</strong>합니다.</p>
+
+<p>따라서 시스템의 부하를 효과적으로 분산시켜, 서비스의 가용성과 안정성을 높여주고 마이크로서비스 아키텍처에서의 운영 효율성을 크게 향상시켜 줍니다.</p>
+
+<h1 id="-요약">🎯 요약</h1>
+
+<ul>
+  <li>클라이언트와 내부 시스템 간의 단일 진입점 역할을 수행하며, 인증, 인가, 로깅, 모니터링 등 공통 기능을 중앙집중적으로 처리.</li>
+  <li>Spring 생태계와의 원활한 통합, Netty 기반의 비동기 논블로킹 처리, 선언적 설정을 통한 유연한 라우팅 및 필터 관리 등으로 높은 성능과 확장성을 제공.</li>
+  <li>Spring Cloud Netflix Eureka와 연동하여, <code class="language-plaintext highlighter-rouge">lb://</code> 접두사를 사용함으로써 동적 로드밸런싱(라운드 로빈 알고리즘)을 수행, 여러 인스턴스 간의 부하 분산과 시스템 안정성을 확보</li>
+</ul>
+
+<h1 id="-참고-자료">📂 참고 자료</h1>
+
+<ul>
+  <li><a href="https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway/how-it-works.html">Spring Cloud Gateway Docs</a></li>
+  <li><a href="https://en.wikipedia.org/wiki/Netty_(software)">Netty</a></li>
+</ul>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Spring%20Cloud%20Gateway" rel="tag"># Spring Cloud Gateway</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/19/Spring-Cloud-Gateway-Security/" rel="next" title="Spring Cloud Gateway와 JWT - 분산 시스템의 중앙집중식 인증">
+                <i class="fa fa-chevron-left"></i> Spring Cloud Gateway와 JWT - 분산 시스템의 중앙집중식 인증
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/17/Spring-Cloud-Config-Server/" rel="prev" title="Spring Cloud Config를 이용한 환경 변수 관리">
+                Spring Cloud Config를 이용한 환경 변수 관리 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-들어가기"> <span class="nav-number">1</span> <span class="nav-text">📌 들어가기</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#gateway란-무엇인가"> <span class="nav-number">1.1</span> <span class="nav-text">Gateway란 무엇인가?</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#왜-spring-cloud-gateway를-사용해야-할까"> <span class="nav-number">1.2</span> <span class="nav-text">왜 Spring Cloud Gateway를 사용해야 할까?</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#기본-라우팅-설정"> <span class="nav-number">2</span> <span class="nav-text">기본 라우팅 설정</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#전역-필터"> <span class="nav-number">3</span> <span class="nav-text">전역 필터</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#myglobalfilter"> <span class="nav-number">3.1</span> <span class="nav-text">MyGlobalFilter</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#custom-filter"> <span class="nav-number">4</span> <span class="nav-text">Custom Filter</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#discovery-service와-spring-cloud-gateway"> <span class="nav-number">5</span> <span class="nav-text">Discovery Service와 Spring Cloud Gateway</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-요약"> <span class="nav-number">6</span> <span class="nav-text">🎯 요약</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-참고-자료"> <span class="nav-number">7</span> <span class="nav-text">📂 참고 자료</span> </a> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/';
+              this.page.identifier = '/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/';
+              this.page.title = 'Spring Cloud Gateway를 활용한 API Gateway 구축';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

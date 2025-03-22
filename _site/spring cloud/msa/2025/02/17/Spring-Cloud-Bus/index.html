@@ -1,0 +1,1592 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Spring Cloud Config,Spring Cloud Bus," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="분산 환경에서 각 마이크로서비스가 Config Server로부터 설정 파일을 읽어오는 방법을 알아봅시다!">
+<meta name="keywords" content="Spring Cloud Config, Spring Cloud Bus">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리">
+<meta property="og:url" content="http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="분산 환경에서 각 마이크로서비스가 Config Server로부터 설정 파일을 읽어오는 방법을 알아봅시다!">
+<meta property="og:locale" content="ko">
+<meta property="og:image" content="/post_images/spring-cloud-side-project/config-server3.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리">
+<meta name="twitter:description" content="분산 환경에서 각 마이크로서비스가 Config Server로부터 설정 파일을 읽어오는 방법을 알아봅시다!">
+<meta name="twitter:image" content="/post_images/spring-cloud-side-project/config-server3.png">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리 | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-02-17T00:00:00+09:00">
+                2025-02-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Cloud" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/MSA" itemprop="url" rel="index">
+                    <span itemprop="name">MSA</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>분산 환경에서 각 마이크로서비스가 Config Server로부터 설정 파일을 읽어오는 방법을 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>이전에 Spring Cloud Config Server에 관한 내용을 다룬 포스트가 있습니다.</p>
+
+<p>이번 포스트에서는 Config Server를 사용하는 환경에서, <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code>와 <code class="language-plaintext highlighter-rouge">Spring boot Actuator</code>를 이용하여 애플리케이션을 재시작하지 않고도 설정 변경을 실시간으로 반영하는 방법에 대해 탐구해보겠습니다!</p>
+
+<h2 id="실시간-설정-변경이-왜-중요한가">실시간 설정 변경이 왜 중요한가?</h2>
+
+<p>분산된 마이크로서비스 환경에서는 각각의 서비스가 개별적으로 재시작 없이 설정을 업데이트해야 운영 효율성이 높아집니다.</p>
+
+<p>동적 설정 변경을 통해 서비스 중단 없이 빠르게 환경 변화에 대응할 수 있기 때문입니다.</p>
+
+<p>이로 인해 설정 값들의 일관성을 쉽게 유지할 수 있게 됩니다.</p>
+
+<h2 id="해당-기술이-없다면">해당 기술이 없다면?</h2>
+
+<p>설정을 변경할 때마다 각 서비스마다 재시작해야 하는 번거로움이 존재합니다. 이 과정에서 오타나, 잘못된 값이 설정된다면 또 다시 재시작 과정을 반복해야 하죠.</p>
+
+<p>또한 변경 사항이 즉각적으로 반영되지 않기 때문에(재시작으로 인해), 설정 불일치로 인한 오류가 발생할 수 있습니다.</p>
+
+<p>마지막으로, 분산 환경에서 개별적으로 설정을 관리하게 된다면 유지보수의 비용이 크게 증가할 것입니다.</p>
+
+<blockquote>
+  <p>Config Server를 사용한다면 애플리케이션을 재시작하지 않고도 설정 변경을 실시간으로 반영할 수 있도록 지원하는 Spring Cloud Bus, Spring Boot Actuator 기술 도입이 필수라고 생각합니다.</p>
+</blockquote>
+
+<h1 id="마이크로서비스와-config-server-연동하기">마이크로서비스와 Config Server 연동하기</h1>
+
+<p>클라이언트(마이크로서비스)는 Config Server에서 설정 파일을 읽어올 수 있어야 하기 때문에, Config Server와 연결을 진행해야 합니다.</p>
+
+<h2 id="dependency">Dependency</h2>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2</pre></td><td class="code"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.cloud:spring-cloud-starter-config'</span>
+<span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li>Config Server와 연결을 위해 <code class="language-plaintext highlighter-rouge">spring-cloud-starter-config</code> 의존성을 추가해줍니다.</li>
+  <li>Config Server에게 설정 파일 조회 또는 갱신 요청을 위해 <code class="language-plaintext highlighter-rouge">actuator</code> 의존성을 추가해줍니다.</li>
+  <li>actuator의 엔드포인트로 <code class="language-plaintext highlighter-rouge">/refresh</code>, <code class="language-plaintext highlighter-rouge">/busrefresh</code> 를 사용할 예정입니다.</li>
+</ul>
+
+<h2 id="applicationyml">application.yml</h2>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14</pre></td><td class="code"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">config</span><span class="pi">:</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="c1"># 읽어올 파일명</span>
+  <span class="na">config</span><span class="pi">:</span>
+    <span class="na">import</span><span class="pi">:</span> <span class="s">optional:configserver:http://localhost:8888</span>
+  <span class="na">profiles</span><span class="pi">:</span>
+    <span class="na">active</span><span class="pi">:</span> <span class="c1"># 프로파일명</span>
+    
+<span class="na">management</span><span class="pi">:</span>
+  <span class="na">endpoints</span><span class="pi">:</span>
+    <span class="na">web</span><span class="pi">:</span>
+      <span class="na">exposure</span><span class="pi">:</span>
+        <span class="na">include</span><span class="pi">:</span> <span class="s">refresh, busrefresh</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">spring.cloud.config.name</code>: Config Server로 부터 읽어올 파일명을 지정해줍니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">spring.config.import</code>: Config Server 연결 URL을 지정해줍니다. (로컬 테스트: Config Server가 port 번호 8888로 실행 가정)</li>
+  <li><code class="language-plaintext highlighter-rouge">spring.profiles.active</code>: 읽어올 파일의 프로파일을 지정할 수 있습니다. (기본 프로파일: <code class="language-plaintext highlighter-rouge">default</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">management.endpoints.web.exposure.include</code>: actuator에서 활성화시킬 엔드포인트 입니다.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">/refresh</code>: 개별 클라이언트만 설정을 갱신합니다.</li>
+      <li><code class="language-plaintext highlighter-rouge">/busrefresh</code>: Bus(RabbitMQ 또는 Kafka)에 연결된 모든 클라이언트의 설정을 갱신합니다.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>여기까지 설정을 마치면, <code class="language-plaintext highlighter-rouge">/refresh</code> 엔드포인트 요청으로 Config Server로 부터 설정 파일을 읽어와서 클라이언트의 설정을 동적으로 실시간 변경할 수 있게 됩니다.</p>
+
+<p>하지만, 이것은 개별 클라이언트에만 변화가 생깁니다.</p>
+
+<p>만약 변경된 설정 값을 여러 마이크로서비스들에게 공통적으로 동시에 적용하고 싶다면 어떡해야 할까요?</p>
+
+<p>개별 클라이언트마다 <code class="language-plaintext highlighter-rouge">/refresh</code> 요청을 날려야 할까요? (아마도 매우 번거롭고 귀찮은 작업일 것입니다.)</p>
+
+<p>이럴 때 사용하는 것이 <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code> 입니다.</p>
+
+<h1 id="spring-cloud-bus란">Spring Cloud Bus란?</h1>
+
+<p><code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code>는 <strong>메시지 브로커(RabbitMQ, Kafka 등)를 이용해 여러 마이크로서비스 간에 설정 변경 이벤트를 실시간으로 전파</strong>합니다.</p>
+
+<p>이제 <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code> 도 추가 설정하여 동시에 여러 마이크로서비스들의 설정 값들을 실시간으로 반영하도록 해봅시다.</p>
+
+<p>Bus 작동 테스트를 위해 <strong>RabbitMQ</strong>와 <strong>Kafka</strong> 두 개를 이용하여 테스트를 진행해봤습니다.</p>
+
+<p>두 메시지 브로커 모두 Bus를 쉽게 구성할 수 있었습니다.</p>
+
+<p>하지만 백엔드 개발자라면, 기술을 채택하는 데 있어 근거를 가지고 있어야겠죠?</p>
+
+<p>결과적으로 저는 개인 사이드 프로젝트를 위해 Kafka를 적용하긴 했습니다만, 두 메시지 브로커 설정 방식에 대해 모두 설명 해드리겠습니다.</p>
+
+<h2 id="bus로-사용하기-적합한-메시지-브로커">Bus로 사용하기 적합한 메시지 브로커?</h2>
+
+<p>설정 방식을 알아보기 전에, Spring Cloud Bus의 메시지 브로커로 RabbitMQ와 Kafka를 선택할 때 고려할 수 있는 장단점을 비교해보겠습니다.</p>
+
+<h3 id="rabbitmq">RabbitMQ</h3>
+
+<p><strong>장점</strong></p>
+
+<ul>
+  <li>비교적 간단하게 설치 및 운영할 수 있으며, 관리 UI도 직관적입니다.</li>
+  <li>AMQP를 기반으로 하여 Pub/Sub, Work Queue, RPC 등 다양한 패턴을 쉽게 구현할 수 있는 <strong>유연한 메시징 패턴</strong>을 제공합니다.</li>
+  <li>일반적인 애플리케이션 환경에서는 충분한 성능을 제공하며, <strong>소규모 시스템에 적합합니다.</strong></li>
+</ul>
+
+<p><strong>단점</strong></p>
+
+<ul>
+  <li>대용량 데이터 처리에는 적합하지 않습니다.</li>
+  <li>Kafka에 비해 수평 클러스터 확장성이 떨어집니다.</li>
+</ul>
+
+<h3 id="kafka">Kafka</h3>
+
+<p><strong>장점</strong></p>
+
+<ul>
+  <li><strong>대용량 메시지를 빠르게 처리</strong>할 수 잇으며, <strong>클러스터 확장이 용이</strong>합니다.</li>
+  <li>메시지를 디스크에 지속적으로 저장하여 <strong>내구성을 제공</strong>합니다.</li>
+  <li><strong>스트리밍 데이터 처리에 최적화</strong>되어 있습니다.</li>
+</ul>
+
+<p><strong>단점</strong></p>
+
+<ul>
+  <li>초기 설정과 운영 및 모니터링이 RabbitMQ보다 복잡합니다.</li>
+  <li>메시지 시스템의 개념과 운영 전략에 대한 Kafka 학습 비용이 필요합니다.</li>
+  <li>단순한 시스템에 도입하기에는 오버엔지니어링이 될 수 있습니다.</li>
+</ul>
+
+<h3 id="선택-기준-정리">선택 기준 정리</h3>
+
+<ul>
+  <li>소규모 시스템이나 간단한 메시징 패턴이 필요하다면 <strong>RabbitMQ</strong>가 빠르고 쉽게 도입할 수 있는 선택입니다.</li>
+  <li>대규모 분산 환경이나 높은 처리량, 내구성이 요구되는 경우에는 <strong>Kafka</strong>가 적합합니다.</li>
+</ul>
+
+<p>두 메시지 브로커 모두 Spring Cloud Bus를 활용한 동적 설정 변경을 지원하므로, 시스템 규모와 메시지 처리량, 확장성을 고려하여 적절한 브로커를 선택하시면 됩니다.</p>
+
+<hr />
+
+<h1 id="spring-cloud-bus-설정">Spring Cloud Bus 설정</h1>
+
+<h2 id="kafka를-이용한-bus">Kafka를 이용한 Bus</h2>
+
+<h3 id="dependency-1">Dependency</h3>
+<div class="language-groovy highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1</pre></td><td class="code"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.cloud:spring-cloud-starter-bus-kafka'</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>클라이언트가 Kafka를 통해 Bus 이벤트를 수신 및 발신할 수 있도록 의존성 추가해줍니다.</li>
+</ul>
+
+<h3 id="클라이언트-applicationyml">클라이언트 application.yml</h3>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6</pre></td><td class="code"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">kafka</span><span class="pi">:</span>
+    <span class="na">bootstrap-servers</span><span class="pi">:</span> <span class="s">http://localhost:9092</span> <span class="c1"># Kafka URL</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">bus</span><span class="pi">:</span>
+      <span class="na">destination</span><span class="pi">:</span> <span class="s">bus-topic</span> <span class="c1"># Bus 이벤트를 주고받을 토픽</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">spring.kafka.bootstrap-servers</code>: Bus로 이용할 Kafka 브로커 서버의 URL (클러스터링이 된 경우 <code class="language-plaintext highlighter-rouge">,</code>를 기준으로 여러 브로커 URL을 명시하면 됩니다.)</li>
+  <li><code class="language-plaintext highlighter-rouge">spring.cloud.bus.destination</code>: Bus 이벤트를 Pub/Sub 할 토픽을 명시해줍니다.</li>
+  <li>⚠️ 위 설정은 <strong>Config Server도 마찬가지로 동일하게 설정</strong>되어 있어야 합니다!</li>
+</ul>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5</pre></td><td class="code"><pre class="highlight"><code><span class="na">management</span><span class="pi">:</span>
+  <span class="na">endpoints</span><span class="pi">:</span>
+    <span class="na">web</span><span class="pi">:</span>
+      <span class="na">exposure</span><span class="pi">:</span>
+        <span class="na">include</span><span class="pi">:</span> <span class="s">refresh, busrefresh</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>클라이언트의 <code class="language-plaintext highlighter-rouge">actuator</code> 엔드포인트 <code class="language-plaintext highlighter-rouge">/busrefresh</code>를 이용하면 메시지 브로커의 설정된 토픽으로 이벤트가 발송됩니다.</li>
+  <li>해당 토픽을 Consume(소비/구독)하는 클라이언트들은 모두 Config Server로 부터 설정 파일의 갱신을 요청하게 됩니다.</li>
+  <li>이로써 동시에 여러 마이크로서비스들의 설정 값을 실시간으로 업데이트 할 수 있게 됩니다.</li>
+</ul>
+
+<h2 id="busrefresh">/busrefresh</h2>
+
+<figure align="center">
+<img src="/post_images/spring-cloud-side-project/config-server3.png" />
+<figcaption>/busrefresh 성공 응답으로 204(no-content) 응답이 옵니다.</figcaption>
+</figure>
+
+<h2 id="bus-topic-log">bus topic Log</h2>
+
+<p><code class="language-plaintext highlighter-rouge">/busrefresh</code> 이벤트가 발생하여 Kafka 토픽에 메시지가 도달하면 아래와 같은 <strong>JSON 포맷</strong>으로 기록되는 것을 확인하실 수 있습니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">type</code> 필드와 <code class="language-plaintext highlighter-rouge">originService</code> 를 살펴보면 어떤 클라이언트에서 이벤트를 발송했고, 어떤 클라이언트가 이벤트를 수신했는지 확인할 수 있습니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">type</code>: 어떤 클라이언트에서 <code class="language-plaintext highlighter-rouge">/busrefresh</code> 요청이 발생했고, 어디서 그 이벤트를 수신했는지 확인할 수 있습니다.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">RefreshRemoteApplicationEvent</code>: <code class="language-plaintext highlighter-rouge">/busrefresh</code>를 호출한 이벤트입니다.</li>
+      <li><code class="language-plaintext highlighter-rouge">AckRemoteApplicationEvent</code>: <code class="language-plaintext highlighter-rouge">/busrefresh</code> 요청을 수신했다는 응답 이벤트입니다.</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">originService</code>: 이벤트를 처리한 클라이언트(마이크로서비스)의 애플리케이션 이름 정보가 담겨있습니다.</li>
+</ul>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21<br/>22<br/>23<br/>24<br/>25<br/>26<br/>27<br/>28<br/>29<br/>30<br/>31<br/>32<br/>33<br/>34<br/>35<br/>36<br/>37<br/>38<br/>39<br/>40<br/>41<br/>42<br/>43<br/>44<br/>45<br/>46<br/>47<br/>48<br/>49</pre></td><td class="code"><pre class="highlight"><code><span class="p">[</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RefreshRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394015516</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"order-service:default:8082:48ea6afcb8f6479b592a8cf041d2927b"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394015600</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"order-service:default:8082:48ea6afcb8f6479b592a8cf041d2927b"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"f7c31aa1-a1df-4952-9e6c-a2ddd51c65f9"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394018002</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"config-service:8888:5cadfc3cecb50346571c4e594886d273"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ce0d38d8-bd5a-43ce-b9cf-ea96456265d1"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394021382</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"user-service:default:8080:4938cf08c833b263a04aa56c247721d3"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5bb5898f-a570-475d-b6c6-3efa7516b4b6"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394022065</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"product-service:8081:2dc75521f12081519f46be8f3441ee00"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"949d77da-9861-4066-8aca-b9b3aaacb678"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li>위 Json 파일을 살펴보면, <code class="language-plaintext highlighter-rouge">order-service</code>에서 <code class="language-plaintext highlighter-rouge">/busrefresh</code>를 호출한 것을 알 수 있습니다.</li>
+  <li>그리고 <code class="language-plaintext highlighter-rouge">order-service</code>, <code class="language-plaintext highlighter-rouge">config-service</code>, <code class="language-plaintext highlighter-rouge">user-service</code>, <code class="language-plaintext highlighter-rouge">product-service</code> 가 확인 응답을 하여, 설정 파일이 갱신되었다는 것을 알 수 있습니다.</li>
+</ul>
+
+<blockquote>
+  <p>참고로 Kafka는 도커 이미지를 이용하여 구동하였습니다. 이번 포스트는 Kafka에 대한 포스트가 아니므로, Kafka 도커 실행에 대한 내용은 생략하도록 하겠습니다.</p>
+</blockquote>
+
+<p>여기까지 Kafka를 이용한 Spring Cloud Bus 를 알아보았습니다.</p>
+
+<h2 id="rabbitmq를-이용한-bus">RabbitMQ를 이용한 Bus</h2>
+
+<p>이번에는 RabbitMQ를 이용한 Spring Cloud Bus 설정 방법을 알아보겠습니다.</p>
+
+<p>동작 흐름은 Kafka와 동일하기 때문에, RabbitMQ는 설정법만 간단히 짚고 넘어가도록 하겠습니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21</pre></td><td class="code"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">user-service</span>
+  <span class="na">config</span><span class="pi">:</span>
+    <span class="na">import</span><span class="pi">:</span> <span class="s">optional:configserver:http://localhost:8888</span>
+  <span class="na">profiles</span><span class="pi">:</span>
+    <span class="na">active</span><span class="pi">:</span> <span class="s">default</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">config</span><span class="pi">:</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">test</span>
+  <span class="na">rabbitmq</span><span class="pi">:</span>
+    <span class="na">host</span><span class="pi">:</span> <span class="s">localhost</span> <span class="c1"># RabbitMQ Host</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">5672</span> <span class="c1"># RabbitMQ Port</span>
+    <span class="na">username</span><span class="pi">:</span> <span class="s">guest</span> 
+    <span class="na">password</span><span class="pi">:</span> <span class="s">guest</span>
+
+<span class="na">management</span><span class="pi">:</span>
+  <span class="na">endpoints</span><span class="pi">:</span>
+    <span class="na">web</span><span class="pi">:</span>
+      <span class="na">exposure</span><span class="pi">:</span>
+        <span class="na">include</span><span class="pi">:</span> <span class="s">refresh, busrefresh</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li>Spring Cloud Bus를 위해서 Config Server와 연결 설정과 RabbitMQ 설정 그리고 액추에이터의 <code class="language-plaintext highlighter-rouge">/busrefresh</code> 엔드포인트를 설정해주기만 하면 됩니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">/busrefresh</code> 를 호출하면 RabbitMQ에 메시지를 발송하여, RabbitMQ(Bus 역할)에 연결된 서비스들의 설정 파일들을 갱신시키게 됩니다.</li>
+</ul>
+
+<blockquote>
+  <p>RabbitMQ는 도커 이미지를 이용하여 구동하였습니다.</p>
+</blockquote>
+
+<h1 id="-정리">🚀 정리</h1>
+
+<p>이번 포스트에서는 Spring Cloud Bus와 Spring Boot Actuator를 활용하여 Config Server에서 읽어온 설정 파일을 애플리케이션 재시작 없이 동적으로 갱신하는 방법을 다뤘습니다.</p>
+
+<p>Kafka와 RabbitMQ 두 가지 메시지 브로커를 통한 Bus 설정 방법과 각각의 장단점에 대해서도 알아봤습니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">/refresh</code>와 <code class="language-plaintext highlighter-rouge">/busrefresh</code> 엔드포인트를 활용해 개별 서비스와 전체 마이크로서비스에 동시에 설정 변경 이벤트를 전파하는 과정도 살펴봤습니다.</p>
+
+<h1 id="-요약">🎯 요약</h1>
+
+<ul>
+  <li>Spring Cloud Bus와 Actuator를 사용하면 Config Server의 설정 변경을 각 마이크로서비스에 실시간으로 적용할 수 있습니다.</li>
+  <li>Kafka는 대용량 처리와 확장성이 뛰어나고, RabbitMQ는 설치와 운영이 간편하다는 장점을 제공합니다.</li>
+</ul>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Spring%20Cloud%20Config" rel="tag"># Spring Cloud Config</a>
+          
+            
+            <a href="/tag/#/Spring%20Cloud%20Bus" rel="tag"># Spring Cloud Bus</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/17/Spring-Cloud-Config-Server/" rel="next" title="Spring Cloud Config를 이용한 환경 변수 관리">
+                <i class="fa fa-chevron-left"></i> Spring Cloud Config를 이용한 환경 변수 관리
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/16/Service-Discovery-Eureka/" rel="prev" title="Spring Cloud Netflix - Service Discovery Eureka">
+                Spring Cloud Netflix - Service Discovery Eureka <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-들어가기"> <span class="nav-number">1</span> <span class="nav-text">📌 들어가기</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#실시간-설정-변경이-왜-중요한가"> <span class="nav-number">1.1</span> <span class="nav-text">실시간 설정 변경이 왜 중요한가?</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#해당-기술이-없다면"> <span class="nav-number">1.2</span> <span class="nav-text">해당 기술이 없다면?</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#마이크로서비스와-config-server-연동하기"> <span class="nav-number">2</span> <span class="nav-text">마이크로서비스와 Config Server 연동하기</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#dependency"> <span class="nav-number">2.1</span> <span class="nav-text">Dependency</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#applicationyml"> <span class="nav-number">2.2</span> <span class="nav-text">application.yml</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#spring-cloud-bus란"> <span class="nav-number">3</span> <span class="nav-text">Spring Cloud Bus란?</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#bus로-사용하기-적합한-메시지-브로커"> <span class="nav-number">3.1</span> <span class="nav-text">Bus로 사용하기 적합한 메시지 브로커?</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#rabbitmq"> <span class="nav-number">3.1.1</span> <span class="nav-text">RabbitMQ</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#kafka"> <span class="nav-number">3.1.2</span> <span class="nav-text">Kafka</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#선택-기준-정리"> <span class="nav-number">3.1.3</span> <span class="nav-text">선택 기준 정리</span> </a> </li> </ol> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#spring-cloud-bus-설정"> <span class="nav-number">4</span> <span class="nav-text">Spring Cloud Bus 설정</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#kafka를-이용한-bus"> <span class="nav-number">4.1</span> <span class="nav-text">Kafka를 이용한 Bus</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#dependency-1"> <span class="nav-number">4.1.1</span> <span class="nav-text">Dependency</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#클라이언트-applicationyml"> <span class="nav-number">4.1.2</span> <span class="nav-text">클라이언트 application.yml</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#busrefresh"> <span class="nav-number">4.2</span> <span class="nav-text">/busrefresh</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#bus-topic-log"> <span class="nav-number">4.3</span> <span class="nav-text">bus topic Log</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#rabbitmq를-이용한-bus"> <span class="nav-number">4.4</span> <span class="nav-text">RabbitMQ를 이용한 Bus</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-정리"> <span class="nav-number">5</span> <span class="nav-text">🚀 정리</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-요약"> <span class="nav-number">6</span> <span class="nav-text">🎯 요약</span> </a> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/';
+              this.page.identifier = '/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/';
+              this.page.title = 'Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

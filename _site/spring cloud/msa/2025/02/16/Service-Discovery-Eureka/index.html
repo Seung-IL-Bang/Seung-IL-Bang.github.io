@@ -1,0 +1,1401 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Service Discovery,Eureka," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="서비스 디스커버리가 무엇이고, Eureka가 무엇인지 알아봅시다!">
+<meta name="keywords" content="Service Discovery, Eureka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud Netflix - Service Discovery Eureka">
+<meta property="og:url" content="http://localhost:4000/spring%20cloud/msa/2025/02/16/Service-Discovery-Eureka/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="서비스 디스커버리가 무엇이고, Eureka가 무엇인지 알아봅시다!">
+<meta property="og:locale" content="ko">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring Cloud Netflix - Service Discovery Eureka">
+<meta name="twitter:description" content="서비스 디스커버리가 무엇이고, Eureka가 무엇인지 알아봅시다!">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Spring Cloud Netflix - Service Discovery Eureka | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20cloud/msa/2025/02/16/Service-Discovery-Eureka/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spring Cloud Netflix - Service Discovery Eureka
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-02-16T00:00:00+09:00">
+                2025-02-16
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Cloud" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/MSA" itemprop="url" rel="index">
+                    <span itemprop="name">MSA</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20cloud/msa/2025/02/16/Service-Discovery-Eureka/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20cloud/msa/2025/02/16/Service-Discovery-Eureka/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>서비스 디스커버리가 무엇이고, Eureka가 무엇인지 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>서비스 간 통신을 하기 위해서는 서로의 위치(IP Address 혹은 도메인)를 알고 있어야 합니다.</p>
+
+<p>MSA 환경에는 수 많은 서비스들이 존재할 수 있습니다.</p>
+
+<p>그렇다면 한 서비스에서 다른 서비스들과 통신 하기 위해 다른 서비스들의 모든 주소들을 알아야 할까요?</p>
+
+<p>Netflix 가 Spring Cloud 재단에 기증한 서비스 디스커버리(탐색) 기술인 <code class="language-plaintext highlighter-rouge">Eureka</code>는 모든 주소들을 기억해야 하는 문제점을 깔끔히 해결해 줍니다.</p>
+
+<p>이번 포스트에서는 마이크로서비스 환경에서 서비스 등록과 탐색이 왜 중요한지, 그리고 동적 서비스 등록 및 로드밸런싱의 필요성에 대해 알아보겠습니다.</p>
+
+<h1 id="서비스-디스커버리란">서비스 디스커버리란?</h1>
+
+<p>마이크로서비스 환경에서는 개별 서비스들이 독립적으로 배포되고 실행이 됩니다.</p>
+
+<p>이때 서비스 인스턴스들의 위치(Host, Port etc)가 동적으로 변경되기 때문에, 클라이언트가 서비스의 위치를 고정된 주소로 참조하기 어려운 문제가 발생합니다.</p>
+
+<p><strong>서비스 디스커버리는 클라이언트가 서비스의 실제 위치를 동적으로 탐색하고, 최신 정보를 반영할 수 있도록 하는 역할을 합니다.</strong></p>
+
+<h2 id="서비스-디스커버리-패턴">서비스 디스커버리 패턴</h2>
+
+<p>서비스를 동적으로 탐색하는 패턴에는 두 가지가 있습니다.</p>
+
+<h3 id="client-side-discovery">Client Side Discovery</h3>
+
+<p>클라이언트가 직접 서비스 레지스트리에서 정보를 가져와 로드밸런싱을 수행합니다.</p>
+
+<h3 id="server-side-discovery">Server Side Discovery</h3>
+
+<p>클라리언트의 요청이 로드 밸런서를 통해 전달되며, 이 로드 밸런서가 <strong>서비스 레지스트리(Eureka Server)</strong>에서 실제 서비스 인스턴스를 선택하게 됩니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">Spring Cloud Gateway</code> 는 로드 밸런싱 기능을 지원하기 때문에 서버 사이드 디스커버리 패턴을 사용할 경우 <code class="language-plaintext highlighter-rouge">Spring Cloud Gateway</code>를 활용할 수 있습니다.</p>
+
+<p>게이트웨이는 유레카 서버로부터 서비스 인스턴스의 위치를 가지고와 직접 로드밸런싱을 수행합니다.</p>
+
+<h1 id="eureka-server-와-client">Eureka Server 와 Client</h1>
+
+<p><code class="language-plaintext highlighter-rouge">Eureka</code>는 <strong>서버</strong>와 <strong>클라이언트</strong> 두 개로 나뉘어 역할이 각각 다릅니다.</p>
+
+<h2 id="eureka-server">Eureka Server</h2>
+
+<p>유레카 서버의 역할은 다음과 같습니다.</p>
+
+<ul>
+  <li>모든 서비스 인스턴스들의 등록 정보를 관리합니다.</li>
+  <li>주기적으로 서비스 인스턴스의 상태를 확인하여, 정상 동작하지 않는 인스턴스는 레지스트리에서 제거합니다.</li>
+  <li>클라이언트나 다른 서비스가 현재 사용 가능한 인스턴스 정보를 조회할 수 있도록 API를 제공합니다.</li>
+</ul>
+
+<h2 id="eureka-client">Eureka Client</h2>
+
+<p>유레카 클라이언트의 역할은 다음과 같습니다.</p>
+
+<ul>
+  <li>애플리케이션이 기동되면서 자동으로 Eureka 서버에 자신의 정보를 등록합니다.</li>
+  <li>등록된 정보를 주기적으로 갱신하여, 서버 측에서 정상 동작 여부를 판단할 수 있도록 합니다.</li>
+  <li>필요한 경우 Eureka 서버에서 다른 서비스의 정보를 가져와, 로드 밸런싱 및 동적 호출에 활용합니다.</li>
+</ul>
+
+<h1 id="eureka-특장점">Eureka 특장점</h1>
+
+<ul>
+  <li>서비스 인스턴스가 늘어나거나 줄어들 때 자동으로 반영됩니다.</li>
+  <li>유레카 서버 이중화 구성을 통해 장애 발생 시에도 서비스 디스커버리 지속성이 보장됩니다.</li>
+  <li>등록 주기와 타임아웃을 활용하여, 정상 상태를 유지하지 않는 인스턴스들은 자동으로 제거되고, 다시 회복된 인스턴스는 다시 등록되는 복구 메커니즘이 있습니다.</li>
+</ul>
+
+<h1 id="동적-서비스-등록-메커니즘">동적 서비스 등록 메커니즘</h1>
+
+<p>서비스가 기동 시 Eureka Client가 Eureka Server에 HTTP 요청을 보내어 자신을 등록합니다.</p>
+
+<p>이후 주기적으로 등록 정보를 갱신하며, 만약 갱신이 실패하면 일정 시간이 지난 후 자동으로 레지스트리에서 제거됩니다.</p>
+
+<p>Eureka 대시보드(보통 <code class="language-plaintext highlighter-rouge">http://localhost:8761</code>)를 통해 현재 등록된 인스턴스 목록과 상태 정보를 확인하실 수 있습니다.</p>
+
+<h1 id="eureke와-결합되어-동작하는-spring-cloud-gateway">Eureke와 결합되어 동작하는 Spring Cloud Gateway</h1>
+
+<p><code class="language-plaintext highlighter-rouge">Spring Cloud Gateway</code>는 <code class="language-plaintext highlighter-rouge">Eureka</code>와 결합되어 로드 밸런서의 역할을 수행합니다.</p>
+
+<p>클라이언트의 요청이 게이트웨이에 도달하게 되면, Eureka에서 조회한 인스턴스 목록을 바탕으로 <strong>라운드 로빈</strong> 방식으로 요청을 분산 처리합니다.</p>
+
+<h1 id="eureka-서비스-클러스터링-방법과-장점">Eureka 서비스 클러스터링 방법과 장점</h1>
+
+<p>단일 Eureka 서버로 운영하면 장애 시 전체 서비스 디스커버리 시스템이 마비될 수 있습니다.</p>
+
+<p>따라서 여러 대의 Eureka 서버를 클러스터링하여 운영할 필요가 있습니다.</p>
+
+<p>Eureka 서버를 클러스터링하게 되면 여러 Eureka 서버가 협력하여 서비스를 관리하기 때문에 특정 Eureka 서버의 장애가 전체 시스템에 미치는 영향을 최소화할 수 있습니다.</p>
+
+<p>실제 운영 환경에서는 두 대 이상의 서버로 구성하면, 리버스 프록시 또는 로드 밸런서를 통해 어느 서버에 접근하든지 간에 서비스 디스커버리 기능을 수행할 수 있게 됩니다.</p>
+
+<p>또한 다수의 Eureka 서버가 요청을 분산 처리함으로써, 높은 트래픽 환경에서도 안정적인 서비스를 제공할 수 있습니다.</p>
+
+<h2 id="eureka-서버-클러스터링-구성-예시">Eureka 서버 클러스터링 구성 예시</h2>
+
+<p><code class="language-plaintext highlighter-rouge">application.yml</code> 설정 파일에 Eureka 서버 간의 동기화 방식 설정(<code class="language-plaintext highlighter-rouge">Peer Awareness</code>)을 <code class="language-plaintext highlighter-rouge">true</code> 값으로 설정하고, Eureka 서버들이 호스팅되고 있는 위치들을 <code class="language-plaintext highlighter-rouge">defaultZone</code> 에 작성해주면 됩니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14</pre></td><td class="code"><pre class="highlight"><code><span class="na">eureka</span><span class="pi">:</span>
+  <span class="na">instance</span><span class="pi">:</span>
+    <span class="na">hostname</span><span class="pi">:</span> <span class="s">localhost</span>
+  <span class="na">client</span><span class="pi">:</span>
+    <span class="na">register-with-eureka</span><span class="pi">:</span> <span class="no">false</span>
+    <span class="na">fetch-registry</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">server</span><span class="pi">:</span>
+    <span class="na">enable-self-preservation</span><span class="pi">:</span> <span class="no">false</span>
+  <span class="na">peer</span><span class="pi">:</span>
+    <span class="na">awareness</span><span class="pi">:</span>
+      <span class="na">enabled</span><span class="pi">:</span> <span class="no">true</span>
+    <span class="na">eureka</span><span class="pi">:</span>
+      <span class="na">serviceUrl</span><span class="pi">:</span>
+        <span class="na">defaultZone</span><span class="pi">:</span> <span class="s">http://localhost:8761/eureka/,http://localhost:8762/eureka/</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>동기화 방식 설정과 관련하여 <a href="https://cloud.spring.io/spring-cloud-netflix/reference/html/#spring-cloud-eureka-server-peer-awareness">공식 문서</a>에서 더 자세히 확인하실 수 있습니다.</li>
+</ul>
+
+<h1 id="정리">정리</h1>
+
+<p>마이크로서비스 환경에서 서비스 디스커버리의 필요성과 <code class="language-plaintext highlighter-rouge">Netflix Eureka</code>를 통한 인스턴스들의 동적 위치 탐색 방안에 대해 알아보았습니다.</p>
+
+<p>Eureka를 사용하면 서비스 인스턴스가 동적으로 등록되고 자동으로 관리됩니다.</p>
+
+<p>이로써 서비스 디스커버리는 클라이언트가 서비스의 실제 위치를 동적으로 탐색할 수 있게 해주어 서비스 통신이 원활하게 이루어지도록 해줍니다.</p>
+
+<p>그리고 클러스터링을 통해 고가용성을 확보하는 방법에 대해서도 살펴보았습니다.</p>
+
+<h1 id="참고-자료">참고 자료</h1>
+
+<ul>
+  <li><a href="https://cloud.spring.io/spring-cloud-netflix/reference/html/">Spring Cloud Netflix</a></li>
+</ul>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Service%20Discovery" rel="tag"># Service Discovery</a>
+          
+            
+            <a href="/tag/#/Eureka" rel="tag"># Eureka</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/" rel="next" title="Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리">
+                <i class="fa fa-chevron-left"></i> Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/15/Spring-Cloud-FeignClient/" rel="prev" title="Spring Cloud FeignClient 로깅 및 에러 핸들링">
+                Spring Cloud FeignClient 로깅 및 에러 핸들링 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-들어가기"> <span class="nav-number">1</span> <span class="nav-text">📌 들어가기</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#서비스-디스커버리란"> <span class="nav-number">2</span> <span class="nav-text">서비스 디스커버리란?</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#서비스-디스커버리-패턴"> <span class="nav-number">2.1</span> <span class="nav-text">서비스 디스커버리 패턴</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#client-side-discovery"> <span class="nav-number">2.1.1</span> <span class="nav-text">Client Side Discovery</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#server-side-discovery"> <span class="nav-number">2.1.2</span> <span class="nav-text">Server Side Discovery</span> </a> </li> </ol> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#eureka-server-와-client"> <span class="nav-number">3</span> <span class="nav-text">Eureka Server 와 Client</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#eureka-server"> <span class="nav-number">3.1</span> <span class="nav-text">Eureka Server</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#eureka-client"> <span class="nav-number">3.2</span> <span class="nav-text">Eureka Client</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#eureka-특장점"> <span class="nav-number">4</span> <span class="nav-text">Eureka 특장점</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#동적-서비스-등록-메커니즘"> <span class="nav-number">5</span> <span class="nav-text">동적 서비스 등록 메커니즘</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#eureke와-결합되어-동작하는-spring-cloud-gateway"> <span class="nav-number">6</span> <span class="nav-text">Eureke와 결합되어 동작하는 Spring Cloud Gateway</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#eureka-서비스-클러스터링-방법과-장점"> <span class="nav-number">7</span> <span class="nav-text">Eureka 서비스 클러스터링 방법과 장점</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#eureka-서버-클러스터링-구성-예시"> <span class="nav-number">7.1</span> <span class="nav-text">Eureka 서버 클러스터링 구성 예시</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#정리"> <span class="nav-number">8</span> <span class="nav-text">정리</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#참고-자료"> <span class="nav-number">9</span> <span class="nav-text">참고 자료</span> </a> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20cloud/msa/2025/02/16/Service-Discovery-Eureka/';
+              this.page.identifier = '/spring%20cloud/msa/2025/02/16/Service-Discovery-Eureka/';
+              this.page.title = 'Spring Cloud Netflix - Service Discovery Eureka';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

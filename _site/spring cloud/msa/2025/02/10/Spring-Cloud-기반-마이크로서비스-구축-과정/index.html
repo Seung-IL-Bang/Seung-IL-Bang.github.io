@@ -1,0 +1,1594 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="RestTemplate,OpenFeign,Kafka," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Spring Cloud를 활용한 마이크로 서비스 간 통신 방식에는 무엇이 있는지 살펴보겠습니다!">
+<meta name="keywords" content="RestTemplate, OpenFeign, Kafka">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud 기반 마이크로 서비스 간 통신">
+<meta property="og:url" content="http://localhost:4000/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="Spring Cloud를 활용한 마이크로 서비스 간 통신 방식에는 무엇이 있는지 살펴보겠습니다!">
+<meta property="og:locale" content="ko">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring Cloud 기반 마이크로 서비스 간 통신">
+<meta name="twitter:description" content="Spring Cloud를 활용한 마이크로 서비스 간 통신 방식에는 무엇이 있는지 살펴보겠습니다!">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Spring Cloud 기반 마이크로 서비스 간 통신 | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spring Cloud 기반 마이크로 서비스 간 통신
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-02-10T00:00:00+09:00">
+                2025-02-10
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Cloud" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/MSA" itemprop="url" rel="index">
+                    <span itemprop="name">MSA</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>Spring Cloud를 활용한 마이크로 서비스 간 통신 방식에는 무엇이 있는지 살펴보겠습니다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>e-commerce 플랫폼을 주제로 MSA와 Spring Cloud 기반의 사이드 프로젝트를 진행했습니다.</p>
+
+<p>모놀리식이 아닌 사용자, 주문, 상품, 결제, 배달 등 각 도메인 별로 MSA 기반으로 개발했습니다.</p>
+
+<p>모놀리식의 경우 각 도메인 서비스별로 소통을 위해 네트워크를 거칠 필요가 없습니다.</p>
+
+<p>이에 반해, MSA 기반의 마이크로 서비스들은 도메인 서비스끼리 통신을 하기 위해서 네트워크 통신이 필수이다.</p>
+
+<p>다들 아시다시피, 대표적인 네트워크 통신에는 HTTP 통신이 있습니다.</p>
+
+<p>현대 대부분의 통신은 HTTP을 이용한 REST API로 이뤄진다고 봐도 무리가 아니죠.</p>
+
+<p>그 외에도 TCP 통신, gRPC 등 다양한 방식이 존재합니다.</p>
+
+<p>저는 사이드 프로젝트를 진행하면서 마이크로 서비스 간 통신 방식을 여러 번 수정해왔습니다.</p>
+
+<p>처음에는 <code class="language-plaintext highlighter-rouge">RestTemplate</code> 을 이용한 API 통신, 그 다음으로 Spring Cloud에서 지원하는 <code class="language-plaintext highlighter-rouge">OpenFeign</code> 을 통한 통신.</p>
+
+<p>마지막 종착지로, 마이크로 서비스 간 종속성을 없애기 위한 <code class="language-plaintext highlighter-rouge">Kafka</code> 이벤트 기반 비동기 통신을 적용했습니다.</p>
+
+<p>각 방식에는 장단점이 있으므로, 장단점을 이해하고 해결하고자 하는 문제에 어떤 방식이 최선일 지 결정하는 것이 중요합니다. <strong>(개발자의 덕목)</strong></p>
+
+<hr />
+
+<h1 id="api-소개">API 소개</h1>
+
+<p>우선, 사이드 프로젝트에서 개발한 API들에 대해 먼저 소개 해드리겠습니다.</p>
+
+<p>각각의 도메인 서비스들은 서로 API 통신을 통해 유기적으로 비즈니스 로직을 처리하게 됩니다.</p>
+
+<p>그리고 각 서비스 별로 발생하는 데이터들은 각각 고유한 데이터베이스에 데이터를 저장하게 됩니다.</p>
+
+<p>참고로, 해당 프로젝트의 핵심 목표는 분산 환경에서의 중앙 집중식 로깅 관리 및 트레이싱이기 때문에 각 서비스 별로 필요한 비즈니스 로직들에 비약한 부분이 존재할 수 있습니다.</p>
+
+<h2 id="user-service">User Service</h2>
+
+<ul>
+  <li>회원 가입</li>
+  <li>로그인</li>
+  <li>유저 정보 조회</li>
+  <li>유저 목록 조회</li>
+</ul>
+
+<h2 id="product-service">Product Service</h2>
+
+<ul>
+  <li>상품 목록 조회</li>
+  <li>재고 차감</li>
+  <li>재고 증가</li>
+</ul>
+
+<h2 id="order-service">Order Service</h2>
+
+<ul>
+  <li>주문</li>
+  <li>주문 조회</li>
+  <li>주문 목록 조회</li>
+</ul>
+
+<h2 id="payment-service">Payment Service</h2>
+
+<ul>
+  <li>결제</li>
+  <li>결제 취소</li>
+</ul>
+
+<h2 id="delivery-service">Delivery Service</h2>
+
+<ul>
+  <li>배송 접수</li>
+  <li>배송</li>
+</ul>
+
+<hr />
+
+<h1 id="resttemplate">RestTemplate</h1>
+
+<p><code class="language-plaintext highlighter-rouge">RestTemplate</code>은 Spring 에서 기본으로 제공하는 HTTP 요청을 보낼 때 사용하는 도구입니다.</p>
+
+<h2 id="장점">장점</h2>
+
+<ul>
+  <li>간단하고 직관적이다.</li>
+  <li>동기 방식이기 때문에 흐름을 따라가기 쉽다.</li>
+</ul>
+
+<h2 id="단점">단점</h2>
+
+<ul>
+  <li>요청을 보낸 후 응답을 받을 때까지 대기한다. (try-catch로 예외 처리 + 타임아웃 설정이 필수 ⚠️)</li>
+  <li>부하가 큰 시스템에서는 병목 현상이 발생할 수 있다.</li>
+  <li>예외 발생 시 장애가 전파됨.</li>
+</ul>
+
+<h2 id="예제-코드">예제 코드</h2>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Service</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserServiceImpl</span> <span class="kd">implements</span> <span class="nc">UserService</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">RestTemplate</span> <span class="n">restTemplate</span><span class="o">;</span>
+    <span class="o">...</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">UserDto</span> <span class="nf">getUserByUserId</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">)</span> <span class="o">{</span>
+      <span class="o">...</span>
+      <span class="nc">ResponseEntity</span><span class="o">&lt;</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">ResponseOrder</span><span class="o">&gt;&gt;</span> <span class="n">ordersResponse</span> <span class="o">=</span> <span class="n">restTemplate</span><span class="o">.</span><span class="na">exchange</span><span class="o">(</span>
+        <span class="s">"http://example.com/orders/"</span> <span class="o">+</span> <span class="n">userId</span><span class="o">,</span>
+        <span class="nc">HttpMethod</span><span class="o">.</span><span class="na">GET</span><span class="o">,</span>
+        <span class="kc">null</span><span class="o">,</span>
+        <span class="k">new</span> <span class="nc">ParameterizedTypeReference</span><span class="o">&lt;&gt;()</span> <span class="o">{}</span>
+      <span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li>RestTemplate 을 사용한 코드 일부입니다. (사용자의 주문 목록을 조회하는 요청)</li>
+  <li>몇 개의 인자를 전달함으로써 간단하게 HTTP 요청을 보낼 수 있습니다.
+    <ul>
+      <li>요청 URL</li>
+      <li>HTTP 메서드</li>
+      <li>HttpEntity (요청 본문 및 헤더)</li>
+      <li>Class&lt;?&gt; responseType (응답 타입)</li>
+    </ul>
+  </li>
+  <li>
+    <h2 id="-다만-동기-방식synchronous으로-동작하기-때문에-특정-서비스가-중단되거나-응답이-지연되면-요청을-보낸-서비스도-영향을-받는다는-것을-주의해야-합니다">🚨 다만, 동기 방식(Synchronous)으로 동작하기 때문에, 특정 서비스가 중단되거나 응답이 지연되면 요청을 보낸 서비스도 영향을 받는다는 것을 주의해야 합니다.</h2>
+  </li>
+</ul>
+
+<h1 id="openfeign">OpenFeign</h1>
+
+<p><code class="language-plaintext highlighter-rouge">OpenFeign</code>은 HTTP 요청을 보내는 작업을 자동으로 해주는 도구입니다. <code class="language-plaintext highlighter-rouge">RestTemplate</code>과 비슷하지만, 인터페이스만 만들면 요청 코드가 자동으로 생성되는 편의성을 제공합니다.</p>
+
+<h2 id="장점-1">장점</h2>
+
+<ul>
+  <li>코드가 간결함 (인터페이스 정의만 하면 됨)</li>
+  <li>내부적으로 로드 밸런싱 가능 (Eureka와 연동 시 URL 필요 없음)</li>
+  <li>Feign + Resilience4j로 Circuit Breaker(회로 차단기) 적용 가능. (Fallback 기능 포함)</li>
+  <li>Spring Cloud 생태계와 연동이 쉬움.</li>
+</ul>
+
+<h2 id="단점-1">단점</h2>
+
+<ul>
+  <li>기본적으로 동기 방식이므로 응답을 기다려야 함.</li>
+  <li>추가적인 설정이 필요할 수도 있음 (Feign 인터셉터, 로깅 등)</li>
+  <li>예외 발생 시 장애가 전파됨.</li>
+</ul>
+
+<h2 id="예제-코드-1">예제 코드</h2>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Service</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserServiceImpl</span> <span class="kd">implements</span> <span class="nc">UserService</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">OrderServiceClient</span> <span class="n">orderServiceClient</span><span class="o">;</span>
+    <span class="o">...</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">UserDto</span> <span class="nf">getUserByUserId</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">)</span> <span class="o">{</span>
+      <span class="o">...</span>
+      <span class="nc">List</span><span class="o">&lt;</span><span class="nc">ResponseOrder</span><span class="o">&gt;</span> <span class="n">orderList</span> <span class="o">=</span> <span class="n">orderServiceClient</span><span class="o">.</span><span class="na">getOrders</span><span class="o">(</span><span class="n">userId</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@FeignClient</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"order-service"</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">interface</span> <span class="nc">OrderServiceClient</span> <span class="o">{</span>
+
+    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/orders/{userId}"</span><span class="o">)</span>
+    <span class="nc">List</span><span class="o">&lt;</span><span class="nc">ResponseOrder</span><span class="o">&gt;</span> <span class="nf">getOrders</span><span class="o">(</span><span class="nd">@PathVariable</span><span class="o">(</span><span class="s">"userId"</span><span class="o">)</span> <span class="nc">String</span> <span class="n">userId</span><span class="o">);</span>
+
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>OpenFeign 을 사용할 경우 인터페이스만 구현하면 되기 때문에 RestTemplate 보다 더 간결하고 직관적이다.</li>
+  <li>Eureka(디스커버리 서비스)와 연동 시, 서비스의 이름만으로 요청을 보낼 수 있다.</li>
+</ul>
+
+<hr />
+
+<h1 id="kafka">Kafka</h1>
+
+<p>Kafka는 비동기 메시지 큐 시스템입니다. 비동기이기 때문에 응답을 기다릴 필요가 없습니다. 메시지 처리도 바로 할 필요가 없습니다.</p>
+
+<h2 id="장점-2">장점</h2>
+
+<ul>
+  <li>비동기 방식이라 대량의 데이터를 효율적으로 처리 가능.</li>
+  <li>여러 서비스 간 독립적인 운영이 가능 (서로 느슨한 결합이 됨)</li>
+  <li>데이터 복구 및 확장성이 뛰어남.</li>
+</ul>
+
+<h2 id="단점-2">단점</h2>
+
+<ul>
+  <li>실시간 응답이 필요한 경우에는 적절하지 않음.</li>
+  <li>러닝 커브 존재 (프로듀서, 컨슈머 개념 등 Kafka에 대한 이해 필요)</li>
+  <li>메시지 처리 순서를 보장하려면 추가적인 설정이 필요.</li>
+</ul>
+
+<h2 id="예제-코드-2">예제 코드</h2>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Service</span>
+<span class="nd">@Slf4j</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">OrderServiceImpl</span> <span class="kd">implements</span> <span class="nc">OrderService</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">OrderRepository</span> <span class="n">orderRepository</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">OrderEventProducer</span> <span class="n">orderEventProducer</span><span class="o">;</span>
+    <span class="o">...</span>
+
+    <span class="nd">@Transactional</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">OrderDto</span> <span class="nf">createOrder</span><span class="o">(</span><span class="nc">OrderDto</span> <span class="n">orderDto</span><span class="o">)</span> <span class="o">{</span>
+        <span class="o">...</span>
+        <span class="n">orderRepository</span><span class="o">.</span><span class="na">save</span><span class="o">(</span><span class="n">order</span><span class="o">);</span> <span class="c1">// 주문 데이터 저장 </span>
+        <span class="n">orderEventProducer</span><span class="o">.</span><span class="na">send</span><span class="o">(</span><span class="no">ORDER_CREATED</span><span class="o">,</span> <span class="n">orderCreatedEvent</span><span class="o">);</span> <span class="c1">// ORDER_CREATED 메시지 발행</span>
+        <span class="o">...</span>
+    <span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li>주문이 생성되면 주문 데이터를 저장하고 이어서 주문 생성 메시지를 발행합니다.</li>
+  <li>메시지는 <code class="language-plaintext highlighter-rouge">KafkaTemplate</code> 을 이용한 Producer(프로듀서)를 통해 발행합니다.</li>
+</ul>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21<br/>22</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Service</span>
+<span class="nd">@Slf4j</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">OrderCreatedEventConsumer</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">ObjectMapper</span> <span class="n">objectMapper</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">PaymentHandler</span> <span class="n">paymentHandler</span><span class="o">;</span>
+
+    <span class="nd">@KafkaListener</span><span class="o">(</span><span class="n">topics</span> <span class="o">=</span> <span class="s">"ORDER_CREATED"</span><span class="o">,</span> <span class="n">groupId</span> <span class="o">=</span> <span class="s">"${spring.kafka.consumer.group-id:payment-service-group}"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">consume</span><span class="o">(</span><span class="nc">ConsumerRecord</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">record</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">JsonProcessingException</span> <span class="o">{</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="nc">String</span> <span class="n">message</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="na">value</span><span class="o">();</span>
+            <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Consumed message: {}"</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
+            <span class="nc">OrderCreatedEvent</span> <span class="n">orderCreatedEvent</span> <span class="o">=</span> <span class="n">objectMapper</span><span class="o">.</span><span class="na">readValue</span><span class="o">(</span><span class="n">message</span><span class="o">,</span> <span class="nc">OrderCreatedEvent</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+            <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Order created event: {}"</span><span class="o">,</span> <span class="n">orderCreatedEvent</span><span class="o">);</span>
+
+            <span class="n">paymentHandler</span><span class="o">.</span><span class="na">handle</span><span class="o">(</span><span class="n">orderCreatedEvent</span><span class="o">);</span> 
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">"Error Consume OrderCreatedEvent"</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li><strong>주문 생성</strong> 메시지가 결제 서비스의 컨슈머(Consumer)에 도달하면, 주문의 결제 처리를 진행합니다.</li>
+  <li>즉, 주문 -&gt; 결제의 과정이 동기식이 아닌 비동기식으로 진행됩니다.</li>
+</ul>
+
+<hr />
+
+<h1 id="-요약">🚀 요약</h1>
+
+<h2 id="비교-정리-및-실행-흐름">비교 정리 및 실행 흐름</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>방식</th>
+      <th>요청 방식</th>
+      <th>응답 처리</th>
+      <th>특징</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>RestTemplate</strong></td>
+      <td>직접 HTTP 요청</td>
+      <td>동기 (응답 받을 때까지 대기)</td>
+      <td>간단하지만 응답 기다려야 함</td>
+    </tr>
+    <tr>
+      <td><strong>OpenFeign</strong></td>
+      <td>인터페이스 기반 HTTP 요청</td>
+      <td>동기 (설정 시 비동기 가능)</td>
+      <td>코드가 간결, Spring Cloud와 연동 용이</td>
+    </tr>
+    <tr>
+      <td><strong>Kafka</strong></td>
+      <td>메시지 전송</td>
+      <td>비동기 (나중에 메시지 수신)</td>
+      <td>대량의 데이터 처리에 적합</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+<h2 id="실제-사용-예시">실제 사용 예시</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>사용 사례</th>
+      <th>어떤 방식을 선택할까?</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>REST API에서 데이터를 가져올 때</td>
+      <td><code class="language-plaintext highlighter-rouge">RestTemplate</code> 또는 <code class="language-plaintext highlighter-rouge">OpenFeign</code> 사용</td>
+    </tr>
+    <tr>
+      <td>마이크로서비스 간 통신이 많을 때</td>
+      <td><code class="language-plaintext highlighter-rouge">OpenFeign</code> 추천 (Spring Cloud 연동)</td>
+    </tr>
+    <tr>
+      <td>이벤트 기반 비동기 처리</td>
+      <td><code class="language-plaintext highlighter-rouge">Kafka</code> 사용 (비동기 메시징)</td>
+    </tr>
+  </tbody>
+</table>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/RestTemplate" rel="tag"># RestTemplate</a>
+          
+            
+            <a href="/tag/#/OpenFeign" rel="tag"># OpenFeign</a>
+          
+            
+            <a href="/tag/#/Kafka" rel="tag"># Kafka</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/11/Spring-Cloud-Client-CircuitBreaker/" rel="next" title="Spring Cloud CircuitBreaker">
+                <i class="fa fa-chevron-left"></i> Spring Cloud CircuitBreaker
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/database/%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%B2%A0%EC%9D%B4%EC%8A%A4%20%EC%A4%91%EA%B8%89(modeling)/2024/06/18/%EC%84%B1%EC%A0%81%EA%B4%80%EB%A6%AC%EC%97%B0%EC%8A%B53/" rel="prev" title="성적 관리 모델링 연습 (3)">
+                성적 관리 모델링 연습 (3) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-들어가기"> <span class="nav-number">1</span> <span class="nav-text">📌 들어가기</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#api-소개"> <span class="nav-number">2</span> <span class="nav-text">API 소개</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#user-service"> <span class="nav-number">2.1</span> <span class="nav-text">User Service</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#product-service"> <span class="nav-number">2.2</span> <span class="nav-text">Product Service</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#order-service"> <span class="nav-number">2.3</span> <span class="nav-text">Order Service</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#payment-service"> <span class="nav-number">2.4</span> <span class="nav-text">Payment Service</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#delivery-service"> <span class="nav-number">2.5</span> <span class="nav-text">Delivery Service</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#resttemplate"> <span class="nav-number">3</span> <span class="nav-text">RestTemplate</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#장점"> <span class="nav-number">3.1</span> <span class="nav-text">장점</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#단점"> <span class="nav-number">3.2</span> <span class="nav-text">단점</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#예제-코드"> <span class="nav-number">3.3</span> <span class="nav-text">예제 코드</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#-다만-동기-방식synchronous으로-동작하기-때문에-특정-서비스가-중단되거나-응답이-지연되면-요청을-보낸-서비스도-영향을-받는다는-것을-주의해야-합니다"> <span class="nav-number">3.4</span> <span class="nav-text">🚨 다만, 동기 방식(Synchronous)으로 동작하기 때문에, 특정 서비스가 중단되거나 응답이 지연되면 요청을 보낸 서비스도 영향을 받는다는 것을 주의해야 합니다.</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#openfeign"> <span class="nav-number">4</span> <span class="nav-text">OpenFeign</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#장점-1"> <span class="nav-number">4.1</span> <span class="nav-text">장점</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#단점-1"> <span class="nav-number">4.2</span> <span class="nav-text">단점</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#예제-코드-1"> <span class="nav-number">4.3</span> <span class="nav-text">예제 코드</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#kafka"> <span class="nav-number">5</span> <span class="nav-text">Kafka</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#장점-2"> <span class="nav-number">5.1</span> <span class="nav-text">장점</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#단점-2"> <span class="nav-number">5.2</span> <span class="nav-text">단점</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#예제-코드-2"> <span class="nav-number">5.3</span> <span class="nav-text">예제 코드</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-요약"> <span class="nav-number">6</span> <span class="nav-text">🚀 요약</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#비교-정리-및-실행-흐름"> <span class="nav-number">6.1</span> <span class="nav-text">비교 정리 및 실행 흐름</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#실제-사용-예시"> <span class="nav-number">6.2</span> <span class="nav-text">실제 사용 예시</span> </a> </li> </ol> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/';
+              this.page.identifier = '/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/';
+              this.page.title = 'Spring Cloud 기반 마이크로 서비스 간 통신';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

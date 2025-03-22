@@ -1,0 +1,1453 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="REST API,Event-driven," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Kafka를 이용한 이벤트 드리븐 아키텍처의 마이크로서비스 통신에 대해 알아봅시다!">
+<meta name="keywords" content="REST API, Event-driven">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud + Kafka로 구현하는 마이크로서비스 이벤트 아키텍처">
+<meta property="og:url" content="http://localhost:4000/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="Kafka를 이용한 이벤트 드리븐 아키텍처의 마이크로서비스 통신에 대해 알아봅시다!">
+<meta property="og:locale" content="ko">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring Cloud + Kafka로 구현하는 마이크로서비스 이벤트 아키텍처">
+<meta name="twitter:description" content="Kafka를 이용한 이벤트 드리븐 아키텍처의 마이크로서비스 통신에 대해 알아봅시다!">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Spring Cloud + Kafka로 구현하는 마이크로서비스 이벤트 아키텍처 | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spring Cloud + Kafka로 구현하는 마이크로서비스 이벤트 아키텍처
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-02-22T00:00:00+09:00">
+                2025-02-22
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Cloud" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/MSA" itemprop="url" rel="index">
+                    <span itemprop="name">MSA</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Kafka" itemprop="url" rel="index">
+                    <span itemprop="name">Kafka</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>Kafka를 이용한 이벤트 드리븐 아키텍처의 마이크로서비스 통신에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-1-들어가기">📌 1. 들어가기</h1>
+
+<h2 id="1-1-왜-마이크로서비스-간-통신-방식이-중요할까요">1-1. 왜 마이크로서비스 간 통신 방식이 중요할까요?</h2>
+
+<p>마이크로서비스 아키텍처는 애플리케이션을 <strong>작은 독립적인 서비스</strong>로 나누어 개발, 배포 및 확장성을 극대화할 수 있게 해줍니다.</p>
+
+<p>하지만 서비스 간에 <strong>데이터와 명령을 어떻게 주고받을지</strong>가 시스템의 확장성, 성능 그리고 신뢰성에 영향을 미칩니다. 그래서 <strong>서비스 간 통신 방식</strong>에 대한 고민이 중요한 포인트가 됩니다.</p>
+
+<p>가장 흔히 사용되는 두 가지 통신 방식은 다음과 같습니다.</p>
+
+<ol>
+  <li>REST API 기반 통신 (동기 방식, Synchronous)</li>
+  <li>Message Queue를 활용한 Event driven 통신 (비동기 방식, Asynchronous)</li>
+</ol>
+
+<p>이전에 MSA에 관한 통신 방법들의 장단점을 비교하는 <a href="https://seung-il-bang.github.io/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/">포스트</a>를 작성했었습니다. 이번 포스트와 함께 읽어보시면 좋을 것 같습니다.</p>
+
+<h2 id="1-2-rest-api-기반-통신의-한계점">1-2. REST API 기반 통신의 한계점</h2>
+
+<p>REST API를 활용한 동기 통신은 마이크로서비스 초기 구현 시 간단하게 적용할 수 있고, HTTP를 이용한 요청/응답 패턴은 친숙하기에 가장 많이 선택되는 방식입니다.</p>
+
+<p>하지만, 서비스 규모가 커질수록 REST API 통신의 한계점에 직면하게 됩니다.</p>
+
+<h3 id="강한-결합-tightly-coupled">강한 결합 (Tightly Coupled)</h3>
+
+<ul>
+  <li><strong>문제</strong>: 서비스 A가 서비스 B의 API를 호출해야 한다면, 서비스 B가 반드시 <strong>정상 동작</strong>하고 있어야 합니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Order Service</code>가 <code class="language-plaintext highlighter-rouge">Payment Service</code>의 API를 호출했는데, 결제 서비스가 다운되면 주문 생성 자체가 실패하게 됩니다.</li>
+</ul>
+
+<h3 id="확장성-및-성능-이슈">확장성 및 성능 이슈</h3>
+
+<ul>
+  <li><strong>문제</strong>: 동기식 호출로 인해 요청이 <strong>병목 지점</strong>이 됩니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Order Service</code>가 주문 생성 -&gt; 결제 요청 -&gt; 배송 요청까지 순차적으로(동기식)으로 호출한다면, 전체 응답 시간이 길어지게 됩니다. 결국 전체 트랜잭션이 느려지고, 동시에 많은 요청을 처리하기 어려워질 수 있습니다.</li>
+</ul>
+
+<h3 id="장애-전파">장애 전파</h3>
+
+<ul>
+  <li><strong>문제</strong>: 하나의 서비스 장애가 연쇄적으로 다른 서비스에 영향을 줄 수 있습니다. 이는 단일 장애가 전체 시스템의 문제로 확산될 수 도 있습니다.</li>
+  <li><strong>예시</strong>: 결제 시스템이 느려지거나 장애가 발생하면, 주문 처리 시스템도 정상적으로 작동할 수 없습니다.</li>
+</ul>
+
+<h3 id="높은-종속성">높은 종속성</h3>
+
+<ul>
+  <li><strong>문제</strong>: API 구조 변경 시, 이를 호출하는 모든 서비스에 영향을 미칩니다. 이로 인해 각 서비스의 독립성이 낮아지고, 배포시 서비스 간의 조율이 필요합니다.</li>
+</ul>
+
+<h2 id="1-3--요약">1-3. ✅ 요약</h2>
+
+<blockquote>
+  <p>REST API 방식은 단순하고 직관적이지만, 확장성, 신뢰성, 유연성 측면에서 한계가 발생합니다.</p>
+</blockquote>
+
+<h1 id="2-kafka-기반-이벤트-드리븐event-driven-아키텍처">2. Kafka 기반 이벤트 드리븐(Event-driven) 아키텍처</h1>
+
+<p>앞서 살펴본 동기식 통신의 한계점을 극복하기 위해 대규모의 MSA 환경에서는 <code class="language-plaintext highlighter-rouge">Kafka</code> 기반의 <strong>비동기 이벤트 통신</strong>을 사용하는 것이 적합합니다.</p>
+
+<p>Kafka는 메시지 브로커 역할을 수행하면서, 서비스 간에 비동기 메시지를 전달해주는 역할을 합니다. 서비스들은 <strong>토픽(Topic)</strong>에 메시지를 <strong>발행(Publish)</strong>하거나 <strong>구독(Subscribe)</strong>함으로써 서로 통신할 수 있게 됩니다.</p>
+
+<h2 id="2-1-이벤트-드리븐event-driven-아키텍처의-장점">2-1. 이벤트 드리븐(Event-driven) 아키텍처의 장점</h2>
+
+<h3 id="느슨한-결합-loosely-coupled">느슨한 결합 (Loosely Coupled)</h3>
+
+<ul>
+  <li><strong>장점</strong>: 서비스 간 직접적인 호출이 없으므로, 서로의 존재를 몰라도 됩니다. 따라서 특정 서비스가 다운되더라도 전체 시스템에는 영향이 적습니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Order Service</code>는 <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 주문 생성 이벤트만 발행하고, 이를 <code class="language-plaintext highlighter-rouge">Payment Service</code>에서 구독해서 처리합니다. 즉, 각 서비스들은 독립적으로 이벤트를 처리합니다.</li>
+</ul>
+
+<h3 id="비동기-처리로-인한-성능-향상">비동기 처리로 인한 성능 향상</h3>
+
+<ul>
+  <li><strong>장점</strong>: 요청을 큐에 넣고 바로 응답을 줄 수 있어, 빠른 처리가 가능합니다. 빠른 응답은 사용자의 경험을 개선해줍니다.</li>
+  <li><strong>예시</strong>: 사용자가 주문을 생성하면, 주문 ID를 바로 응답받고, 결제 및 배송처리는 백엔드에서 비동기로 진행됩니다.</li>
+</ul>
+
+<h3 id="장애-격리-및-내결함성-fault-tolerance">장애 격리 및 내결함성 (Fault Tolerance)</h3>
+
+<ul>
+  <li><strong>장점</strong>: Kafka에 발행된 메시지는 디스크에 저장되므로, 구독자가 잠시 다운되어도 메시지 재처리가 가능합니다. 따라서 서비스 장애 발생 시에도 데이터 유실 없이 복구가 가능합니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Payment Service</code>가 다운되어도, Kafka에 쌓인 <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 메시지를 서비스 복구 후 다시 처리할 수 있습니다.</li>
+</ul>
+
+<h3 id="확장성과-유연성">확장성과 유연성</h3>
+
+<ul>
+  <li><strong>장점</strong>: 서비스 간에 직접적인 통신을 하지 않기 때문에 확장성이 높아지고, 독립적으로 서비스 배포가 가능합니다. 이로써 새로운 서비스를 쉽게 추가할 수 있습니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Order Service</code>에서 발행하는 이벤트를 구독하는 새로운 서비스를 추가해도 기존 시스템에 영향이 없습니다.</li>
+</ul>
+
+<h2 id="2-2--요약">2-2. ✅ 요약</h2>
+
+<blockquote>
+  <p>Kafka 기반 이벤트 드리븐 아키텍처는 확장성, 유연성, 내결함성 등 여러 측면에서 유리합니다.</p>
+</blockquote>
+
+<h1 id="3-개선-과정-rest-api--kafka-기반-아키텍처로-전환">3. 개선 과정: REST API → Kafka 기반 아키텍처로 전환</h1>
+
+<h2 id="3-1-기존-구조-rest-api-기반">3-1. 기존 구조: REST API 기반</h2>
+
+<p><strong>Order -&gt; Payment -&gt; Delivery</strong> 흐름을 REST API로 처리하면 다음 과정들이 동기식으로 이루어집니다.</p>
+
+<ol>
+  <li>사용자가 주문 생성 요청 -&gt; <code class="language-plaintext highlighter-rouge">Order Service</code></li>
+  <li><code class="language-plaintext highlighter-rouge">Order Service</code>가 결제 요청 -&gt; <code class="language-plaintext highlighter-rouge">Payment Service</code></li>
+  <li>결제 성공 시 배송 요청 -&gt; <code class="language-plaintext highlighter-rouge">Delivery Service</code></li>
+</ol>
+
+<p>REST API 기반 방식의 문제점은 서비스 간 강한 결합으로 인해, 일부 과정 중 장애가 발생 시 전페 프로세스가 실패하게 됩니다. <strong>즉 전체 트랜잭션이 모든 서비스들의 성공 여부에 종속하게 됩니다.</strong></p>
+
+<h2 id="3-2-개선된-구조-kafka-이벤트-드리븐-기반">3-2. 개선된 구조: Kafka 이벤트 드리븐 기반</h2>
+
+<p>Kafka를 도입하여 각 단계에서 <strong>이벤트를 발행</strong>하고, <strong>필요한 서비스가 이를 구독</strong>하는 구조로 전환합니다.</p>
+
+<ol>
+  <li>사용자가 주문 생성 요청을 하면 <code class="language-plaintext highlighter-rouge">Order Service</code>는 <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 이벤트를 Kafka에 발행합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Payment Service</code>가 주문 생성 메시지를 구독하여 결제 처리를 진행합니다.</li>
+  <li>결제 성공 시 <code class="language-plaintext highlighter-rouge">PAYMENT_COMPLETED</code> 결제 성공 이벤트를 발행합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Delivery Service</code>가 결제 성공 이벤트를 구독하여 배송 요청을 처리합니다.</li>
+</ol>
+
+<p>Kafka를 도입함으로써 비동기 처리로 인한 빠른 사용자 응답이 가능해집니다. 서비스 간 느슨한 결합과 Kafka의 내결함성 덕분에 장애 전파 영향도 최소화 됩니다. 그리고 각각의 서비스들이 독립적으로 배포가 가능하고, 신규 서비스 추가가 용이해집니다.</p>
+
+<h1 id="4--kafka-기반-이벤트-아키텍처-설계-시-고려사항">4. 🚨 Kafka 기반 이벤트 아키텍처 설계 시 고려사항</h1>
+
+<h2 id="메시지-중복-처리">메시지 중복 처리</h2>
+
+<ul>
+  <li>이벤트가 중복으로 전달될 수 있기 때문에, 수신자 측에 중복 방지 로직을 구현해야 합니다.</li>
+</ul>
+
+<h2 id="데이터-정합성">데이터 정합성</h2>
+
+<ul>
+  <li>비동기 구조로 인해 데이터 정합성이 깨질 수 있습니다.</li>
+  <li>해결책으로 <strong>Sage 패턴</strong> 또는 <strong>Outbox 패턴</strong>을 도입할 수 있습니다.</li>
+</ul>
+
+<h2 id="에러-핸들링-및-보상-트랜잭션">에러 핸들링 및 보상 트랜잭션</h2>
+
+<ul>
+  <li>특정 이벤트 처리 실패에 대해 비즈니스 실패 케이스를 처리하기 위한 <strong>보상 트랜잭션</strong> 설계가 필요합니다.</li>
+</ul>
+
+<h2 id="kafka-모니터링-및-운영">Kafka 모니터링 및 운영</h2>
+
+<ul>
+  <li>Kafka의 토픽, 메시지 적재량, Lag 등을 모니터링하여 적절한 대응을 할 수 있도록 해야 합니다.</li>
+  <li>Kafka가 SPOF(Single Point Of Failure)이 되지 않도록 멀티 클러스터로 운영할 필요가 있습니다.</li>
+</ul>
+
+<h1 id="5-추가로-공부하면-좋을-내용">5. 추가로 공부하면 좋을 내용</h1>
+
+<ul>
+  <li>Kafka의 <strong>At-Least-Once/Exactly-Once</strong> 보장 방식</li>
+  <li>Kafka 멀티 클러스터 구성</li>
+  <li>Saga 패턴과 보상 트랜잭션</li>
+</ul>
+
+<h1 id="6--정리">6. 💡 정리</h1>
+
+<ul>
+  <li>REST API 기반 동기식 통신은 초기에는 빠르게 개발 가능하지만, 확장성과 유연성 측면에서 한계가 존재합니다.</li>
+  <li>Kafka를 활용한 이벤트 드리븐 아키텍처는 서비스 간 결합도를 낮추고, 장애 격리 및 확장성 측면에서 뛰어난 이점을 제공합니다.</li>
+  <li>하지만, 이벤트 기반 시스템을 설계할 때는 중복 처리, 데이터 정합성, 에러 핸들링과 같은 추가적인 고려 사항을 반드시 신경써야 합니다.</li>
+</ul>
+
+<blockquote>
+  <p>궁극적으로 서비스 규모가 커질수록 Kafka 기반의 이벤트 드리븐 아키텍처는 성능과 유연성 측면에서 REST API 방식보다 장점이 많다고 볼 수 있습니다.</p>
+</blockquote>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/REST%20API" rel="tag"># REST API</a>
+          
+            
+            <a href="/tag/#/Event-driven" rel="tag"># Event-driven</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/" rel="next" title="Zipkin을 활용한 마이크로서비스 분산 트레이싱">
+                <i class="fa fa-chevron-left"></i> Zipkin을 활용한 마이크로서비스 분산 트레이싱
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/msa/redis/2025/02/22/Redisson-Lock-and-AOP/" rel="prev" title="Redisson을 활용한 분산 락 그리고 AOP 적용">
+                Redisson을 활용한 분산 락 그리고 AOP 적용 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-1-들어가기"> <span class="nav-number">1</span> <span class="nav-text">📌 1. 들어가기</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#1-1-왜-마이크로서비스-간-통신-방식이-중요할까요"> <span class="nav-number">1.1</span> <span class="nav-text">1-1. 왜 마이크로서비스 간 통신 방식이 중요할까요?</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#1-2-rest-api-기반-통신의-한계점"> <span class="nav-number">1.2</span> <span class="nav-text">1-2. REST API 기반 통신의 한계점</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#강한-결합-tightly-coupled"> <span class="nav-number">1.2.1</span> <span class="nav-text">강한 결합 (Tightly Coupled)</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#확장성-및-성능-이슈"> <span class="nav-number">1.2.2</span> <span class="nav-text">확장성 및 성능 이슈</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#장애-전파"> <span class="nav-number">1.2.3</span> <span class="nav-text">장애 전파</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#높은-종속성"> <span class="nav-number">1.2.4</span> <span class="nav-text">높은 종속성</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#1-3--요약"> <span class="nav-number">1.3</span> <span class="nav-text">1-3. ✅ 요약</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#2-kafka-기반-이벤트-드리븐event-driven-아키텍처"> <span class="nav-number">2</span> <span class="nav-text">2. Kafka 기반 이벤트 드리븐(Event-driven) 아키텍처</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#2-1-이벤트-드리븐event-driven-아키텍처의-장점"> <span class="nav-number">2.1</span> <span class="nav-text">2-1. 이벤트 드리븐(Event-driven) 아키텍처의 장점</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#느슨한-결합-loosely-coupled"> <span class="nav-number">2.1.1</span> <span class="nav-text">느슨한 결합 (Loosely Coupled)</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#비동기-처리로-인한-성능-향상"> <span class="nav-number">2.1.2</span> <span class="nav-text">비동기 처리로 인한 성능 향상</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#장애-격리-및-내결함성-fault-tolerance"> <span class="nav-number">2.1.3</span> <span class="nav-text">장애 격리 및 내결함성 (Fault Tolerance)</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#확장성과-유연성"> <span class="nav-number">2.1.4</span> <span class="nav-text">확장성과 유연성</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#2-2--요약"> <span class="nav-number">2.2</span> <span class="nav-text">2-2. ✅ 요약</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#3-개선-과정-rest-api--kafka-기반-아키텍처로-전환"> <span class="nav-number">3</span> <span class="nav-text">3. 개선 과정: REST API → Kafka 기반 아키텍처로 전환</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#3-1-기존-구조-rest-api-기반"> <span class="nav-number">3.1</span> <span class="nav-text">3-1. 기존 구조: REST API 기반</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#3-2-개선된-구조-kafka-이벤트-드리븐-기반"> <span class="nav-number">3.2</span> <span class="nav-text">3-2. 개선된 구조: Kafka 이벤트 드리븐 기반</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#4--kafka-기반-이벤트-아키텍처-설계-시-고려사항"> <span class="nav-number">4</span> <span class="nav-text">4. 🚨 Kafka 기반 이벤트 아키텍처 설계 시 고려사항</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#메시지-중복-처리"> <span class="nav-number">4.1</span> <span class="nav-text">메시지 중복 처리</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#데이터-정합성"> <span class="nav-number">4.2</span> <span class="nav-text">데이터 정합성</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#에러-핸들링-및-보상-트랜잭션"> <span class="nav-number">4.3</span> <span class="nav-text">에러 핸들링 및 보상 트랜잭션</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#kafka-모니터링-및-운영"> <span class="nav-number">4.4</span> <span class="nav-text">Kafka 모니터링 및 운영</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#5-추가로-공부하면-좋을-내용"> <span class="nav-number">5</span> <span class="nav-text">5. 추가로 공부하면 좋을 내용</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#6--정리"> <span class="nav-number">6</span> <span class="nav-text">6. 💡 정리</span> </a> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture/';
+              this.page.identifier = '/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture/';
+              this.page.title = 'Spring Cloud + Kafka로 구현하는 마이크로서비스 이벤트 아키텍처';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

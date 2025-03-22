@@ -1,0 +1,1708 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-22T14:15:15+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Batch 대용량 처리의 이해</title><link href="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/" rel="alternate" type="text/html" title="Spring Batch 대용량 처리의 이해" /><published>2025-03-22T00:00:00+09:00</published><updated>2025-03-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/"><![CDATA[<blockquote>
+  <p>스프링 배치를 통한 대용량 처리에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">🚀 들어가기</h1>
+
+<p>본 포스트에서는 배치 처리의 개념과 사용 시나리오를 중심으로, 일괄 생성, 일괄 수정, 통계 처리에 대해 알아보고 대량 데이터 처리 시 발생하는 일반적인 문제점까지 살펴보도록 하겠습니다.</p>
+
+<h1 id="배치-처리의-개념과-사용-시나리오">배치 처리의 개념과 사용 시나리오</h1>
+
+<p><strong>배치(batch) 처리</strong>는 특정 시간에 <strong>많은 데이터를 일괄적으로 처리하는 프로세스</strong>를 의미합니다. 예를 들어, e-커머스 플랫폼에서 오후 4시에 상품 배송 정보를 고객들에게 문자로 일괄 전송하는 경우가 이에 해당합니다. 서버 개발자들은 특정 시간에 일괄 처리해야 하는 작업이 필요할 때 이를 배치 프로세스로 구현하는 것이 일반적입니다.</p>
+
+<h1 id="일괄-생성-일괄-수정-통계-처리-개념">일괄 생성, 일괄 수정, 통계 처리 개념</h1>
+
+<p>배치 처리는 크게 세 가지 형태로 구분할 수 있습니다.</p>
+
+<h2 id="1-일괄-생성read-create-write">1. 일괄 생성(Read-Create-Write)</h2>
+
+<p>기존 저장된 정보를 조합해 새로운 정보를 만듭니다. 예를 들어, 주문 정보를 읽어 사용자 정보와 합친 후 문자 정보를 생성하는 경우가 이에 해당합니다.</p>
+
+<h2 id="2-일괄-수정read-update-write">2. 일괄 수정(Read-Update-Write)</h2>
+
+<p>A 데이터를 읽고 B 데이터를 참고하여 A 데이터를 수정 합니다. 예를 들어, 주문 정보를 읽고 배송 정보를 참고해 주문 정보를 수정합니다.</p>
+
+<h2 id="3-통계-처리read-sum-write">3. 통계 처리(Read-Sum-Write)</h2>
+
+<p>데이터를 집계하여 통계 형식의 데이터를 만듭니다. 예를 들어, 주문 정보를 <code class="language-plaintext highlighter-rouge">GROUP BY</code> 형태로 질의해온 다음 상품별 주문 금액 합산 데이터를 만들 수 있습니다.</p>
+
+<h1 id="사이드-프로젝트-소개">사이드 프로젝트 소개</h1>
+
+<p>스프링 배치의 성능을 최적화하는 <a href="https://github.com/Seung-IL-Bang/spring-batch-optimization-side-project" target="_blank" rel="noopener noreferrer">사이드 프로젝트</a>를 진행했습니다. 이 프로젝트에서는 e-커머스 플랫폼에서 상품을 등록한 판매자에게 일일 정산을 제공하기 위해, 하루 동안 발생한 구매 확정 데이터를 기반으로 매일 특정 시각에 판매자별 일일 정산을 수행하는 배치 프로세스를 구현했습니다.</p>
+
+<p>다음 이미지는 일일 정산 배치를 수행하는 각 단계별 상태를 나타낸 다이어그램입니다.</p>
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/batch-state-diagram.png" />
+<figcaption></figcaption>
+</figure>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">주문-상품 구매 확정 처리</code>: 특정 조건을 만족시키는 주문-상품 건에 대하여 <strong>구매 확정</strong> 상태로 일괄 수정 합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">클레임 처리 완료</code>: 클레임(취소/환불/반품)이 끝난 건에 대하여 <strong>클레임 완료 처리</strong> 상태로 일괄 수정 합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">판매자별 일일 정산 생성</code>: 금일 판매건이 존재하는 판매자에 대하여 일일 정산을 일괄 생성 합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">주문-상품 정산 Detail 생성</code>: 구매 확정 상태의 주문-상품 건에 대하여 <strong>(+) 정산 처리</strong>한 데이터를 일괄 생성합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">클레임-환불 정산 Detail 생성</code>: 클레임 처리 완료 건 중 환불건에 대하여 <strong>(-) 정산 처리</strong>한 데이터를 일괄 생성합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">판매자별 정산 Detail 집계</code>: 판매자별로 <strong>(+)정산과 (-)정산을 집계</strong>하여 통계 데이터를 생성합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">판매자별 일일 정산 업데이트</code>: 이전 단계에서 생성해두었던 일일 정산에 집계 데이터를 업데이트합니다.</li>
+</ul>
+
+<!--일일 정산 배치 프로세스 상태 다이어그램-->
+
+<h1 id="대량-데이터-처리-시-발생하는-일반적인-문제점">대량 데이터 처리 시 발생하는 일반적인 문제점</h1>
+
+<p>개발자들은 종종 배치 성능에 상대적으로 무관심한 경향이 있습니다. 이는 배치 작업이 주로 트래픽이 적은 시간대인 새벽에 자동으로 스케줄링되어 실행되기 때문에, 배치 처리 시간이 오래 걸리더라도 큰 문제로 인식되지 않는 경우가 많기 때문입니다. 또한 배치를 개발한 뒤 배포 후 초기에만 로그를 모니터링하다가, 문제가 없다고 확인된 후에는 실제 문제가 발생하기 전까지 잘 살펴보지 않는 관리 소홀로 이어지기도 합니다. 특히 배치 모니터링 환경이 제대로 구축되어 있지 않다면, 문제를 파악하고 해결하는 데 상당한 시간이 소요될 수 있습니다.</p>
+
+<p>대량 데이터 처리 시 흔히 발생하는 문제점들은 다음과 같습니다:</p>
+<ul>
+  <li>처리 시간이 예상보다 크게 길어지는 현상</li>
+  <li>메모리 부족(OOM, Out Of Memory) 오류 발생</li>
+  <li>데이터베이스 부하 증가 및 성능 저하</li>
+  <li>동시에 실행되는 배치 작업 간 자원 경쟁으로 인한 성능 저하</li>
+  <li>배치 처리 이력 관리 및 모니터링의 어려움</li>
+</ul>
+
+<p>사이드 프로젝트를 진행하면서 위 문제들을 어떻게 개선해나갔는지 다음 포스트들에서 하나씩 자세히 살펴보도록 하겠습니다.</p>
+
+<p>감사합니다.</p>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Batch" /><category term="Spring Batch" /><summary type="html"><![CDATA[스프링 배치를 통한 대용량 처리에 대해 알아봅시다!]]></summary></entry><entry><title type="html">ELK 스택을 활용한 MSA 중앙 집중식 로그 모니터링</title><link href="http://localhost:4000/msa/elk/2025/02/24/ELK-Stack-Log-Analysis/" rel="alternate" type="text/html" title="ELK 스택을 활용한 MSA 중앙 집중식 로그 모니터링" /><published>2025-02-24T00:00:00+09:00</published><updated>2025-02-24T00:00:00+09:00</updated><id>http://localhost:4000/msa/elk/2025/02/24/ELK-Stack-Log-Analysis</id><content type="html" xml:base="http://localhost:4000/msa/elk/2025/02/24/ELK-Stack-Log-Analysis/"><![CDATA[<blockquote>
+  <p>마이크로서비스 아키텍처에서 ELK(Elasticsearch + Logstash + Kibana) 스택을 활용한 중앙 집중식 로그 모니터링에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>최근 마이크로서비스 아키텍처가 널리 사용되면서, 다양한 서비스에서 발생하는 로그를 효과적으로 수집 및 분석할 수 있는 방법이 필요해졌습니다. 마이크로서비스 환경에서는 각 서비스마다 별도의 로그 파일이 생성됩니다. 개별 서버마다 분산되어 저장된 로그 파일을 일일이 분석하는 것은 매우 고된 일이 될 것입니다. 그리고 문제 발생 시 신속하게 로그를 추적하여 원인을 파악하고 대응하는 데에 많은 시간이 소모될 것입니다. 이처럼 MSA 환경에서 로그를 중앙 집중식으로 관리하지 않는다면 여러 가지 문제가 발생할 수 밖에 없습니다.</p>
+
+<p>이에 따라 ELK(Elasticsearch + Logstash + Kibana)를 활용한 중앙 집중식 로그 모니터링의 필요성이 더욱 부각되고 있습니다.</p>
+
+<p>본 포스트에서는 ELK 스택 기반의 로그 모니터링 구성과, Zipkin 로그 트레이싱과의 연계를 통한 효율적인 모니터링 방법에 대해 살펴보도록 하겠습니다. <a href="https://seung-il-bang.github.io/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/#">Zipkin 로그 트레이싱</a>과 관련한 포스트가 있으니 참고하시면 좋을 것 같습니다.</p>
+
+<h1 id="elk-도입의-효과">ELK 도입의 효과</h1>
+
+<h2 id="logstash를-통한-로그-수집-및-필터링">Logstash를 통한 로그 수집 및 필터링</h2>
+
+<p>Logstash는 다양한 소스의 로그를 실시간으로 수집하고, 필터링 및 가공하여 일관된 포맷으료 변환해줍니다. 이를 통해 수집된 로그의 품질을 높이고, 분석의 효율성을 높일 수 있습니다. 개인 사이드 프로젝트에서는 각 서비스가 로그 파일을 각 서버가 저장하도록 했고, 해당 로그 파일을 Logstash가 수집하도록 설정했습니다.</p>
+
+<h2 id="elasticsearch-기반의-빠른-검색">Elasticsearch 기반의 빠른 검색</h2>
+
+<p>Elasticsearch는 분산형 검색 엔진으로, 대용량 로그 데이터를 빠르게 인덱싱 및 검색할 수 있습니다. 덕분에 서비스 장애 시 빠른 속도의 로그 검색으로 인하여 문제를 신속하게 대응할 수 있게 됩니다.</p>
+
+<h2 id="kibana-대시보드를-통한-시각화">Kibana 대시보드를 통한 시각화</h2>
+
+<p>Kibana는 Elasticsearch에 저장된 로그 데이터를 시각화하여 대시보드를 구성할 수 있게 해줍니다. 이를 통해 로그의 흐름과 이상 징후를 한눈에 파악할 수 있으며, 실시간 모니터링 환경을 구축할 수 있습니다.</p>
+
+<h1 id="logback과-elk-연동-및-구성-방법">Logback과 ELK 연동 및 구성 방법</h1>
+
+<h2 id="logback이란">Logback이란?</h2>
+<p>스프링 부트는 <strong>로깅 시스템의 기본 구현체</strong>로 <code class="language-plaintext highlighter-rouge">Logback</code>을 사용하도록 설정되어 있습니다. 기본적인 성능과 기능이 좋기 때문에 많이 사용되고 있습니다. 만약 설정을 커스텀하고 싶다면 <code class="language-plaintext highlighter-rouge">logback.xml</code> 파일로 설정을 조정하실 수도 있습니다.</p>
+
+<p>스프링 부트 프로젝트에서 개발 편의성을 위해 <code class="language-plaintext highlighter-rouge">Lombok</code>을 대부분 사용하실 겁니다. 해당 라이브러리에는 <code class="language-plaintext highlighter-rouge">Slf4j(Simple Logging Facade For Java)</code>라는 로그 시스템에 대한 추상화 계층을 제공하는 인터페이스가 존재합니다. Slf4j의 기본 구현체는 <code class="language-plaintext highlighter-rouge">Logback</code>으로 설정되어 있습니다. <strong>Slf4j 자체는 인터페이스</strong>이므로 로깅을 수행하지 않고, <strong>실제 로깅을 수행하는 구현체(ex: Logback, Log4j 등)에게 위임</strong>합니다. 만약 로깅 구현체를 교체하고 싶다면, 의존성을 변경함으로써 쉽게 교체할 수 있습니다.</p>
+
+<h2 id="logback---logstash-로그-전송">Logback -&gt; Logstash 로그 전송</h2>
+
+<p>logback 로깅 시스템을 통해 Logstash로 로그를 전송하기 위해선 다음 의존성부터 추가해줘야 합니다. 그런 다음 <code class="language-plaintext highlighter-rouge">logback.xml</code> 설정에 Logstash로 로그를 출력하는 <strong>Appender</strong>를 추가해주면 됩니다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'net.logstash.logback:logstash-logback-encoder:8.0'</span>
+</code></pre></div></div>
+
+<p>아래 XML 설정은 스프링 애플리케이션에 설정된 <code class="language-plaintext highlighter-rouge">logback.xml</code> 설정입니다. 해당 설정은 실시간으로 발생되는 <strong>로그를 콘솔, 파일, Logstash에 각각 출력</strong>하는 설정입니다.</p>
+
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nt">&lt;configuration&gt;</span>
+    <span class="nt">&lt;springProperty</span> <span class="na">scope=</span><span class="s">"context"</span> <span class="na">name=</span><span class="s">"applicationName"</span> <span class="na">source=</span><span class="s">"spring.application.name"</span> <span class="na">defaultValue=</span><span class="s">"defaultAppName"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;springProperty</span> <span class="na">scope=</span><span class="s">"context"</span> <span class="na">name=</span><span class="s">"logstashDestination"</span> <span class="na">source=</span><span class="s">"logstash.destination"</span> <span class="na">defaultValue=</span><span class="s">"localhost:5044"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">"LOG_FILE"</span> <span class="na">value=</span><span class="s">"application.log"</span><span class="nt">/&gt;</span>
+
+    <span class="c">&lt;!-- Logstash로 전송할 Appender --&gt;</span>
+    <span class="nt">&lt;appender</span> <span class="na">name=</span><span class="s">"LOGSTASH"</span> <span class="na">class=</span><span class="s">"net.logstash.logback.appender.LogstashTcpSocketAppender"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;destination&gt;</span>${logstashDestination}<span class="nt">&lt;/destination&gt;</span>
+        <span class="nt">&lt;encoder</span> <span class="na">class=</span><span class="s">"net.logstash.logback.encoder.LogstashEncoder"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/appender&gt;</span>
+
+    <span class="c">&lt;!-- 콘솔 출력 --&gt;</span>
+    <span class="nt">&lt;appender</span> <span class="na">name=</span><span class="s">"CONSOLE"</span> <span class="na">class=</span><span class="s">"ch.qos.logback.core.ConsoleAppender"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;encoder&gt;</span>
+            <span class="nt">&lt;pattern&gt;</span>%d{yyyy-MM-dd HH:mm:ss} %5p [${applicationName:-},%X{traceId:-},%X{spanId:-}] [%thread] %logger{36} - %msg%n<span class="nt">&lt;/pattern&gt;</span>
+        <span class="nt">&lt;/encoder&gt;</span>
+    <span class="nt">&lt;/appender&gt;</span>
+
+    <span class="c">&lt;!-- 파일 출력 --&gt;</span>
+    <span class="nt">&lt;appender</span> <span class="na">name=</span><span class="s">"FILE"</span> <span class="na">class=</span><span class="s">"ch.qos.logback.core.rolling.RollingFileAppender"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;file&gt;</span>${LOG_FILE}<span class="nt">&lt;/file&gt;</span>
+        <span class="nt">&lt;rollingPolicy</span> <span class="na">class=</span><span class="s">"ch.qos.logback.core.rolling.TimeBasedRollingPolicy"</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;fileNamePattern&gt;</span>application.%d{yyyy-MM-dd_HH-mm}.log.gz<span class="nt">&lt;/fileNamePattern&gt;</span>
+            <span class="nt">&lt;maxHistory&gt;</span>2<span class="nt">&lt;/maxHistory&gt;</span>
+        <span class="nt">&lt;/rollingPolicy&gt;</span>
+        <span class="nt">&lt;encoder&gt;</span>
+            <span class="nt">&lt;pattern&gt;</span>%d{yyyy-MM-dd HH:mm:ss} %5p [${applicationName:-},%X{traceId:-},%X{spanId:-}] [%thread] %logger{36} - %msg%n<span class="nt">&lt;/pattern&gt;</span>
+        <span class="nt">&lt;/encoder&gt;</span>
+    <span class="nt">&lt;/appender&gt;</span>
+
+    <span class="c">&lt;!-- Logger 설정 --&gt;</span>
+    <span class="nt">&lt;root</span> <span class="na">level=</span><span class="s">"info"</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;appender-ref</span> <span class="na">ref=</span><span class="s">"CONSOLE"</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;appender-ref</span> <span class="na">ref=</span><span class="s">"FILE"</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;appender-ref</span> <span class="na">ref=</span><span class="s">"LOGSTASH"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/root&gt;</span>
+<span class="nt">&lt;/configuration&gt;</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>참고로 Logstash 의 기본 Port는 5044로 구동됩니다. 사이드 프로젝트에서 도커로 Logstash를 구동하여 실습을 진행했습니다.</p>
+</blockquote>
+
+<p>위 처럼 설정을 마치면 이제 스프링 애플리케이션의 로깅 시스템(Logback)이 자동으로 로그를 Logstash 로 전송할 것입니다.</p>
+
+<h2 id="logstash---elasticsearch-로그-저장">Logstash -&gt; Elasticsearch 로그 저장</h2>
+
+<p><code class="language-plaintext highlighter-rouge">Logstash</code>는 단순히 데이터 파이프라인 역할만 하기 때문에, 결국 로그를 저장할 데이터베이스가 필요합니다. 여기서 <code class="language-plaintext highlighter-rouge">Elasticsearch</code>가 로그를 저장하는 역할을 맡게 됩니다. 엘라스틱서치는 앞서 말했듯이, 대용량 로그 데이터를 빠르게 인덱싱 및 검색할 수 있습니다. 덕분에 찾고자 하는 로그를 빠르게 탐색할 수 있게 되는 것이죠.</p>
+
+<p>아래는 Logstash의 설정 파일입니다. <code class="language-plaintext highlighter-rouge">애플리케이션 -&gt; Logstash (수집) -&gt; Elasticsearch (저장)</code>처럼 일련의 데이터 파이프라인의 설정 값입니다.  이를 Logstash를 구동시킬 때 설정해주어야 하는 값입니다.</p>
+
+<div class="language-conf highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">input</span> {
+    <span class="n">tcp</span> {
+        <span class="n">port</span> =&gt; <span class="m">5044</span>
+        <span class="n">codec</span> =&gt; <span class="n">json</span>
+    }
+}
+
+<span class="n">output</span> {
+    <span class="n">elasticsearch</span> {
+        <span class="n">hosts</span> =&gt; [<span class="s2">"http://elasticsearch:9200"</span>]
+        <span class="n">index</span> =&gt; <span class="s2">"application-logs-%{+YYYY.MM.dd}"</span>
+    }
+}
+</code></pre></div></div>
+
+<ul>
+  <li><strong>input</strong>: 해당 설정으로 데이터를 입력받겠다는 정보를 나타냅니다. (TCP 5044, JSON 포맷으로 데이터 입력 받음.)</li>
+  <li><strong>output</strong>: 출력하고자 하는 엘라스틱서치 저장소의 정보를 적어줍니다.
+    <ul>
+      <li><strong>hosts</strong>: 엘라스틱서치의 호스트 정보를 적어줍니다. 위 설정은 동일한 도커 네트워크 상에서 구동되고 있는 환경이기 때문에 도커 컨테이너명을 사용했습니다.</li>
+      <li><strong>index</strong>: 엘라스틱서치의 어떤 인덱스에 저장할 지 명시해줍니다. (RDBMS의 테이블명이라고 보시면 됩니다.)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>위 처럼 <code class="language-plaintext highlighter-rouge">logstash.conf</code> 파일을 설정했다면, 이제 <strong>Logstash가 수집한 로그 데이터를 Elasticsearch 저장소로 전송</strong>할 것입니다.</p>
+
+<p>만약, Logstash를 도커로 구동하신다면 아래 도커 컴포즈 파일처럼 <code class="language-plaintext highlighter-rouge">logstash.conf</code> 파일을 볼륨 마운팅 해주셔야 합니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3'</span>
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">logstash</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">docker.elastic.co/logstash/logstash:8.10.0</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">logstash</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">5044:5044"</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">./logstash.conf:/usr/share/logstash/pipeline/logstash.conf</span>
+</code></pre></div></div>
+
+<h2 id="elasticsearch---kibana-로그-데이터-시각화">Elasticsearch -&gt; Kibana 로그 데이터 시각화</h2>
+
+<p>이제 <code class="language-plaintext highlighter-rouge">Elasticsearch</code>에 로그 데이터가 적재된다면, Kibana를 활용하여 로그 데이터를 시각화할 수 있습니다.</p>
+
+<p>이때 <code class="language-plaintext highlighter-rouge">Zipkin</code>을 활용한 분산 로그 트레이싱을 통합 적용한다면, 여러 서비스에 걸쳐 처리될 때 발생하는 로그의 흐름을 추적할 수 있도록 도와줍니다. 각 요청에 <strong>고유한 TraceID를 부여</strong>하여, 여러 서비스에 분산되어 기록된 로그들을 <strong>Elasticsearch에서 하나의 흐름으로 연결지어 검색</strong>할 수 있습니다.</p>
+
+<p>Kibana의 Discovery 서비스에서 <strong>TraceID</strong>를 입력하면 해당 요청에 관련된 모든 로그가 타임스탬프 순서대로 정렬시켜 모니터링 할 수 있습니다. 이를 통해 단일 요청이 서비스 전반에서 어떻게 처리되었는지 한눈에 파악할 수 있게 됩니다.</p>
+
+<figure align="center">
+<img src="/post_images/spring-cloud-side-project/logs-discovery.png" />
+<figcaption></figcaption>
+</figure>
+
+<p>또한, 로그 레벨의 분류를 통해 전체 로그에 대한 통계를 대시보드로 확인도 가능합니다.</p>
+
+<figure align="center">
+<img src="/post_images/spring-cloud-side-project/logs-dashboard.png" />
+<figcaption></figcaption>
+</figure>
+
+<h1 id="-결론">🚀 결론</h1>
+
+<p>ELK 스택을 기반으로 한 중앙 집중식 로그 모니터링은 MSA 환경에서 필수적인 요소라고 생각합니다. 분산된 로그를 한눈에 파악할 수 없는 문제를 해결해주고, 실시간 모니터링 대응 능력을 향상시켜줌과 동시에, Zipkin과의 통합을 통해 요청의 전체 흐름을 추적할 수 있다는 점은 시스템 운영의 효율성을 크게 향상시킬 수 있습니다. ELK스택과 Zipkin과 같은 도구들을 적절히 활용한다면, 장애 발생 시 빠른 원인 분석과 문제 해결이 가능해져, 전체 서비스의 안정성 유지에 기여할 수 있을 것입니다.</p>
+
+<p>이상으로 ELK 스택과 Zipkin 통합을 통한 중앙 집중식 로그 모니터링의 필요성과 장점에 대해 알아보았습니다. 본 포스트를 참고하여 여러분의 환경에 맞는 최적의 로그 관리 시스템 구축에 도움이 되었으면 좋겠습니다. 감사합니다.</p>
+
+<h1 id="-참고-자료">📂 참고 자료</h1>
+
+<ul>
+  <li><a href="https://www.inflearn.com/course/%EA%B0%9C%EB%B0%9C%EC%9E%90%EC%97%90%EA%B2%8C-%ED%95%84%EC%9A%94%ED%95%9C-%EB%A1%9C%EA%B7%B8%EA%B4%80%EB%A6%AC">인프런 - 개발자에게 필요한 로그 관리</a></li>
+  <li><a href="https://engineering.linecorp.com/ko/blog/line-ads-msa-opentracing-zipkin">LINE 광고 플랫폼의 MSA 환경에서 Zipkin을 활용해 로그 트레이싱하기</a></li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="MSA" /><category term="ELK" /><category term="Elatsticsearch" /><category term="Logstash" /><category term="Kibana" /><category term="Logback" /><category term="Zipkin" /><summary type="html"><![CDATA[마이크로서비스 아키텍처에서 ELK(Elasticsearch + Logstash + Kibana) 스택을 활용한 중앙 집중식 로그 모니터링에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축</title><link href="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/" rel="alternate" type="text/html" title="Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축" /><published>2025-02-24T00:00:00+09:00</published><updated>2025-02-24T00:00:00+09:00</updated><id>http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring</id><content type="html" xml:base="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/"><![CDATA[<blockquote>
+  <p>Prometheus와 Grafana를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링 하는 방법에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>현대의 마이크로서비스 아키텍처는 여러 개의 독립적인 서비스가 유기적으로 협력하여 하나의 큰 시스템을 구성합니다. 마이크로서비스 환경에서는 각 서비스가 독립적으로 배포되고 운영되기 때문에, 특정 서비스의 장애나 성능 저하가 전체 시스템에 영향을 줄 수 있습니다. 만약 모니터링 시스템이 없다면 서비스 장애나 성능 저하 발생 시 원이 파악에 오랜 시간이 소요되어 비즈니스에 심각한 영향을 미칠 수 있습니다. 이런 서비스 장애가 지속되면 사용자 경험이 악화되고, 결과적으로 서비스의 신뢰를 잃어버리는 최악의 상황이 올 수 있습니다. 따라서 MSA 환경에서는 각 서비스의 상태와 성능을 실시간으로 모니터링하는 것이 필수적입니다.</p>
+
+<p>본 포스트에서는 <code class="language-plaintext highlighter-rouge">Prometheus</code>와 <code class="language-plaintext highlighter-rouge">Grafana</code>를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링하는 방법에 대해 알아보도록 하겠습니다.</p>
+
+<h1 id="promethus--grafana">Promethus &amp; Grafana</h1>
+
+<p>우선 Prometheus와 Grafana가 각각 무엇인지 알아봅시다.</p>
+
+<h2 id="prometheus란">Prometheus란?</h2>
+
+<p><code class="language-plaintext highlighter-rouge">Prometheus</code>는 오픈소스 모니터링 및 경고 도구로, 주로 <strong>시계열 데이터</strong>를 수집하여 저장, 쿼리, 분석하는 데 사용되는 저장소입니다. 특히 시계열 데이터에 특화된 쿼리 언어인 <strong>PromQL</strong>을 제공하여, 수집한 메트릭을 조회할 수 있습니다.</p>
+
+<h2 id="grafana란">Grafana란?</h2>
+
+<p><code class="language-plaintext highlighter-rouge">Grafana</code>는 <code class="language-plaintext highlighter-rouge">Prometheus</code>에서 수집한 데이터를 직관적인 대시보드 형태로 시각화하는 시각화 도구입니다. Prometheus 뿐만 아니라 다양한 데이터 소스와의 연동도 지원합니다. 대시보드를 커스텀할 수 있을 뿐만 아니라 경고 시스템도 구축 가능합니다.</p>
+
+<h1 id="spring-boot와-prometheus-연동">Spring Boot와 Prometheus 연동</h1>
+
+<p>Spring Boot는 <strong>Actuator</strong> 모듈을 통해 애플리케이션의 다양한 상태 정보(<strong>metrics</strong>)를 쉽게 노출할 수 있습니다. 이를 활용하여 Prometheus가 <strong>Pull 방식</strong>으로 메트릭 데이터를 수집할 수 있도록 설정할 수 있습니다.</p>
+
+<p>Actuator 모듈을 통해 스프링 애플리케이션의 메트릭 정보들을 Prometheus에게 노출하기 위해 다음 의존성을 추가해줘야 합니다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
+<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-registry-prometheus'</span>
+</code></pre></div></div>
+
+<p>그리고, Prometheus가 Pull 방식으로 메트릭을 조회할 Actuator 엔드포인트를 활성화시켜 줘야 합니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">management</span><span class="pi">:</span>
+  <span class="na">endpoints</span><span class="pi">:</span>
+    <span class="na">web</span><span class="pi">:</span>
+      <span class="na">exposure</span><span class="pi">:</span>
+        <span class="na">include</span><span class="pi">:</span> <span class="s">prometheus</span>
+</code></pre></div></div>
+
+<p>마지막으로 Promethues.yml 설정 파일을 통해 Prometheus가 Pull 하고자 하는 애플리케이션의 위치 정보를 설정해주어야 합니다.</p>
+
+<p>아래 설정은 동일한 도커 네트워크 상에 존재하는 <code class="language-plaintext highlighter-rouge">user service</code>, <code class="language-plaintext highlighter-rouge">product service</code>, <code class="language-plaintext highlighter-rouge">order service</code>에 대한 메트릭을 Pull을 5초 간격으로 진행하겠단 설정입니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">global</span><span class="pi">:</span>
+  <span class="na">scrape_interval</span><span class="pi">:</span> <span class="s">15s</span>
+  <span class="na">external_labels</span><span class="pi">:</span>
+    <span class="na">monitor</span><span class="pi">:</span> <span class="s1">'</span><span class="s">codelab-monitor'</span>
+<span class="na">scrape_configs</span><span class="pi">:</span>
+  <span class="pi">-</span> <span class="na">job_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">prometheus'</span>
+    <span class="na">scrape_interval</span><span class="pi">:</span> <span class="s">5s</span>
+    <span class="na">static_configs</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">localhost:9090'</span><span class="pi">]</span>
+  <span class="pi">-</span> <span class="na">job_name</span><span class="pi">:</span> <span class="s1">'</span><span class="s">user-actuator'</span>
+    <span class="na">metrics_path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">/actuator/prometheus'</span>
+    <span class="na">scrape_interval</span><span class="pi">:</span> <span class="s">5s</span>
+    <span class="na">static_configs</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">user-service:8080'</span><span class="pi">]</span>
+      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">product-service:8081'</span><span class="pi">]</span>
+      <span class="pi">-</span> <span class="na">targets</span><span class="pi">:</span> <span class="pi">[</span><span class="s1">'</span><span class="s">order-service:8082'</span><span class="pi">]</span>
+</code></pre></div></div>
+
+<p>만약 로컬에 설치된 Prometheus가 아닌 도커로 실행 시, Prometheus의 <code class="language-plaintext highlighter-rouge">/etc/prometheus/prometheus.yml</code> 경로와 커스텀 설정 파일을 볼륨 마운팅 해주어야 합니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">version</span><span class="pi">:</span> <span class="s1">'</span><span class="s">3.8'</span>
+<span class="na">services</span><span class="pi">:</span>
+  <span class="na">prometheus</span><span class="pi">:</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">prom/prometheus:latest</span>
+    <span class="na">container_name</span><span class="pi">:</span> <span class="s">prometheus</span>
+    <span class="na">volumes</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">./prometheus.yml:/etc/prometheus/prometheus.yml</span>
+    <span class="na">ports</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s2">"</span><span class="s">9090:9090"</span>
+</code></pre></div></div>
+
+<p>위 설정이 완료되면 Prometheus는 <code class="language-plaintext highlighter-rouge">http://&lt;호스트&gt;:&lt;포트&gt;/actuator/prometheus</code> 엔드포인트를 통해 Spring Boot 애플리케이션들의 메트릭 데이터를 수집할 수 있습니다.</p>
+
+<h1 id="prometheus-메트릭---grafana-시각화">Prometheus 메트릭 -&gt; Grafana 시각화</h1>
+
+<p>메트릭 데이터들이 Prometheus에 저장되면 이와 연동하여 Grafana를 통해 시각화할 수 있습니다.</p>
+
+<p>Grafana 관리 페이지에서 데이터 소스로 Prometheus를 추가한 다음, URL에 Prometheus 서버의 주소(<code class="language-plaintext highlighter-rouge">http://&lt;prometheus-host&gt;:9090</code>)를 입력합니다.</p>
+
+<p>대시보드를 개인이 직접 커스터마이징할 수도 있지만, 이미 잘 만들어진 대시보드 템플릿을 가져다 사용하면 편리합니다.</p>
+
+<h1 id="-결론">🚀 결론</h1>
+
+<p><strong>Prometheus</strong>와 <strong>Grafana</strong>를 활용한 모니터링 시스템은 마이크로서비스 환경에서 서비스의 상태를 실시간으로 확인하고, 장애 발생 시 빠른 대응을 가능하게 합니다. 모니터링 시스템은 필수적이며, 이를 부재할 경우 심각한 비즈니스 리스크를 초래할 수 있다는 것을 명심해야 됩니다.</p>
+
+<h1 id="추가로-공부하면-좋을-내용">추가로 공부하면 좋을 내용</h1>
+
+<ul>
+  <li>Grafana Alerting 기능 (특정 메트릭 값이 임계치 초과 시 알림 발송)</li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="MSA" /><category term="Monitoring" /><category term="Prometheus" /><category term="Grafana" /><category term="Prometheus" /><category term="Grafana" /><summary type="html"><![CDATA[Prometheus와 Grafana를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링 하는 방법에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Zipkin을 활용한 마이크로서비스 분산 트레이싱</title><link href="http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/" rel="alternate" type="text/html" title="Zipkin을 활용한 마이크로서비스 분산 트레이싱" /><published>2025-02-23T00:00:00+09:00</published><updated>2025-02-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/zipkin/msa/2025/02/23/Zipkin-Distributed-Tracing/"><![CDATA[<blockquote>
+  <p>분산 환경에서 Zipkin을 활용한 요청의 전체 흐름을 추적해봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>마이크로서비스 아키텍처는 독립적으로 배포되고 관리되는 작은 서비스들이 모여 애플리케이션을 구성하게 됩니다. 이러한 환경에서는 서비스 간의 통신이 빈번하게 발생하며, 각 서비스가 독자적인 로그를 남기기 때문에 전체 트랜잭션의 흐름을 파악하기가 어렵습니다. 예를 들어, 주문 서비스 -&gt; 결제 서비스 -&gt; 배송 서비스 등의 여러 서비스가 순차적으로 호출되는 과정에서 각 서비스는 별도의 로그를 각자 남기기 때문에 어떤 서비스에서 문제가 발생했는지 확인하기 어렵습니다.</p>
+
+<p>이러한 문제점 때문에 <strong>분산 트레이싱</strong>은 문제 발생 시 원인을 신속하게 파악하고, 성능 병목을 찾아내는 데 필수적인 도구로 등장합니다.</p>
+
+<p>본 포스트에서는 분산 트레이싱 도구 중 <code class="language-plaintext highlighter-rouge">Zipkin</code>을 활용한 분산 트레이싱을 다루도록 하겠습니다.</p>
+
+<h1 id="마이크로서비스-환경의-복잡성">마이크로서비스 환경의 복잡성</h1>
+
+<p>마이크로서비스 아키텍처에서는 <strong>하나의 사용자 요청이 여러 서비스를 거치며 처리</strong>됩니다. 주문, 결제, 배송 서비스 등 여러 서비스를 거치게 되는 것이죠. 이러한 <strong>분산된 호출 구조</strong>는 여러 <strong>문제점</strong>을 유발할 수 있습니다.</p>
+
+<p>각 서비스마다 <strong>별도의 로그</strong>를 남기기 때문에 하나의 트랜잭션이 어디에서 지연되거나 장애가 발생했는지 확인하기 어렵습니다. 그리고 전체 흐름에서 어느 부분이 응답 시간을 지연시키는지도 파악하기 어렵습니다.</p>
+
+<p><strong>모놀리식(Monolihic)</strong>의 경우 하나의 서비스로 애플리케이션이 구동되기 때문에, 전체 흐름에 대한 로그를 하나의 서비스에서 디버깅 할 수 있습니다. 하지만 <strong>MSA</strong>에서는 문제를 파악하기 위해 관련된 모든 서비스들의 로그를 하나하나 다 살펴봐야 하는 번거로움이 존재합니다.</p>
+
+<p>만약 분산 트레이싱 도구가 없다면, 위와 같은 문제를 해결하기 위해 각 서비스에서 개별적으로 로그를 분석해야 하며, 이는 시간 소모적이이고 비효율적일 뿐만 아니라, 문제 진단의 어려움이 따르기 때문에 신속하게 대응하지 못할 위험이 높아집니다.</p>
+
+<h1 id="zipkin을-활용한-요청-추적">Zipkin을 활용한 요청 추적</h1>
+
+<p><code class="language-plaintext highlighter-rouge">Zipkin</code>은 <strong>오픈 소스 분산 트레이싱 시스템</strong>으로, 마이크로서비스 환경에서 서비스 간 호출 흐름을 <strong>시각화하고 분석할 수 있도록 도와주는 도구</strong>입니다. <code class="language-plaintext highlighter-rouge">Zipkin</code>을 활용하면 각 서비스의 호출 데이터를 중앙에서 수집하여 아래 문제점들을 해결해줍니다.</p>
+
+<ol>
+  <li><strong>전체 호출 흐름 시각화</strong>: 사용자 요청이 어떤 경로로 전달되는지 시각화하여 한 눈에 파악 할수 있도록 해줍니다.</li>
+  <li><strong>Latency 분석</strong>: 각 서비스 간 호출의 응답 시간 정보를 제공하여 어떤 서비스의 어떤 로직에서 성능 병목이 일어나는지 쉽게 식별할 수 있습니다.</li>
+  <li><strong>장애 원인 분석</strong>: 트랜잭션 중 발생한 예외나 오류를 신속하게 탐지하고, 어느 서비스에서 문제가 발생했는지 분석 할 수 있습니다.</li>
+</ol>
+
+<h1 id="zipkin-적용-방법">Zipkin 적용 방법</h1>
+
+<p>예전에는 Spring Boot 애플리케이션에 쉽게 분산 트레이싱 기능을 추가할 수 있도록 도와주는 <code class="language-plaintext highlighter-rouge">Spring Cloud Sleuth</code>라는 라이브러리를 사용했었습니다. 하지만 최근 버전으로 업데이트 되면서 <code class="language-plaintext highlighter-rouge">Spring Cloud Sleuth</code>는 Deprecated 될 라이브러리가 되었습니다. 따라서 최근 버전에서는 <code class="language-plaintext highlighter-rouge">Micrometer</code>로 분산 트레이싱 기능을 추가하도록 변경되었습니다.</p>
+
+<h2 id="dependency">Dependency</h2>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code>	<span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
+	<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-observation'</span>
+	<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-tracing-bridge-brave'</span>
+	<span class="n">implementation</span> <span class="s1">'io.zipkin.brave:brave-instrumentation-spring-web'</span>
+	<span class="n">implementation</span> <span class="s1">'io.zipkin.reporter2:zipkin-reporter-brave'</span>
+</code></pre></div></div>
+
+<h2 id="applicationyml">application.yml</h2>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">product-service</span>
+<span class="na">management</span><span class="pi">:</span>
+  <span class="na">tracing</span><span class="pi">:</span>
+    <span class="na">sampling</span><span class="pi">:</span>
+      <span class="na">probability</span><span class="pi">:</span> <span class="m">1.0</span>
+    <span class="na">propagation</span><span class="pi">:</span>
+      <span class="na">type</span><span class="pi">:</span> <span class="s">b3</span>
+  <span class="na">zipkin</span><span class="pi">:</span>
+    <span class="na">tracing</span><span class="pi">:</span>
+      <span class="na">endpoint</span><span class="pi">:</span> <span class="s">${MANAGEMENT_ZIPKIN_TRACING_ENDPOINT:http://localhost:9411/api/v2/spans}</span>
+</code></pre></div></div>
+
+<ul>
+  <li>여기서 <code class="language-plaintext highlighter-rouge">spring.application.name</code>은 서비스 태깅에 활용되며, 각 서비스의 이름이 <strong>Zipkin UI</strong>에 표시되어 호출 흐름을 쉽게 파악할 수 있습니다.</li>
+  <li>위와 같이 의존성과 설정을 마치면, 자동으로 <strong>각 요청에 고유한 Trace ID와 Span ID를 부여하여, 서비스 간의 호출 관계를 추적</strong>하게 됩니다.</li>
+</ul>
+
+<h1 id="zipkin-ui를-활용한-트레이스-분석">Zipkin UI를 활용한 트레이스 분석</h1>
+
+<h2 id="서비스-간-호출-흐름-시각화">서비스 간 호출 흐름 시각화</h2>
+
+<p><strong>Zipkin UI</strong>는 수집된 트레이스 데이터를 기반으로, 서비스 간 호출 흐름을 직관적으로 시각화해줍니다. 개발자는 UI를 통해 각 서비스가 호출한 순서와 관계를 그래픽으로 확인할 수 있습니다. 또한 특정 트랜잭션의 세부적인 스팬 정보와 타임라인을 분석할 수도 있습니다.</p>
+
+<h2 id="latency-분석-및-장애-감지">Latency 분석 및 장애 감지</h2>
+
+<p>Zipkin UI에서는 각 스팬의 응답 시간을 시각적으로 표시하여, 어느 부분에서 지연이 발생했는지 쉽게 식별할 수 있습니다. 이를 통해 성능 병목 구간을 찾아내고, 장애 발생 시 원인 분석에 필요한 정보를 제공합니다. 만약 이러한 시각화 도구가 없으면, 로그 파일만으로 각 서비스 간의 호출 관계와 지연 시간을 분석해야 하므로, 문제 발생 시 즉각적인 대응이 어려워질 것입니다.</p>
+
+<h1 id="spring-aop를-활용한-미들웨어-간의-요청-추적">Spring AOP를 활용한 미들웨어 간의 요청 추적</h1>
+
+<p>마이크로서비스에서는 HTTP 호출 외에도 Kafka, Redis와 같은 미들웨어를 활용하는 경우가 많습니다. Zipkin과 Micrometer의 기본 의존성과 설정만으로는 미들웨어 통신 경로를 자동 추적하진 않습니다. 미들웨어간의 호출 흐름까지 추적하기 위해, 추적에 필요한 로직을 <strong>스프링 AOP</strong>를 활용하여 <strong>사용자 정의 트레이싱</strong> 코드를 삽입할 수 있었습니다.</p>
+
+<p>예를 들어, 스프링 AOP를 활용하여 Kafka를 통한 메시지 발행/구독 흐름도 추적할 수 있습니다. 이를 통해 메시지 큐를 통한 비동기 호출도 명확하게 추적할 수 있으며, 메시지 손실이나 지연 문제를 쉽게 추적할 수 있습니다.</p>
+
+<p>만약 이러한 미들웨어 추적 메커니즘이 없다면, 각 미들웨어 간의 호출 흐름이 단절되어 문제 발생 시 원인 파악에 큰 어려움이 따를 것입니다. 이는 디버깅 하는 시간이 급격히 증가할 수 있습니다.</p>
+
+<h1 id="-결론">🚀 결론</h1>
+
+<p>마이크로서비스 아키텍처에서는 서비스 간 호출 흐름이 복잡해짐에 따라, 단순 로그 분석만으로는 문제의 원인을 파악하기 어렵습니다. <code class="language-plaintext highlighter-rouge">Zipkin</code>과 <code class="language-plaintext highlighter-rouge">Micrometer</code>를 활용하면, 전체 트랜잭션의 흐름을 시각화하고 각 서비스의 성능을 모니터링할 수 있어 문제 발생 시 신속하게 대응할 수 있습니다. 이러한 도구들이 없다면, 시스템 장애나 성능 병목을 찾아내는 데에 많은 시간과 리소스가 소모되며, 이는 비즈니스에 심각한 영향을 미칠 것입니다. MSA 환경에서 <code class="language-plaintext highlighter-rouge">Zipkin</code>을 통한 <strong>분산 트레이싱</strong>은 단순히 로그를 남기는 것을 넘어, 시스템의 <strong>전체적인 건강 상태를 관리</strong>하고, 장애 발생 시 <strong>신속한 원인 분석 및 대응</strong> 전략을 마련하는 데 <strong>필수적인 요소</strong>라 볼 수 있습니다.</p>
+
+<h1 id="참고-자료">참고 자료</h1>
+
+<ul>
+  <li><a href="https://engineering.linecorp.com/ko/blog/line-ads-msa-opentracing-zipkin">LINE 광고 플랫폼의 MSA 환경에서 Zipkin을 활용해 로그 트레이싱하기</a></li>
+  <li><a href="https://github.com/openzipkin/b3-propagation">b3-propagation</a></li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="Zipkin" /><category term="MSA" /><category term="Distributed Tracing" /><category term="b3 propagation" /><category term="Micrometer" /><summary type="html"><![CDATA[분산 환경에서 Zipkin을 활용한 요청의 전체 흐름을 추적해봅시다!]]></summary></entry><entry><title type="html">Redisson을 활용한 분산 락 그리고 AOP 적용</title><link href="http://localhost:4000/msa/redis/2025/02/22/Redisson-Lock-and-AOP/" rel="alternate" type="text/html" title="Redisson을 활용한 분산 락 그리고 AOP 적용" /><published>2025-02-22T00:00:00+09:00</published><updated>2025-02-22T00:00:00+09:00</updated><id>http://localhost:4000/msa/redis/2025/02/22/Redisson-Lock-and-AOP</id><content type="html" xml:base="http://localhost:4000/msa/redis/2025/02/22/Redisson-Lock-and-AOP/"><![CDATA[<blockquote>
+  <p>분산 시스템에서 Redis를 이용한 분산 락의 필요성과 분산 락 적용 부분의 AOP 활용 방법을 알아봅시다.</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>MSA와 같은 분산 시스템에서는 여러 인스턴스가 동시에 하나의 리소스에 접근하는 경우가 빈번하게 발생할 수 있습니다. 예를 들어, 주문이 동시다발적으로 발생하여 상품의 재고를 차감하기 위해 여러 인스턴스가 재고에 접근하는 경우가 그렇습니다.</p>
+
+<p>이때 동시성 이슈가 발생하여 데이터 무결성에 문제가 발생합니다. 이를 방지하기 위해 분산 락(Distributed Lock)이 필요한 것입니다.</p>
+
+<p>본 포스트에서는 Redis기반의 <strong>분산 락</strong>을 구현하기 위해 <strong>Redisson</strong>라이브러리를 활용하는 방법과, <strong>스프링 AOP(Aspect Oriented Programming)</strong>를 통해 락 처리 로직을 분리하여 코드의 응집도와 유지보수성을 높이는 방법을 살펴보도록 하겠습니다.</p>
+
+<h1 id="redis-라이브러리-redisson을-활용한-분산-락">Redis 라이브러리: Redisson을 활용한 분산 락</h1>
+
+<p>Redis는 인메모리 데이터 저장소로 높은 성능과 빠른 응답 속도를 제공합니다. 이를 활용하여 여러 프로세스 혹은 서버 간에 분산 락을 구현할 수 있으며, 분산 환경에서의 동시성 제어와 데이터 무결성 확보에 큰 역할을 하게 됩니다.</p>
+
+<p><strong>Redisson</strong>은 Redis를 Java 애플리케이션에서 쉽게 사용할 수 있도록 지원하는 <strong>Redis 클라이언트 라이브러리</strong>입니다. Redisson은 분산 락, 세마포어 등 여러 동시성 관련 기능을 제공하며, <strong>복잡한 락 로직을 단순화</strong>시켜 줍니다.</p>
+
+<h1 id="lettuce-vs-redisson">Lettuce vs Redisson</h1>
+
+<p><code class="language-plaintext highlighter-rouge">Spring Data Redis</code> 의존성을 추가하면 기본적으로 Lettuce 라이브러리를 Redis 클라이언트로 사용하게 됩니다. 기본적으로 제공하는 Lettuce가 있음에도 분산 락에 Redisson을 사용하는 이유는 무엇일까요?</p>
+
+<p>분산 락에 <code class="language-plaintext highlighter-rouge">Lettuce</code> 대신 <code class="language-plaintext highlighter-rouge">Redisson</code>을 사용하는 이유는 <strong>락 획득 방식</strong> 차이점에 있습니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">Lettuce</code>는 스레드가 락 획득 대기 상태일 경우, <code class="language-plaintext highlighter-rouge">spin lock</code> 방식으로 대기하게 됩니다. 많은 스레드가 스핀 락으로 Redis에 락을 요청하게 될 경우 Redis에 큰 부하가 생길 수 있습니다. 반면에 <code class="language-plaintext highlighter-rouge">Redisson</code>은 락 획득 방식이 <code class="language-plaintext highlighter-rouge">pub/sub</code> 방식으로 구현되어 있기 때문에 스핀 락 방식보다는 Redis에 부하 부담이 줄어들게 됩니다. 더불어 <code class="language-plaintext highlighter-rouge">Redisson</code>은 락 획득 재시도를 기본 로직으로 제공해주기 때문에 편리하게 Lock을 사용할 수 있게 해줍니다.</p>
+
+<h1 id="redisson-lock-예제-코드">Redisson Lock 예제 코드</h1>
+
+<p>아래는 사이드 프로젝트에서 <code class="language-plaintext highlighter-rouge">Redisson</code>을 활용하여 분산 락을 구현한 코드입니다. 동시성 이슈가 발생할 수 있는 작업을 수행하기 전에 분산 락을 획득하고, 작업을 마쳤다면 락을 반납하면 됩니다. 이로써 여러 스레드가 동시에 접근하더라도 동시성 문제가 발생하지 않게 됩니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Service</span>
+<span class="nd">@Slf4j</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">RedissonLockService</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">RedissonClient</span> <span class="n">redissonClient</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">tryLock</span><span class="o">(</span><span class="nc">String</span> <span class="n">key</span><span class="o">,</span> <span class="kt">long</span> <span class="n">waitTime</span><span class="o">,</span> <span class="kt">long</span> <span class="n">leaseTime</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">RLock</span> <span class="n">lock</span> <span class="o">=</span> <span class="n">redissonClient</span><span class="o">.</span><span class="na">getLock</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">lock</span><span class="o">.</span><span class="na">tryLock</span><span class="o">(</span><span class="n">waitTime</span><span class="o">,</span> <span class="n">leaseTime</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);</span>
+            <span class="c1">// waitTime: 락을 기다리는 시간</span>
+            <span class="c1">// leaseTime: 락이 자동으로 해제되기까지 유지되는 시간</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">InterruptedException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">"Failed to acquire lock"</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+            <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">unlock</span><span class="o">(</span><span class="nc">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">RLock</span> <span class="n">lock</span> <span class="o">=</span> <span class="n">redissonClient</span><span class="o">.</span><span class="na">getLock</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">lock</span><span class="o">.</span><span class="na">isHeldByCurrentThread</span><span class="o">())</span> <span class="o">{</span>
+            <span class="n">lock</span><span class="o">.</span><span class="na">unlock</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">tryLock</code> 메서드를 통해 락 획득 시도를 하게 됩니다. 획득에 성공한다면 <code class="language-plaintext highlighter-rouge">true</code>를 반환하고, <code class="language-plaintext highlighter-rouge">waitTime</code>동안 락을 획득하지 못한다면 예외가 발생하고 <code class="language-plaintext highlighter-rouge">false</code>를 반환하게 됩니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">tryLock</code> 메서드는 <strong>블락킹(blocking) 메서드로, 락을 획득하지 못 한 경우 스레드가 대기 상태에 놓이게 됩니다.</strong></li>
+  <li>락 획득 key는 동시성 이슈를 예방하고자 하는 대상의 고유한 식별자가 되어야 합니다. <code class="language-plaintext highlighter-rouge">ex: productId</code></li>
+  <li><code class="language-plaintext highlighter-rouge">waitTime</code>동안 락 획득 대기 상태에 놓이게 되며, 락을 사용하던 스레드가 락을 해제하면 <code class="language-plaintext highlighter-rouge">pub/sub</code> 방식을 통해 대기 상태에 놓여있던 스레드에게 락 획득 시도를 하라고 알림을 보내게 됩니다.</li>
+  <li>만약 락을 획득하고 작업 시간이 <code class="language-plaintext highlighter-rouge">leaseTime</code>을 넘어가게 되면 자동으로 락이 해제됩니다. 따라서 <code class="language-plaintext highlighter-rouge">leaseTime</code> 이내로 작업이 끝내는 것을 보장해야 동시성 이슈가 발생하지 않습니다.</li>
+  <li>작업을 마친 스레드는 <code class="language-plaintext highlighter-rouge">unlock</code>을 통해 락을 해제하게 됩니다.</li>
+</ul>
+
+<h1 id="분산-락-활용-예제-코드-재고-차감">분산 락 활용 예제 코드 (재고 차감)</h1>
+
+<p>상품의 재고 수량을 변경시키는 작업은 동시성 이슈가 발생하는 대표적인 예시로 볼 수 있습니다. 여러 스레드가 상품 재고의 수량을 변경하기 위해 동시에 접근할 수 있기 때문입니다.</p>
+
+<p>앞서 살펴본 Redisson을 활용한 분산 락을 재고 수량을 변경하는 로직 전후로 락을 획득/해제를 한다면 동시성 이슈를 예방할 수 있을 겁니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Transactional</span>
+<span class="nd">@Override</span>
+<span class="kd">public</span> <span class="nc">Product</span> <span class="nf">decreaseStock</span><span class="o">(</span><span class="nc">String</span> <span class="n">productId</span><span class="o">,</span> <span class="nc">Integer</span> <span class="n">quantity</span><span class="o">)</span> <span class="o">{</span>
+
+    <span class="kt">long</span> <span class="n">leaseTime</span> <span class="o">=</span> <span class="mi">5</span><span class="o">;</span>
+    <span class="kt">long</span> <span class="n">waitTime</span> <span class="o">=</span> <span class="mi">10</span><span class="o">;</span>
+    <span class="nc">String</span> <span class="n">lockKey</span> <span class="o">=</span> <span class="s">"lock:product:stock:"</span> <span class="o">+</span> <span class="n">productId</span><span class="o">;</span>
+
+    <span class="k">try</span> <span class="o">{</span>
+      <span class="k">if</span> <span class="o">(</span><span class="n">redissonLockService</span><span class="o">.</span><span class="na">tryLock</span><span class="o">(</span><span class="n">lockKey</span><span class="o">,</span> <span class="n">waitTime</span><span class="o">,</span> <span class="n">leaseTime</span><span class="o">))</span> <span class="o">{</span> <span class="c1">// 락 획득 시도</span>
+        <span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Product</span><span class="o">&gt;</span> <span class="n">findProduct</span> <span class="o">=</span> <span class="n">productRepository</span><span class="o">.</span><span class="na">findByProductId</span><span class="o">(</span><span class="n">productId</span><span class="o">);</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">findProduct</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="s">"Product not found"</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="nc">Product</span> <span class="n">product</span> <span class="o">=</span> <span class="n">findProduct</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+        <span class="n">product</span><span class="o">.</span><span class="na">decreaseStock</span><span class="o">(</span><span class="n">quantity</span><span class="o">);</span> <span class="c1">// 재고 차감</span>
+        <span class="k">return</span> <span class="n">product</span><span class="o">;</span>
+      <span class="o">}</span>
+    <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+      <span class="n">redissonLockService</span><span class="o">.</span><span class="na">unlock</span><span class="o">(</span><span class="n">lockKey</span><span class="o">);</span> <span class="c1">// 락 해제 </span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li>상품 고유 식별자(productId)를 사용하여 상품 별로 분산 락을 제어할 수 있도록 했습니다.</li>
+  <li>락을 획득한 경우에만 재고 수량을 차감시킬 수 있게 됩니다.</li>
+  <li>락 획득에 실패하게 되면 예외가 발생하여, 재고 수량 차감 로직은 수행하지 못 하게 됩니다.</li>
+  <li>락 획득 후 작업을 완료했다면 락을 해제해줍니다.</li>
+</ul>
+
+<h1 id="분산-락-적용-부분의-aop-분리">분산 락 적용 부분의 AOP 분리</h1>
+
+<p>애플리케이션에서 분산 락과 같은 횡<strong>단 관심사(cross-cutting concern)</strong>는 여러 서비스 메서드에서 반복적으로 구현되기 때문에, 이를 개별 비즈니스 로직과 분리하면 코드의 가독성 및 유지보수성이 크게 향상됩니다. <strong>스프링 AOP</strong>를 활용하면 메서드 호출 전후에 자동으로 락을 획득하고 해제하는 로직을 삽입할 수 있습니다.</p>
+
+<blockquote>
+  <p>아래 내용은 AOP에 대한 이해가 필요합니다!</p>
+</blockquote>
+
+<h2 id="aop-적용-방법">AOP 적용 방법</h2>
+
+<p>스프링 AOP를 적용하는 방법에 대해 단계별로 알아보겠습니다.</p>
+
+<h3 id="어노테이션-정의">어노테이션 정의</h3>
+
+<p>락이 필요한 메서드에 적용할 커스텀 어노테이션(<code class="language-plaintext highlighter-rouge">@StockLock</code>)을 정의합니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Target</span><span class="o">(</span><span class="nc">ElementType</span><span class="o">.</span><span class="na">METHOD</span><span class="o">)</span>
+<span class="nd">@Retention</span><span class="o">(</span><span class="nc">RetentionPolicy</span><span class="o">.</span><span class="na">RUNTIME</span><span class="o">)</span>
+<span class="kd">public</span> <span class="nd">@interface</span> <span class="nc">StockLock</span> <span class="o">{</span>
+    <span class="kt">long</span> <span class="nf">waitTime</span><span class="o">()</span> <span class="k">default</span> <span class="mi">5</span><span class="o">;</span>
+    <span class="kt">long</span> <span class="nf">leaseTime</span><span class="o">()</span> <span class="k">default</span> <span class="mi">10</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h3 id="aspect-클래스-작성">Aspect 클래스 작성</h3>
+
+<p><code class="language-plaintext highlighter-rouge">@Around</code> 어드바이스를 활용하여 어노테이션이 붙은 메서드의 <strong>실행 전후에 분산 락 획득 및 해제 로직을 삽입</strong>합니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Aspect</span>
+<span class="nd">@Slf4j</span>
+<span class="nd">@Component</span>
+<span class="nd">@Order</span><span class="o">(</span><span class="n">value</span> <span class="o">=</span> <span class="nc">Integer</span><span class="o">.</span><span class="na">MAX_VALUE</span> <span class="o">-</span> <span class="mi">1</span><span class="o">)</span> <span class="c1">// AOP 우선순위를 지정합니다.</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">StockAspect</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">RedissonLockService</span> <span class="n">redissonLockService</span><span class="o">;</span>
+
+    <span class="nd">@Around</span><span class="o">(</span><span class="s">"@annotation(stockLock) &amp;&amp; args(productId,..)"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">Object</span> <span class="nf">doLock</span><span class="o">(</span><span class="nc">ProceedingJoinPoint</span> <span class="n">joinPoint</span><span class="o">,</span> <span class="nc">StockLock</span> <span class="n">stockLock</span><span class="o">,</span> <span class="nc">String</span> <span class="n">productId</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">Throwable</span> <span class="o">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"StockLockAspect.doLock {}"</span><span class="o">,</span> <span class="n">joinPoint</span><span class="o">.</span><span class="na">getSignature</span><span class="o">());</span>
+
+        <span class="kt">long</span> <span class="n">leaseTime</span> <span class="o">=</span> <span class="n">stockLock</span><span class="o">.</span><span class="na">leaseTime</span><span class="o">();</span>
+        <span class="kt">long</span> <span class="n">waitTime</span> <span class="o">=</span> <span class="n">stockLock</span><span class="o">.</span><span class="na">waitTime</span><span class="o">();</span>
+        <span class="nc">String</span> <span class="n">lockKey</span> <span class="o">=</span> <span class="s">"lock:product:stock:"</span> <span class="o">+</span> <span class="n">productId</span><span class="o">;</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">redissonLockService</span><span class="o">.</span><span class="na">tryLock</span><span class="o">(</span><span class="n">lockKey</span><span class="o">,</span> <span class="n">waitTime</span><span class="o">,</span> <span class="n">leaseTime</span><span class="o">))</span> <span class="o">{</span>
+            <span class="k">try</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="n">joinPoint</span><span class="o">.</span><span class="na">proceed</span><span class="o">();</span>
+            <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+                <span class="n">redissonLockService</span><span class="o">.</span><span class="na">unlock</span><span class="o">(</span><span class="n">lockKey</span><span class="o">);</span>
+            <span class="o">}</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">"락을 획득하지 못하여 종료합니다. productId={}"</span><span class="o">,</span> <span class="n">productId</span><span class="o">);</span>
+            <span class="k">return</span> <span class="kc">false</span><span class="o">;</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p>🚨 AOP 우선 순위 지정</p>
+
+  <p>스프링의 트랜잭션 처리도 AOP를 활용합니다. 이때 분산 락의 AOP와 트랜잭션의 AOP의 순서가 굉장히 중요합니다. 만약 트랜잭션 AOP가 먼저 실행된다면, 여전히 동시성 이슈가 발생할 가능성이 존재하게 됩니다. 따라서 분산 락 AOP를 먼저 적용하기 위해 @Order를 통해 순서를 지정해줍니다. 예제 코드에서는 Integer.MAX_VALUE - 1 값을 지정해주었는데, 이는 트랜잭션의 우선순위는 기본적으로 제일 후순위(INTEGER.MAX_VALUE)이기 때문입니다.</p>
+</blockquote>
+
+<h3 id="비즈니스-로직과-분리">비즈니스 로직과 분리</h3>
+
+<p>실제 서비스 메서드는 락 관련 코드를 포함하지 않고, AOP가 이를 대신 처리하게 됩니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nd">@Transactional</span>
+    <span class="nd">@Override</span>
+    <span class="nd">@StockLock</span>
+    <span class="kd">public</span> <span class="nc">Product</span> <span class="nf">decreaseStock</span><span class="o">(</span><span class="nc">String</span> <span class="n">productId</span><span class="o">,</span> <span class="nc">Integer</span> <span class="n">quantity</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"product-service: 재고 차감"</span><span class="o">);</span>
+        <span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Product</span><span class="o">&gt;</span> <span class="n">findProduct</span> <span class="o">=</span> <span class="n">productRepository</span><span class="o">.</span><span class="na">findByProductId</span><span class="o">(</span><span class="n">productId</span><span class="o">);</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">findProduct</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="s">"Product not found"</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="nc">Product</span> <span class="n">product</span> <span class="o">=</span> <span class="n">findProduct</span><span class="o">.</span><span class="na">get</span><span class="o">();</span>
+        <span class="n">product</span><span class="o">.</span><span class="na">decreaseStock</span><span class="o">(</span><span class="n">quantity</span><span class="o">);</span>
+        <span class="k">return</span> <span class="n">product</span><span class="o">;</span>
+    <span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="aop-적용의-장점">AOP 적용의 장점</h2>
+
+<p>락 획득 및 해제 로직을 한 곳에서 관리하여 여러 서비스 메서드에 <strong>중복된 코드를 제거</strong>할 수 있습니다. 만약 락 처리 로직을 변경할 경우, Aspect 클래스만 수정하면 되므로 <strong>관리가 용이</strong>합니다. 그리고 서비스 메서드에서는 비즈니스 로직에만 집중할 수 있어 코드의 <strong>가독성</strong>이 좋아집니다.</p>
+
+<h1 id="결론">결론</h1>
+
+<p><strong>분산 시스템</strong>에서 동시성 문제를 해결하기 위한 <strong>분산 락은 필수</strong>적인 요소입니다. Redis의 Redisson을 활용하면 높은 성능과 편리한 분산 락 구현이 가능합니다. 또한 AOP를 적용함으로써 락 관련 로직을 분리하면 코드의 유지보수성과 가독성이 크게 향상됩니다. 본 포스트를 참고하여 분산 락을 실제 구현하는 데 도움이 되면 좋겠습니다. 감사합니다.</p>
+
+<h1 id="참고-자료">참고 자료</h1>
+
+<ul>
+  <li><a href="https://www.inflearn.com/course/%EB%8F%99%EC%8B%9C%EC%84%B1%EC%9D%B4%EC%8A%88-%EC%9E%AC%EA%B3%A0%EC%8B%9C%EC%8A%A4%ED%85%9C">인프런 - 재고시스템으로 알아보는 동시성이슈 해결방법</a></li>
+  <li><a href="https://www.youtube.com/watch?v=4wGTavSyLxE">카카오페이는 어떻게 수천만 결제를 처리할까? 우아한 결제 분산락 노하우 / if(kakaoAI)2024</a></li>
+  <li><a href="https://helloworld.kurly.com/blog/distributed-redisson-lock/#2-%EC%A4%91%EB%B3%B5-%EB%B0%9C%EC%A3%BC-%EB%8D%B0%EC%9D%B4%ED%84%B0-%EB%8F%99%EC%8B%9C-%EC%88%98%EC%8B%A0">풀필먼트 입고 서비스팀에서 분산락을 사용하는 방법 - 마켓 컬리</a></li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="MSA" /><category term="Redis" /><category term="AOP" /><category term="Distributed Lock" /><category term="Redisson" /><summary type="html"><![CDATA[분산 시스템에서 Redis를 이용한 분산 락의 필요성과 분산 락 적용 부분의 AOP 활용 방법을 알아봅시다.]]></summary></entry><entry><title type="html">MSA에서 데이터 일관성 유지를 위한 Saga 패턴</title><link href="http://localhost:4000/spring%20cloud/msa/2025/02/22/MSA-SAGA-Pattern/" rel="alternate" type="text/html" title="MSA에서 데이터 일관성 유지를 위한 Saga 패턴" /><published>2025-02-22T00:00:00+09:00</published><updated>2025-02-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/msa/2025/02/22/MSA-SAGA-Pattern</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/msa/2025/02/22/MSA-SAGA-Pattern/"><![CDATA[<blockquote>
+  <p>Saga 패턴이 무엇이고, MSA 환겨에서 왜 필요한지 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p><strong>마이크로서비스 아키텍처</strong>에서는 각 서비스가 독립적인 데이터베이스를 가지고 있으며, 서비스 간 통신을 통해 비즈니스 로직이 연결되는 경우가 많습니다.</p>
+
+<p>이때, 데이터 일관성을 유지하는 것이 중요한데, 전통적인 <strong>분산 트랜잭션</strong> 방식으로는 한계가 있습니다.</p>
+
+<p>이번 포스트에서는 <strong>Saga 패턴</strong>의 필요성과 이를 도입하지 않을 경우 발생할 수 있는 문제점에 대해 살펴보도록 하겠습니다.</p>
+
+<h1 id="1-전통적인-분산-트랜잭션">1. 전통적인 분산 트랜잭션</h1>
+
+<p>MSA 환경에서 각 서비스는 독립적인 데이터베이스를 가지고 있기 때문에 데이터 정합성을 유지하기가 훨씬 어려워집니다.</p>
+
+<p>전통적인 분산 트랜잭션은 데이터 정합성 불일치 문제를 해결하기 위한 <strong>초기 접근 방식</strong>으로, <strong>여러 데이터베이스에 걸쳐 원자성(Atomicity)을 보장하려는 방식</strong>이었습니다.</p>
+
+<p>그러나 이 방식은 <strong>한계점과 문제점을 동반</strong>하게 되며, 결과적으로 <strong>Saga 패턴</strong>과 같은 대안이 등장하게 되었습니다.</p>
+
+<h2 id="전통적인-분산-트랜잭션-핵심-2-phase-commit2pc">전통적인 분산 트랜잭션 핵심: 2-Phase Commit(2PC)</h2>
+
+<p>MSA <strong>다중 데이터베이스 환경</strong>에서 하나의 비즈니스 로직이 수행될 때, 여러 데이터베이스에 걸쳐 관련 데이터들이 저장됩니다. <strong>전통적인 분산 트랜잭션</strong>에서 가장 널리 사용된 프로토콜로 <code class="language-plaintext highlighter-rouge">2-Phase Commit(2PC)</code>가 있습니다. 이는 <code class="language-plaintext highlighter-rouge">트랜잭션 관리자(Transaction Coordinator)</code>가 존재하여 전체 트랜잭션을 조율하는 방식입니다.</p>
+
+<h2 id="전통적인-분산-트랜잭션-한계점">전통적인 분산 트랜잭션 한계점</h2>
+
+<p>전통적인 분산 트랜잭션 한계점은 다음과 같습니다.</p>
+
+<ul>
+  <li>락킹(Locking)으로 인한 성능 저하, 병목 지점이 될 수 있습니다.</li>
+  <li>트랜잭션은 관리하는 코디네이터가 <strong>단일 실패 지점</strong>이 될 수 있습니다.</li>
+  <li>네트워크 문제로 인해 트랜잭션 관리자의 지시를 받지 못하면, 교착 상태(Deadlock)에 빠질 수도 있습니다.</li>
+  <li>관리하는 노드가 많아질수록 트랜잭션을 조율하기 복잡해집니다. 이로 인해 시스템의 확장성이 저하됩니다.</li>
+</ul>
+
+<p>💡 위와 같은 한계점들로 인해 전통적인 2PC 방식은 단일 시스템이나 적은 수의 서비스에 적합하지만, <strong>확장성, 고가용성, 비동기성이 중요한 마이크로서비스 환경에는 적합하지 않습니다.</strong></p>
+
+<p>❗️ 참고로, 이번 포스트의 주제는 전통적인 분산 트랜잭션의 한계점으로 인한 Saga 패턴 도입의 필요성을 다루는 포스트입니다. 따라서 전통적인 분산 트랜잭션에 대한 내용은 추후 다른 포스트에서 자세히 다루도록 하겠습니다.</p>
+
+<h1 id="2-전통적인-분산-트랜잭션의-대안">2. 전통적인 분산 트랜잭션의 대안</h1>
+
+<p>전통적인 분산 트랜잭션의 대안으로 <code class="language-plaintext highlighter-rouge">Saga 패턴</code>과 <code class="language-plaintext highlighter-rouge">Outbox 패턴</code>이 있습니다.</p>
+
+<p>두 패턴 중 이번 포스트에서는 Spring Cloud 사이드 프로젝트를 진행하면서 Saga 패턴을 적용한 내용을 다루겠습니다.</p>
+
+<h1 id="3-saga-패턴이란">3. Saga 패턴이란?</h1>
+
+<p>Saga 패턴은 마이크로서비스 간 <strong>분산 트랜잭션을 관리하기 위한 패턴</strong>입니다.</p>
+
+<p>각 서비스의 로컬 트랜잭셩을 통해서 전체 비즈니스 로직의 일관성을 유지하는 방법이죠.</p>
+
+<p><strong>Saga 패턴</strong>의 핵심 아이디어는 하<strong>나의 큰 트랜잭션을 여러 개의 트랜잭션으로 나누고</strong>, 문제가 발생하면 <strong>보상 트랜잭션(Compensating Transaction)</strong>을 수행하여 일관성을 맞추는 것입니다.</p>
+
+<h2 id="3-1-saga-패턴-예시">3-1. Saga 패턴 예시</h2>
+
+<p>Saga 패턴이 무엇인지 이해하기 쉽도록 예시를 들어보겠습니다.</p>
+
+<p>예를 들어, <code class="language-plaintext highlighter-rouge">Order Service -&gt; Payment Service -&gt; Product Service</code> 의 순서로 주문과 결제 그리고 재고 차감이 이뤄지는 비즈니스 로직이 있다고 하겠습니다.</p>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">Order Service</code>: 주문 생성 -&gt; <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 이벤트 발행.</li>
+  <li><code class="language-plaintext highlighter-rouge">Payment Service</code>: 결제 요청 -&gt; 결제 성공 시 <code class="language-plaintext highlighter-rouge">PAYMENT_COMPLETED</code> 이벤트 발행.</li>
+  <li><code class="language-plaintext highlighter-rouge">Product Service</code>: 재고 차감 -&gt; 만약 재고 부족 시, <strong>실패 이벤트</strong> 발행.</li>
+</ol>
+
+<p>🎯 만약 <code class="language-plaintext highlighter-rouge">Product Service</code>에서 재고 부족으로 인해 실패 이벤트가 발생하면, 보상 트랜잭션으로 <strong>주문 취소 및 결제 취소</strong>를 진행해주게 됩니다. 이처럼 실패에 대한 보상 처리를 해주는 것이 Saga 패턴입니다.</p>
+
+<h1 id="4-saga-패턴의-종류">4. Saga 패턴의 종류</h1>
+
+<p>Saga 패턴에는 종류가 존재합니다. 크게 Choreography(코레오그래피) 방식과 Orchestration(오케스트레이션) 방식으로 나뉘게 됩니다.</p>
+
+<p>각 방식에는 장단점이 존재하며, 프로젝트 환경에 따라 적절한 패턴을 적용하면 될 것 같습니다.</p>
+
+<p>그럼, 각 패턴 종류의 장단점을 살펴보겠습니다.</p>
+
+<h2 id="4-1-saga-pattern---choreography코레오그래피">4-1. Saga pattern - Choreography(코레오그래피)</h2>
+
+<p><strong>이벤트 기반</strong>으로 <strong>각 서비스가 직접 이벤트를 구독하고 다음 작업을 수행</strong>하는 패턴입니다. 이는 <strong>중앙 조정자가 없다</strong>는 것이 특징입니다.</p>
+
+<ul>
+  <li><strong>장점</strong>: 단순한 구현, 낮은 복잡성</li>
+  <li><strong>단점</strong>: 서비스 간 의존성 증가, 복잡한 이벤트 플로우 관리 어려움</li>
+</ul>
+
+<p>👉 <strong>예시</strong></p>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">Order Service</code> -&gt; <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 주문 생성 이벤트 발행</li>
+  <li><code class="language-plaintext highlighter-rouge">Payment Service</code> 가 주문 생성 구독 후 결제 처리 -&gt; <code class="language-plaintext highlighter-rouge">PAYMENT_COMPLETED</code> 결제 성공 이벤트 발행</li>
+  <li><code class="language-plaintext highlighter-rouge">Delivery Service</code>가 결제 성공 구독 후 배송 요청 처리.</li>
+</ol>
+
+<h2 id="4-2-saga-pattern---orchestration오케스트레이션">4-2. Saga Pattern - Orchestration(오케스트레이션)</h2>
+
+<p><strong>중앙 조정자(Service Orchestration)</strong>가 각 서비스에 요청을 보내고 <strong>전체 트랜잭션을 관리 및 조율</strong>하는 패턴입니다.</p>
+
+<ul>
+  <li><strong>장점</strong>: 서비스 간 의존성 감소, 중앙 집중식으로 전체 플로우 관리 가능.</li>
+  <li><strong>단점</strong>: Orchestrator(중앙 조정자)를 추가 구현해야 하며, 단일 실패 지점(SPOF)이 될 수 있음.</li>
+</ul>
+
+<p>👉 <strong>예시</strong></p>
+
+<ol>
+  <li><strong>Orchestrator</strong>가 Order Service 에 주문 생성 요청</li>
+  <li>주문 생성 -&gt; 결제 요청 -&gt; 재고 차감 -&gt; 배송 요청 순으로 전체 이벤트 발행 및 트랜잭션 관리</li>
+  <li>실패 시 보상 트랜잭션을 직접 호출</li>
+</ol>
+
+<h2 id="-4-3-saga-pattern-종류-정리">✅ 4-3 Saga Pattern 종류 정리</h2>
+
+<p>Saga 패턴에는 Choreography와 Orchestration 두 방식이 존재합니다.</p>
+
+<p>두 방식은 각각의 장단점이 상반되며, 프로젝트 환경에 알맞게 적절한 패턴 종류를 선택하면 됩니다.</p>
+
+<p>참고로 저는 사이드 프로젝트를 진행할 때 단순한 구현과 낮은 복잡성으로 구성되도록 원했고, 중앙 조정자 도입이 오히려 서비스가 많아질 수록 중앙 조정자를 관리하기 어려워 질 것이란 판단하에 <strong>Choreography(코레오그래피)</strong> 방식을 적용하였습니다.</p>
+
+<h1 id="5-saga-패턴-적용-예제-코드">5. Saga 패턴 적용 예제 코드</h1>
+
+<p>사이드 프로젝트에서 Saga 패턴(Choreography)을 적용한 예제 코드를 보여드리겠습니다.</p>
+
+<p>참고로 실제 코드 전부가 아닌 Saga 패턴 이해를 위한 간소화된 코드로 보여드리겠습니다.</p>
+
+<h2 id="order-service---order_created-이벤트-발행">Order Service - <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 이벤트 발행</h2>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Transactional</span>
+<span class="nd">@Override</span>
+<span class="kd">public</span> <span class="nc">OrderDto</span> <span class="nf">createOrder</span><span class="o">(</span><span class="nc">OrderDto</span> <span class="n">orderDto</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Order-service: 주문 생성"</span><span class="o">);</span>
+    
+    <span class="c1">// 주문 생성 로직 ...</span>
+
+    <span class="c1">// ORDER_CREATED 이벤트 발행</span>
+    <span class="nc">OrderCreatedEvent</span> <span class="n">orderCreatedEvent</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">OrderCreatedEvent</span><span class="o">(</span>
+            <span class="n">order</span><span class="o">.</span><span class="na">getOrderId</span><span class="o">(),</span>
+            <span class="nc">BigDecimal</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">totalPrice</span><span class="o">),</span>
+            <span class="n">orderDto</span><span class="o">.</span><span class="na">getPaymentInfos</span><span class="o">(),</span>
+            <span class="n">orderDto</span><span class="o">.</span><span class="na">getDeliveryInfo</span><span class="o">());</span>
+    <span class="n">orderEventProducer</span><span class="o">.</span><span class="na">send</span><span class="o">(</span><span class="no">ORDER_CREATED</span><span class="o">,</span> <span class="n">orderCreatedEvent</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="payment-service---order_created-이벤트-구독-후-결제-처리">Payment Service - <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 이벤트 구독 후 결제 처리</h2>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@KafkaListener</span><span class="o">(</span><span class="n">topics</span> <span class="o">=</span> <span class="s">"ORDER_CREATED"</span><span class="o">,</span> <span class="n">groupId</span> <span class="o">=</span> <span class="s">"${spring.kafka.consumer.group-id:payment-service-group}"</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">consume</span><span class="o">(</span><span class="nc">ConsumerRecord</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">record</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">JsonProcessingException</span> <span class="o">{</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="nc">String</span> <span class="n">message</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="na">value</span><span class="o">();</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Consumed message: {}"</span><span class="o">,</span> <span class="n">message</span><span class="o">);</span>
+        <span class="nc">OrderCreatedEvent</span> <span class="n">orderCreatedEvent</span> <span class="o">=</span> <span class="n">objectMapper</span><span class="o">.</span><span class="na">readValue</span><span class="o">(</span><span class="n">message</span><span class="o">,</span> <span class="nc">OrderCreatedEvent</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Order created event: {}"</span><span class="o">,</span> <span class="n">orderCreatedEvent</span><span class="o">);</span>
+
+        <span class="n">paymentHandler</span><span class="o">.</span><span class="na">handle</span><span class="o">(</span><span class="n">orderCreatedEvent</span><span class="o">);</span> <span class="c1">// 결제 처리 </span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">"Error Consume OrderCreatedEvent"</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>만약, 결제 처리 실패 시 보상 트랜잭션을 수행합니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">PAYMENT_FAILED</code> 이벤트 발행 -&gt; <code class="language-plaintext highlighter-rouge">Order Service</code>에서 결제 실패를 구독하여 주문 취소를 진행합니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kt">void</span> <span class="nf">handle</span><span class="o">(</span><span class="nc">Event</span> <span class="n">event</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">handleEvent</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">handleException</span><span class="o">(</span><span class="n">event</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">private</span> <span class="kt">void</span> <span class="nf">handleException</span><span class="o">(</span><span class="nc">Event</span> <span class="n">event</span><span class="o">,</span> <span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">"Error handling payment"</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">event</span> <span class="k">instanceof</span> <span class="nc">OrderCreatedEvent</span> <span class="n">orderCreatedEvent</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">paymentEventProducer</span><span class="o">.</span><span class="na">send</span><span class="o">(</span><span class="no">PAYMENT_FAILED</span><span class="o">,</span> <span class="k">new</span> <span class="nc">PaymentFailedEvent</span><span class="o">(</span>
+                <span class="n">orderCreatedEvent</span><span class="o">.</span><span class="na">getOrderId</span><span class="o">(),</span>
+                <span class="kc">null</span><span class="o">,</span>
+                <span class="no">FAILED</span><span class="o">,</span> <span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">()));</span>
+    <span class="o">}</span>
+    <span class="o">...</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h1 id="6-saga-패턴-도입-시-장점">6. Saga 패턴 도입 시 장점</h1>
+
+<p>분산 트랜잭션 처리를 위해 Saga 패턴을 도입하면 다음과 같은 장점이 있습니다.</p>
+
+<h2 id="6-1-데이터-정합성-보장">6-1. 데이터 정합성 보장</h2>
+
+<p>서비스 간 비동기 처리에도 Eventually Consistent(최종 일관성) 상태를 유지할 수 있습니다. 예를 들어, 주문 생성 후 결제를 실패한다면, 주문을 취소하여 데이터 불일치를 방지할 수 있습니다.</p>
+
+<p>이처럼, 보상 트랜잭션을 통해 데이터 일관성이 유지됩니다.</p>
+
+<h2 id="6-2-마이크로서비스-독립성-유지">6-2. 마이크로서비스 독립성 유지</h2>
+
+<p>각 서비스는 로컬 트랜잭션만 관리하면 되므로, 강한 결합(Tightly Coupled)을 피할 수 있습니다.</p>
+
+<h2 id="6-3-확장성-향상">6-3. 확장성 향상</h2>
+
+<p>서비스 간의 직접적인 의존성이 줄어들어, 새로운 서비스 추가 및 확장이 쉬워지게 됩니다.</p>
+
+<h1 id="7-saga-패턴을-도입하지-않으면-발생하는-문제점">7. Saga 패턴을 도입하지 않으면 발생하는 문제점</h1>
+
+<h2 id="7-1-데이터-불일치">7-1. 데이터 불일치</h2>
+
+<p>실패 시 적절한 보상 트랜잭션이 없다면, <strong>결제 실패</strong>나 <strong>재고 부족</strong> 등의 시나리오에서, 주문 상태는 <strong>“완료”</strong>이지만 실제로는 결제가 되지 않은 주문이 발생할 수 있습니다.</p>
+
+<h2 id="7-2-사용자-경험-저하">7-2. 사용자 경험 저하</h2>
+
+<p>주문은 <strong>완료 상태</strong>이고 <strong>결제는 실패</strong>했을 때, 제대로된 보상 트랜잭션 처리를 하지 않는다면 <strong>“주문 정상 처리”</strong>라는 잘못된 정보를 사용자에게 전달할 수도 있습니다.</p>
+
+<h1 id="-결론">🎯 결론</h1>
+
+<ul>
+  <li>Saga 패턴은 마이크로서비스 환경에서 <strong>데이터 정합성을 유지하기 위한 필수 설계 패턴</strong>으로 볼 수 있습니다.</li>
+  <li>보상 트랜잭션을 통해 실패 시에도 전체 시스템의 일관성을 유지할 수 있으며, 서비스 간 결합도를 낮춰 <strong>확장성</strong>과 <strong>유연성</strong>을 확보할 수 있도록 도와줍니다.</li>
+</ul>
+
+<p>Kafka와 같은 이벤트 드리븐 기반의 MSA 환경에서 Saga 패턴을 도입하지 않으면, 데이터 불일치 및 비즈니스 오류가 발생할 가능성이 높습니다. 안정적인 시스템을 만들기 위해서는 반드시 <strong>Saga 패턴과 같은 분산 트랜잭션 관리 기법</strong>이 필요합니다.</p>
+
+<h1 id="-추가로-공부하면-좋을-내용">💡 추가로 공부하면 좋을 내용</h1>
+
+<ul>
+  <li><a href="https://en.wikipedia.org/wiki/CAP_theorem">CAP 이론</a></li>
+  <li><a href="https://ko.wikipedia.org/wiki/2%EB%8B%A8%EA%B3%84_%EC%BB%A4%EB%B0%8B_%ED%94%84%EB%A1%9C%ED%86%A0%EC%BD%9C">2-Phase Commit</a></li>
+  <li>Outbox 패턴</li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="Saga pattern" /><summary type="html"><![CDATA[Saga 패턴이 무엇이고, MSA 환겨에서 왜 필요한지 알아봅시다!]]></summary></entry><entry><title type="html">Spring Cloud + Kafka로 구현하는 마이크로서비스 이벤트 아키텍처</title><link href="http://localhost:4000/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture/" rel="alternate" type="text/html" title="Spring Cloud + Kafka로 구현하는 마이크로서비스 이벤트 아키텍처" /><published>2025-02-22T00:00:00+09:00</published><updated>2025-02-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/msa/kafka/2025/02/22/Spring-Cloud-Kafka-EventArchitecture/"><![CDATA[<blockquote>
+  <p>Kafka를 이용한 이벤트 드리븐 아키텍처의 마이크로서비스 통신에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-1-들어가기">📌 1. 들어가기</h1>
+
+<h2 id="1-1-왜-마이크로서비스-간-통신-방식이-중요할까요">1-1. 왜 마이크로서비스 간 통신 방식이 중요할까요?</h2>
+
+<p>마이크로서비스 아키텍처는 애플리케이션을 <strong>작은 독립적인 서비스</strong>로 나누어 개발, 배포 및 확장성을 극대화할 수 있게 해줍니다.</p>
+
+<p>하지만 서비스 간에 <strong>데이터와 명령을 어떻게 주고받을지</strong>가 시스템의 확장성, 성능 그리고 신뢰성에 영향을 미칩니다. 그래서 <strong>서비스 간 통신 방식</strong>에 대한 고민이 중요한 포인트가 됩니다.</p>
+
+<p>가장 흔히 사용되는 두 가지 통신 방식은 다음과 같습니다.</p>
+
+<ol>
+  <li>REST API 기반 통신 (동기 방식, Synchronous)</li>
+  <li>Message Queue를 활용한 Event driven 통신 (비동기 방식, Asynchronous)</li>
+</ol>
+
+<p>이전에 MSA에 관한 통신 방법들의 장단점을 비교하는 <a href="https://seung-il-bang.github.io/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/">포스트</a>를 작성했었습니다. 이번 포스트와 함께 읽어보시면 좋을 것 같습니다.</p>
+
+<h2 id="1-2-rest-api-기반-통신의-한계점">1-2. REST API 기반 통신의 한계점</h2>
+
+<p>REST API를 활용한 동기 통신은 마이크로서비스 초기 구현 시 간단하게 적용할 수 있고, HTTP를 이용한 요청/응답 패턴은 친숙하기에 가장 많이 선택되는 방식입니다.</p>
+
+<p>하지만, 서비스 규모가 커질수록 REST API 통신의 한계점에 직면하게 됩니다.</p>
+
+<h3 id="강한-결합-tightly-coupled">강한 결합 (Tightly Coupled)</h3>
+
+<ul>
+  <li><strong>문제</strong>: 서비스 A가 서비스 B의 API를 호출해야 한다면, 서비스 B가 반드시 <strong>정상 동작</strong>하고 있어야 합니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Order Service</code>가 <code class="language-plaintext highlighter-rouge">Payment Service</code>의 API를 호출했는데, 결제 서비스가 다운되면 주문 생성 자체가 실패하게 됩니다.</li>
+</ul>
+
+<h3 id="확장성-및-성능-이슈">확장성 및 성능 이슈</h3>
+
+<ul>
+  <li><strong>문제</strong>: 동기식 호출로 인해 요청이 <strong>병목 지점</strong>이 됩니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Order Service</code>가 주문 생성 -&gt; 결제 요청 -&gt; 배송 요청까지 순차적으로(동기식)으로 호출한다면, 전체 응답 시간이 길어지게 됩니다. 결국 전체 트랜잭션이 느려지고, 동시에 많은 요청을 처리하기 어려워질 수 있습니다.</li>
+</ul>
+
+<h3 id="장애-전파">장애 전파</h3>
+
+<ul>
+  <li><strong>문제</strong>: 하나의 서비스 장애가 연쇄적으로 다른 서비스에 영향을 줄 수 있습니다. 이는 단일 장애가 전체 시스템의 문제로 확산될 수 도 있습니다.</li>
+  <li><strong>예시</strong>: 결제 시스템이 느려지거나 장애가 발생하면, 주문 처리 시스템도 정상적으로 작동할 수 없습니다.</li>
+</ul>
+
+<h3 id="높은-종속성">높은 종속성</h3>
+
+<ul>
+  <li><strong>문제</strong>: API 구조 변경 시, 이를 호출하는 모든 서비스에 영향을 미칩니다. 이로 인해 각 서비스의 독립성이 낮아지고, 배포시 서비스 간의 조율이 필요합니다.</li>
+</ul>
+
+<h2 id="1-3--요약">1-3. ✅ 요약</h2>
+
+<blockquote>
+  <p>REST API 방식은 단순하고 직관적이지만, 확장성, 신뢰성, 유연성 측면에서 한계가 발생합니다.</p>
+</blockquote>
+
+<h1 id="2-kafka-기반-이벤트-드리븐event-driven-아키텍처">2. Kafka 기반 이벤트 드리븐(Event-driven) 아키텍처</h1>
+
+<p>앞서 살펴본 동기식 통신의 한계점을 극복하기 위해 대규모의 MSA 환경에서는 <code class="language-plaintext highlighter-rouge">Kafka</code> 기반의 <strong>비동기 이벤트 통신</strong>을 사용하는 것이 적합합니다.</p>
+
+<p>Kafka는 메시지 브로커 역할을 수행하면서, 서비스 간에 비동기 메시지를 전달해주는 역할을 합니다. 서비스들은 <strong>토픽(Topic)</strong>에 메시지를 <strong>발행(Publish)</strong>하거나 <strong>구독(Subscribe)</strong>함으로써 서로 통신할 수 있게 됩니다.</p>
+
+<h2 id="2-1-이벤트-드리븐event-driven-아키텍처의-장점">2-1. 이벤트 드리븐(Event-driven) 아키텍처의 장점</h2>
+
+<h3 id="느슨한-결합-loosely-coupled">느슨한 결합 (Loosely Coupled)</h3>
+
+<ul>
+  <li><strong>장점</strong>: 서비스 간 직접적인 호출이 없으므로, 서로의 존재를 몰라도 됩니다. 따라서 특정 서비스가 다운되더라도 전체 시스템에는 영향이 적습니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Order Service</code>는 <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 주문 생성 이벤트만 발행하고, 이를 <code class="language-plaintext highlighter-rouge">Payment Service</code>에서 구독해서 처리합니다. 즉, 각 서비스들은 독립적으로 이벤트를 처리합니다.</li>
+</ul>
+
+<h3 id="비동기-처리로-인한-성능-향상">비동기 처리로 인한 성능 향상</h3>
+
+<ul>
+  <li><strong>장점</strong>: 요청을 큐에 넣고 바로 응답을 줄 수 있어, 빠른 처리가 가능합니다. 빠른 응답은 사용자의 경험을 개선해줍니다.</li>
+  <li><strong>예시</strong>: 사용자가 주문을 생성하면, 주문 ID를 바로 응답받고, 결제 및 배송처리는 백엔드에서 비동기로 진행됩니다.</li>
+</ul>
+
+<h3 id="장애-격리-및-내결함성-fault-tolerance">장애 격리 및 내결함성 (Fault Tolerance)</h3>
+
+<ul>
+  <li><strong>장점</strong>: Kafka에 발행된 메시지는 디스크에 저장되므로, 구독자가 잠시 다운되어도 메시지 재처리가 가능합니다. 따라서 서비스 장애 발생 시에도 데이터 유실 없이 복구가 가능합니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Payment Service</code>가 다운되어도, Kafka에 쌓인 <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 메시지를 서비스 복구 후 다시 처리할 수 있습니다.</li>
+</ul>
+
+<h3 id="확장성과-유연성">확장성과 유연성</h3>
+
+<ul>
+  <li><strong>장점</strong>: 서비스 간에 직접적인 통신을 하지 않기 때문에 확장성이 높아지고, 독립적으로 서비스 배포가 가능합니다. 이로써 새로운 서비스를 쉽게 추가할 수 있습니다.</li>
+  <li><strong>예시</strong>: <code class="language-plaintext highlighter-rouge">Order Service</code>에서 발행하는 이벤트를 구독하는 새로운 서비스를 추가해도 기존 시스템에 영향이 없습니다.</li>
+</ul>
+
+<h2 id="2-2--요약">2-2. ✅ 요약</h2>
+
+<blockquote>
+  <p>Kafka 기반 이벤트 드리븐 아키텍처는 확장성, 유연성, 내결함성 등 여러 측면에서 유리합니다.</p>
+</blockquote>
+
+<h1 id="3-개선-과정-rest-api--kafka-기반-아키텍처로-전환">3. 개선 과정: REST API → Kafka 기반 아키텍처로 전환</h1>
+
+<h2 id="3-1-기존-구조-rest-api-기반">3-1. 기존 구조: REST API 기반</h2>
+
+<p><strong>Order -&gt; Payment -&gt; Delivery</strong> 흐름을 REST API로 처리하면 다음 과정들이 동기식으로 이루어집니다.</p>
+
+<ol>
+  <li>사용자가 주문 생성 요청 -&gt; <code class="language-plaintext highlighter-rouge">Order Service</code></li>
+  <li><code class="language-plaintext highlighter-rouge">Order Service</code>가 결제 요청 -&gt; <code class="language-plaintext highlighter-rouge">Payment Service</code></li>
+  <li>결제 성공 시 배송 요청 -&gt; <code class="language-plaintext highlighter-rouge">Delivery Service</code></li>
+</ol>
+
+<p>REST API 기반 방식의 문제점은 서비스 간 강한 결합으로 인해, 일부 과정 중 장애가 발생 시 전페 프로세스가 실패하게 됩니다. <strong>즉 전체 트랜잭션이 모든 서비스들의 성공 여부에 종속하게 됩니다.</strong></p>
+
+<h2 id="3-2-개선된-구조-kafka-이벤트-드리븐-기반">3-2. 개선된 구조: Kafka 이벤트 드리븐 기반</h2>
+
+<p>Kafka를 도입하여 각 단계에서 <strong>이벤트를 발행</strong>하고, <strong>필요한 서비스가 이를 구독</strong>하는 구조로 전환합니다.</p>
+
+<ol>
+  <li>사용자가 주문 생성 요청을 하면 <code class="language-plaintext highlighter-rouge">Order Service</code>는 <code class="language-plaintext highlighter-rouge">ORDER_CREATED</code> 이벤트를 Kafka에 발행합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Payment Service</code>가 주문 생성 메시지를 구독하여 결제 처리를 진행합니다.</li>
+  <li>결제 성공 시 <code class="language-plaintext highlighter-rouge">PAYMENT_COMPLETED</code> 결제 성공 이벤트를 발행합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Delivery Service</code>가 결제 성공 이벤트를 구독하여 배송 요청을 처리합니다.</li>
+</ol>
+
+<p>Kafka를 도입함으로써 비동기 처리로 인한 빠른 사용자 응답이 가능해집니다. 서비스 간 느슨한 결합과 Kafka의 내결함성 덕분에 장애 전파 영향도 최소화 됩니다. 그리고 각각의 서비스들이 독립적으로 배포가 가능하고, 신규 서비스 추가가 용이해집니다.</p>
+
+<h1 id="4--kafka-기반-이벤트-아키텍처-설계-시-고려사항">4. 🚨 Kafka 기반 이벤트 아키텍처 설계 시 고려사항</h1>
+
+<h2 id="메시지-중복-처리">메시지 중복 처리</h2>
+
+<ul>
+  <li>이벤트가 중복으로 전달될 수 있기 때문에, 수신자 측에 중복 방지 로직을 구현해야 합니다.</li>
+</ul>
+
+<h2 id="데이터-정합성">데이터 정합성</h2>
+
+<ul>
+  <li>비동기 구조로 인해 데이터 정합성이 깨질 수 있습니다.</li>
+  <li>해결책으로 <strong>Sage 패턴</strong> 또는 <strong>Outbox 패턴</strong>을 도입할 수 있습니다.</li>
+</ul>
+
+<h2 id="에러-핸들링-및-보상-트랜잭션">에러 핸들링 및 보상 트랜잭션</h2>
+
+<ul>
+  <li>특정 이벤트 처리 실패에 대해 비즈니스 실패 케이스를 처리하기 위한 <strong>보상 트랜잭션</strong> 설계가 필요합니다.</li>
+</ul>
+
+<h2 id="kafka-모니터링-및-운영">Kafka 모니터링 및 운영</h2>
+
+<ul>
+  <li>Kafka의 토픽, 메시지 적재량, Lag 등을 모니터링하여 적절한 대응을 할 수 있도록 해야 합니다.</li>
+  <li>Kafka가 SPOF(Single Point Of Failure)이 되지 않도록 멀티 클러스터로 운영할 필요가 있습니다.</li>
+</ul>
+
+<h1 id="5-추가로-공부하면-좋을-내용">5. 추가로 공부하면 좋을 내용</h1>
+
+<ul>
+  <li>Kafka의 <strong>At-Least-Once/Exactly-Once</strong> 보장 방식</li>
+  <li>Kafka 멀티 클러스터 구성</li>
+  <li>Saga 패턴과 보상 트랜잭션</li>
+</ul>
+
+<h1 id="6--정리">6. 💡 정리</h1>
+
+<ul>
+  <li>REST API 기반 동기식 통신은 초기에는 빠르게 개발 가능하지만, 확장성과 유연성 측면에서 한계가 존재합니다.</li>
+  <li>Kafka를 활용한 이벤트 드리븐 아키텍처는 서비스 간 결합도를 낮추고, 장애 격리 및 확장성 측면에서 뛰어난 이점을 제공합니다.</li>
+  <li>하지만, 이벤트 기반 시스템을 설계할 때는 중복 처리, 데이터 정합성, 에러 핸들링과 같은 추가적인 고려 사항을 반드시 신경써야 합니다.</li>
+</ul>
+
+<blockquote>
+  <p>궁극적으로 서비스 규모가 커질수록 Kafka 기반의 이벤트 드리븐 아키텍처는 성능과 유연성 측면에서 REST API 방식보다 장점이 많다고 볼 수 있습니다.</p>
+</blockquote>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="Kafka" /><category term="REST API" /><category term="Event-driven" /><summary type="html"><![CDATA[Kafka를 이용한 이벤트 드리븐 아키텍처의 마이크로서비스 통신에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Cloud Gateway와 JWT - 분산 시스템의 중앙집중식 인증</title><link href="http://localhost:4000/spring%20cloud/msa/2025/02/19/Spring-Cloud-Gateway-Security/" rel="alternate" type="text/html" title="Spring Cloud Gateway와 JWT - 분산 시스템의 중앙집중식 인증" /><published>2025-02-19T00:00:00+09:00</published><updated>2025-02-19T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/msa/2025/02/19/Spring-Cloud-Gateway-Security</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/msa/2025/02/19/Spring-Cloud-Gateway-Security/"><![CDATA[<blockquote>
+  <p>Spring Cloud Gateway와 JWT를 활용한 중앙 집중식 인증에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="들어가기">들어가기</h1>
+
+<p>분산 시스템에서 <code class="language-plaintext highlighter-rouge">JWT</code>와 같은 토큰 기반 인증을 사용하지 않는다면 어떻게 될까요?</p>
+
+<p>이번 포스트에서는 분산 시스템에서 Spring Cloud Gateway와 JWT 토큰 기반 인증을 사용의 이점에 대해 알아보는 시간을 갖도록 하겠습니다.</p>
+
+<h2 id="분산-시스템no-token--no-gateway">분산 시스템(No Token &amp; No Gateway)</h2>
+
+<p>우선, 분산 환경에서 API Gateway와 토큰 기반 인증 기술을 결합한 중앙집중식 인증 시스템을 도입하지 않는 경우 발생하는 문제점들에 대해 먼저 살펴보도록 하겠습니다.</p>
+
+<ol>
+  <li>
+    <p>중앙집중식 인증 시스템이 없다면, 각 서비스마다 별도의 인증/인가 로직을 구현해야 합니다. 이는 코드의 중복과 유지보수의 어려움이 발생할 수 있습니다.</p>
+  </li>
+  <li>
+    <p>토큰 대신 사용하는 세션 기반 인증 방식은 서버에 상태 정보를 저장해야 하기 때문에, 분산 환경에서의 서버 간 세션 동기화 문제가 발생할 수 있습니다. 이는 시스템 확장성에 어려움을 증가시킵니다.</p>
+  </li>
+</ol>
+
+<h2 id="분산-시스템gateway--token-기반">분산 시스템(Gateway + Token 기반)</h2>
+
+<p>그렇다면 Spring Cloud Gateway와 JWT 결합의 중앙 집중식 인증 시스템은 어떠한 장점이 있는지 살펴보겠습니다.</p>
+
+<ol>
+  <li>
+    <p>모든 요청에 대한 검사를 API Gateway에서 한 번에 수행할 수 있어, 개별 서비스마다 중복된 인증 로직을 구현할 필요가 없습니다. 이를 통해 보안 설정의 일관성이 확보되고, 유지보수가 용이해집니다.</p>
+  </li>
+  <li>
+    <p>JWT는 토큰 기반 인증 방식으로, 별도의 세션 관리를 하지 않고도 사용자 인증 정보를 안전하게 전달 할 수 있습니다. 이는 분산 시스템 환경에서 효율적인 리소스 사용과 확장성을 보장합니다.</p>
+  </li>
+</ol>
+
+<h1 id="예제-코드">예제 코드</h1>
+
+<p>이번에는 사이드 프로젝트에서 직접 Spring Cloud Gateway와 JWT를 결합한 인증 필터를 살펴보겠습니다.</p>
+
+<p>다음 코드는 <code class="language-plaintext highlighter-rouge">Spring Cloud Gateway</code> 에서 사용자 요청의 담겨 있는 <code class="language-plaintext highlighter-rouge">Authorization</code> 헤더의 <code class="language-plaintext highlighter-rouge">JWT</code> 토큰이 유효한지 검증하는 코드입니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Component</span>
+<span class="nd">@Slf4j</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">AuthorizationHeaderFilter</span> <span class="kd">extends</span> <span class="nc">AbstractGatewayFilterFactory</span><span class="o">&lt;</span><span class="nc">AuthorizationHeaderFilter</span><span class="o">.</span><span class="na">Config</span><span class="o">&gt;</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Config</span> <span class="o">{</span>
+    <span class="o">}</span>
+
+    <span class="kd">private</span> <span class="nc">Environment</span> <span class="n">env</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">AuthorizationHeaderFilter</span><span class="o">(</span><span class="nc">Environment</span> <span class="n">env</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="nc">Config</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">env</span> <span class="o">=</span> <span class="n">env</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">GatewayFilter</span> <span class="nf">apply</span><span class="o">(</span><span class="nc">Config</span> <span class="n">config</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="o">(</span><span class="n">exchange</span><span class="o">,</span> <span class="n">chain</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+
+            <span class="nc">ServerHttpRequest</span> <span class="n">request</span> <span class="o">=</span> <span class="n">exchange</span><span class="o">.</span><span class="na">getRequest</span><span class="o">();</span>
+
+            <span class="k">if</span> <span class="o">(!</span><span class="n">request</span><span class="o">.</span><span class="na">getHeaders</span><span class="o">().</span><span class="na">containsKey</span><span class="o">(</span><span class="nc">HttpHeaders</span><span class="o">.</span><span class="na">AUTHORIZATION</span><span class="o">))</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="nf">onError</span><span class="o">(</span><span class="n">exchange</span><span class="o">,</span> <span class="s">"Authorization header is missing"</span><span class="o">,</span> <span class="nc">HttpStatus</span><span class="o">.</span><span class="na">UNAUTHORIZED</span><span class="o">);</span>
+            <span class="o">}</span>
+
+            <span class="nc">String</span> <span class="n">authorizationHeader</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="na">getHeaders</span><span class="o">().</span><span class="na">get</span><span class="o">(</span><span class="nc">HttpHeaders</span><span class="o">.</span><span class="na">AUTHORIZATION</span><span class="o">).</span><span class="na">get</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+            <span class="nc">String</span> <span class="n">jwt</span> <span class="o">=</span> <span class="n">authorizationHeader</span><span class="o">.</span><span class="na">replace</span><span class="o">(</span><span class="s">"Bearer"</span><span class="o">,</span> <span class="s">""</span><span class="o">).</span><span class="na">trim</span><span class="o">();</span>
+
+            <span class="k">if</span> <span class="o">(</span><span class="n">isNotValidJwt</span><span class="o">(</span><span class="n">jwt</span><span class="o">))</span> <span class="o">{</span>
+                <span class="k">return</span> <span class="nf">onError</span><span class="o">(</span><span class="n">exchange</span><span class="o">,</span> <span class="s">"JWT is not valid"</span><span class="o">,</span> <span class="nc">HttpStatus</span><span class="o">.</span><span class="na">UNAUTHORIZED</span><span class="o">);</span>
+            <span class="o">}</span>
+
+            <span class="k">return</span> <span class="n">chain</span><span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="n">exchange</span><span class="o">);</span>
+        <span class="o">};</span>
+    <span class="o">}</span>
+
+    <span class="c1">// WebFlux method to handle errors</span>
+    <span class="kd">private</span> <span class="nc">Mono</span><span class="o">&lt;</span><span class="nc">Void</span><span class="o">&gt;</span> <span class="nf">onError</span><span class="o">(</span><span class="nc">ServerWebExchange</span> <span class="n">exchange</span><span class="o">,</span> <span class="nc">String</span> <span class="n">err</span><span class="o">,</span> <span class="nc">HttpStatus</span> <span class="n">httpStatus</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">exchange</span><span class="o">.</span><span class="na">getResponse</span><span class="o">().</span><span class="na">setStatusCode</span><span class="o">(</span><span class="n">httpStatus</span><span class="o">);</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">err</span><span class="o">);</span>
+        <span class="k">return</span> <span class="n">exchange</span><span class="o">.</span><span class="na">getResponse</span><span class="o">().</span><span class="na">setComplete</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="kd">private</span> <span class="kt">boolean</span> <span class="nf">isNotValidJwt</span><span class="o">(</span><span class="nc">String</span> <span class="n">jwt</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kt">boolean</span> <span class="n">returnValue</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+
+        <span class="nc">String</span> <span class="n">secretKey</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="na">getProperty</span><span class="o">(</span><span class="s">"token.secret"</span><span class="o">);</span>
+        <span class="kt">byte</span><span class="o">[]</span> <span class="n">keyBytes</span> <span class="o">=</span> <span class="nc">Base64</span><span class="o">.</span><span class="na">getDecoder</span><span class="o">().</span><span class="na">decode</span><span class="o">(</span><span class="n">secretKey</span><span class="o">);</span>
+        <span class="nc">SecretKey</span> <span class="n">key</span> <span class="o">=</span> <span class="nc">Keys</span><span class="o">.</span><span class="na">hmacShaKeyFor</span><span class="o">(</span><span class="n">keyBytes</span><span class="o">);</span>
+
+        <span class="nc">String</span> <span class="n">subject</span> <span class="o">=</span> <span class="nc">Jwts</span><span class="o">.</span><span class="na">parser</span><span class="o">()</span>
+                <span class="o">.</span><span class="na">setSigningKey</span><span class="o">(</span><span class="n">key</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">build</span><span class="o">()</span>
+                <span class="o">.</span><span class="na">parseClaimsJws</span><span class="o">(</span><span class="n">jwt</span><span class="o">)</span>
+                <span class="o">.</span><span class="na">getBody</span><span class="o">()</span>
+                <span class="o">.</span><span class="na">getSubject</span><span class="o">();</span>
+
+        <span class="k">if</span> <span class="o">(</span><span class="n">subject</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="n">subject</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+            <span class="n">returnValue</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="n">returnValue</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li>위 코드처럼 Gateway에서 모든 요청에 대한 인증을 한 번에 처리함으로써 보안 관리가 용이해집니다.</li>
+  <li>그리고 각 서비스에서 별도의 세션 관리를 하지 않아도 됩니다.</li>
+  <li>인증/인가 로직을 게이트웨이에서 처리하므로 각 백엔드 서비스의 중복된 코드를 줄일 수 있습니다.</li>
+</ul>
+
+<p>이처럼 Spring Cloud Gateway와 JWT 인증의 결합은 복잡한 분산 환경에서 안정적이고 효율적인 인증/인가를 가능하게 해줍니다.</p>
+
+<h1 id="추가로-고려해볼-만한-내용">추가로 고려해볼 만한 내용</h1>
+
+<ul>
+  <li>JWT 사용 시 발생할 수 있는 보안 이슈와 이에 대한 대응 방법</li>
+</ul>
+
+<h1 id="요약">요약</h1>
+<p>Spring Cloud Gateway와 JWT 결합 사용의 이유 및 기대 효과는 다음과 같습니다.</p>
+
+<ul>
+  <li>중앙 집중식 보안 관리로 유지보수가 용이</li>
+  <li>분산 환경에 적합한 <code class="language-plaintext highlighter-rouge">stateless</code> 인증 방식</li>
+  <li>확장성과 유연성 확보</li>
+  <li>효율적인 리소스 사용</li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="JWT" /><category term="Spring Cloud Gateway" /><summary type="html"><![CDATA[Spring Cloud Gateway와 JWT를 활용한 중앙 집중식 인증에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Cloud Gateway를 활용한 API Gateway 구축</title><link href="http://localhost:4000/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/" rel="alternate" type="text/html" title="Spring Cloud Gateway를 활용한 API Gateway 구축" /><published>2025-02-18T00:00:00+09:00</published><updated>2025-02-18T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/"><![CDATA[<blockquote>
+  <p>Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<h2 id="gateway란-무엇인가">Gateway란 무엇인가?</h2>
+
+<p>Gateway는 클라이언트와 내부 시스템(ex: 마이크로서비스) 간의 <strong>단일 진입점 역할</strong>을 하는 미들 웨어입니다.</p>
+
+<p>모든 외부 요청은 먼저 Gateway를 통해 들어오며, 이곳에서 <strong>인증, 인가, 로깅, 모니터링 등 공통 기능을 처리</strong>한 후 적절한 내부 서비스로 요청을 전달합니다.</p>
+
+<p>이를 통해 <strong>개별 서비스는 본연의 비즈니스 로직에 집중</strong>할 수 있게 됩니다.</p>
+
+<h2 id="왜-spring-cloud-gateway를-사용해야-할까">왜 Spring Cloud Gateway를 사용해야 할까?</h2>
+
+<ol>
+  <li>
+    <p>Spring Cloud Gateway는 Spring Boot, Spring Security 등과 자연스럽게 연동되므로, 기존 Spring 기반 시스템에 쉽게 도입할 수 있습니다.</p>
+  </li>
+  <li>
+    <p><strong>Netty</strong> 기반의 <code class="language-plaintext highlighter-rouge">Spring Cloud Gateway</code>는 비동기, 논블로킹 방식으로 동작하여 높은 동시성 처리가 가능하며, 성능과 확장성 면에서 우수합니다.</p>
+  </li>
+  <li>
+    <p><code class="language-plaintext highlighter-rouge">application.yml</code> 설정 파일에 <strong>선언적</strong> 설정을 통해 <strong>쉽게 라우팅 규칙을 정의하고, 전/후 처리 필터를 적용</strong>할 수 있습니다. 이는 다양한 요구사항에 맞춰 Gateway를 유연하게 구성할 수 있게 해줍니다.</p>
+  </li>
+</ol>
+
+<p>이와 같이 Spring Cloud Gateway는 Spring 생태계와의 원활한 통합을 지원하며, 마이크로서비스 환경에서 발생할 수 있는 다양한 문제(코드 중복, 보안 취약점, 성능 및 확장성 문제 등)를 효과적으로 해결해줍니다.</p>
+
+<h1 id="기본-라우팅-설정">기본 라우팅 설정</h1>
+
+<p>application.yml 파일에 선언적 라우팅 설정을 통해, 요청 URL에 따라 내부 서비스로 요청을 전달합니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">gateway</span><span class="pi">:</span>
+      <span class="na">routes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">user-service</span>
+          <span class="na">uri</span><span class="pi">:</span> <span class="s">http://localhost:8080</span> <span class="c1"># lb://USER-SERVICE</span>
+          <span class="na">predicates</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">Path=/user-service/test/**</span>
+            <span class="pi">-</span> <span class="s">Method=GET</span>
+</code></pre></div></div>
+
+<ul>
+  <li>위 게이트웨이 라우팅 설정은 HTTP 메서드가 <code class="language-plaintext highlighter-rouge">GET</code> 요청이고, 경로가 <code class="language-plaintext highlighter-rouge">/user-service/test/**</code>에 매칭되는 경우 <code class="language-plaintext highlighter-rouge">http://localhost:8080</code> 에서 실행중인 <code class="language-plaintext highlighter-rouge">user-service</code> 로 라우팅해줍니다.</li>
+  <li>만약 디스커버리 서비스인 Eureka를 사용한다면, 라우팅 URI를 <code class="language-plaintext highlighter-rouge">lb://USER-SERVICE</code> 처럼 서비스 이름으로 작성할 수 있습니다. (<code class="language-plaintext highlighter-rouge">lb://{application.name}</code>)</li>
+</ul>
+
+<h1 id="전역-필터">전역 필터</h1>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">gateway</span><span class="pi">:</span>
+      <span class="na">default-filters</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MyGlobalFilter</span>
+          <span class="na">args</span><span class="pi">:</span>
+            <span class="na">preFilter</span><span class="pi">:</span> <span class="no">true</span>
+            <span class="na">postFilter</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">spring.cloud.gateway.default-filters</code>: 전역 필터 클래스를 지정해줄 수 있습니다. 이때 필터 객체에 인수(<code class="language-plaintext highlighter-rouge">args</code>)를 전달해줄 수 있습니다.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">name</code>: 전역 필터 클래스명</li>
+      <li><code class="language-plaintext highlighter-rouge">args</code>: 명시된 인수값들이 전역 필터 내부의 중첩 클래스인 <code class="language-plaintext highlighter-rouge">Config</code>와 매핑된 후, 필터 기능을 하는 <code class="language-plaintext highlighter-rouge">apply</code> 메서드의 인자로 전달됩니다. (코드를 보면 쉽게 이해하실 수 있을 겁니다.)</li>
+    </ul>
+  </li>
+  <li>💡 참고로 필터에 인자 값을 전달하려면 필터에 <code class="language-plaintext highlighter-rouge">name</code> 속성값을 적용해야 합니다. 그 다음 아랫줄에 <code class="language-plaintext highlighter-rouge">args</code> 를 작성하면 됩니다.</li>
+</ul>
+
+<h2 id="myglobalfilter">MyGlobalFilter</h2>
+
+<p>Spring Cloud Gateway에서 동작하는 필터 클래스는 만들기 위해서는 <code class="language-plaintext highlighter-rouge">AbstractGatewayFilterFactory</code>를 상속하고 <code class="language-plaintext highlighter-rouge">apply</code> 메서드를 오버라이딩 해줘야 합니다.</p>
+
+<p>그리고, <code class="language-plaintext highlighter-rouge">args</code>를 전달 받을 중첩 클래스(<code class="language-plaintext highlighter-rouge">MyGlobalFilter.Config</code>)를 부모 클래스의 제네릭으로 전달 해줍니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Slf4j</span>
+<span class="nd">@Component</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyGlobalFilter</span> <span class="kd">extends</span> <span class="nc">AbstractGatewayFilterFactory</span><span class="o">&lt;</span><span class="nc">MyGlobalFilter</span><span class="o">.</span><span class="na">Config</span><span class="o">&gt;</span> <span class="o">{</span>
+
+    <span class="kd">public</span> <span class="nf">MyGlobalFilter</span><span class="o">()</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="nc">Config</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">GatewayFilter</span> <span class="nf">apply</span><span class="o">(</span><span class="nc">Config</span> <span class="n">config</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="o">(</span><span class="n">exchange</span><span class="o">,</span> <span class="n">chain</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+            <span class="c1">// Pre Filter</span>
+            <span class="k">if</span> <span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">isPreFilter</span><span class="o">())</span> <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Global Pre Filter executed"</span><span class="o">);</span>
+
+            <span class="c1">// Post Filter</span>
+            <span class="k">return</span> <span class="n">chain</span><span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="n">exchange</span><span class="o">).</span><span class="na">then</span><span class="o">(</span><span class="nc">Mono</span><span class="o">.</span><span class="na">fromRunnable</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">isPostFilter</span><span class="o">())</span> <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Global Post Filter executed"</span><span class="o">);</span>
+            <span class="o">}));</span>
+        <span class="o">};</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Data</span>
+    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Config</span> <span class="o">{</span>
+        <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">preFilter</span><span class="o">;</span>
+        <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">postFilter</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">MyGlobalFilter</code> 클래스 내부의 중첩 클래스인 <code class="language-plaintext highlighter-rouge">Config</code> 객체에 <code class="language-plaintext highlighter-rouge">application.yml</code> 에서 설정한 <code class="language-plaintext highlighter-rouge">args</code> 를 전달받게 됩니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">apply</code> 메서드 내부에서 <code class="language-plaintext highlighter-rouge">return</code> <strong>전 영역은 PreFilter</strong> 이고, <code class="language-plaintext highlighter-rouge">return</code> <strong>구문은 PostFilter 영역</strong>입니다.</li>
+  <li>요청을 라우팅 하기 전에 PreFilter가 동작하고, 요청된 라우팅이 마이크로서비스에서 처리를 마친 후 응답이 돌아오면 그제서야 PostFilter가 동작합니다.</li>
+</ul>
+
+<h1 id="custom-filter">Custom Filter</h1>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">gateway</span><span class="pi">:</span>
+      <span class="na">default-filters</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MyGlobalFilter</span>
+          <span class="na">args</span><span class="pi">:</span>
+            <span class="na">preFilter</span><span class="pi">:</span> <span class="no">true</span>
+            <span class="na">postFilter</span><span class="pi">:</span> <span class="no">true</span>
+      <span class="na">routes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">user-service</span>
+          <span class="na">uri</span><span class="pi">:</span> <span class="s">http://localhost:8080</span>
+          <span class="na">predicates</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">Path=/user-service/**</span>
+          <span class="na">filters</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">RemoveRequestHeader=Cookie</span>
+            <span class="pi">-</span> <span class="s">RewritePath=/user-service/(?&lt;segment&gt;.*), /$\{segment}</span>
+            <span class="pi">-</span> <span class="err">`</span><span class="s">MyCustomFilter`</span>
+            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MyLoggingFilter</span>
+              <span class="na">args</span><span class="pi">:</span>
+                <span class="na">baseMessage</span><span class="pi">:</span> <span class="s">MyLoggingFilter start</span>
+                <span class="na">preLogger</span><span class="pi">:</span> <span class="no">true</span>
+                <span class="na">postLogger</span><span class="pi">:</span> <span class="no">true</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">spring.cloud.gateway.routes.filters</code>: 해당 속성에 선언된 필터들은 라우팅 조건을 만족하는 요청에 대해서만 필터가 작동합니다. 즉, 다른 라우팅 조건을 만족하는 요청에 대해선 필터가 동작하지 않습니다.
+    <ul>
+      <li>예를 들어, 위 설정에서는 uri가 <code class="language-plaintext highlighter-rouge">http://localhost:8080</code> 이고, path(경로)가 <code class="language-plaintext highlighter-rouge">/user-service/**</code> 에 매칭되는 요청에 대해서만 <code class="language-plaintext highlighter-rouge">filters</code> 들이 적용됩니다.</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">RemoveRequestHeader</code>, <code class="language-plaintext highlighter-rouge">RewritePath</code>와 같이 기본적으로 스프링에서 지원하는 선언적 설정도 존재하고, <code class="language-plaintext highlighter-rouge">MyCustomFilter</code>, <code class="language-plaintext highlighter-rouge">MyLoggingFilter</code>와 같이 개발자가 정의한 커스텀 필터를 지정할 수도 있습니다.</li>
+</ul>
+
+<blockquote>
+  <p>✅ 설정 파일(application.yml) 내에서 나열된 라우트(route)나 각 라우트에 정의된 필터(filters)는 선언한 순서(위에서 아래)대로 처리되는 것이 일반적입니다. 즉, 별도의 order 속성을 지정하지 않는 경우에는 위에서 아래로 우선순위가 적용됩니다.</p>
+</blockquote>
+
+<h1 id="discovery-service와-spring-cloud-gateway">Discovery Service와 Spring Cloud Gateway</h1>
+
+<p>Spring Cloud Netflix Eureka를 사용 환경이라면, Spring Cloud Gateway는 <strong>로드밸런서</strong>의 역할도 수행할 수 있습니다.</p>
+
+<p>앞서 살펴봤던 <code class="language-plaintext highlighter-rouge">user-service</code> 의 Uri 경로를 <code class="language-plaintext highlighter-rouge">lb://USER-SERVICE</code> 처럼 애플리케이션 네임을 적어주면 디스커버리 서비스로부터 해당 서비스의 위치를 탐색하여 로드밸런싱 할 수 있습니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">gateway</span><span class="pi">:</span>
+      <span class="na">routes</span><span class="pi">:</span>
+        <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">user-service</span>
+          <span class="na">uri</span><span class="pi">:</span> <span class="s">lb://USER-SERVICE</span>
+          <span class="na">predicates</span><span class="pi">:</span>
+            <span class="pi">-</span> <span class="s">Path=/user-service/test/**</span>
+            <span class="pi">-</span> <span class="s">Method=GET</span>
+</code></pre></div></div>
+
+<p>이때, 만약 user-service 의 인스턴스가 다중화 되어 있다면, Spring Cloud Gateway는 라운드 로빈(Round Robin) 알고리즘으로 로드밸런싱을 처리하게 됩니다. 이와 같이 <strong>Spring Cloud Gateway는 단순한 API 게이트웨이 기능을 넘어, 서비스 디스커버리와 통합되어 여러 인스턴스 간의 로드밸런싱 기능을 제공</strong>합니다.</p>
+
+<p>따라서 시스템의 부하를 효과적으로 분산시켜, 서비스의 가용성과 안정성을 높여주고 마이크로서비스 아키텍처에서의 운영 효율성을 크게 향상시켜 줍니다.</p>
+
+<h1 id="-요약">🎯 요약</h1>
+
+<ul>
+  <li>클라이언트와 내부 시스템 간의 단일 진입점 역할을 수행하며, 인증, 인가, 로깅, 모니터링 등 공통 기능을 중앙집중적으로 처리.</li>
+  <li>Spring 생태계와의 원활한 통합, Netty 기반의 비동기 논블로킹 처리, 선언적 설정을 통한 유연한 라우팅 및 필터 관리 등으로 높은 성능과 확장성을 제공.</li>
+  <li>Spring Cloud Netflix Eureka와 연동하여, <code class="language-plaintext highlighter-rouge">lb://</code> 접두사를 사용함으로써 동적 로드밸런싱(라운드 로빈 알고리즘)을 수행, 여러 인스턴스 간의 부하 분산과 시스템 안정성을 확보</li>
+</ul>
+
+<h1 id="-참고-자료">📂 참고 자료</h1>
+
+<ul>
+  <li><a href="https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway/how-it-works.html">Spring Cloud Gateway Docs</a></li>
+  <li><a href="https://en.wikipedia.org/wiki/Netty_(software)">Netty</a></li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="Spring Cloud Gateway" /><summary type="html"><![CDATA[Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리</title><link href="http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/" rel="alternate" type="text/html" title="Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리" /><published>2025-02-17T00:00:00+09:00</published><updated>2025-02-17T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/"><![CDATA[<blockquote>
+  <p>분산 환경에서 각 마이크로서비스가 Config Server로부터 설정 파일을 읽어오는 방법을 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">📌 들어가기</h1>
+
+<p>이전에 Spring Cloud Config Server에 관한 내용을 다룬 포스트가 있습니다.</p>
+
+<p>이번 포스트에서는 Config Server를 사용하는 환경에서, <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code>와 <code class="language-plaintext highlighter-rouge">Spring boot Actuator</code>를 이용하여 애플리케이션을 재시작하지 않고도 설정 변경을 실시간으로 반영하는 방법에 대해 탐구해보겠습니다!</p>
+
+<h2 id="실시간-설정-변경이-왜-중요한가">실시간 설정 변경이 왜 중요한가?</h2>
+
+<p>분산된 마이크로서비스 환경에서는 각각의 서비스가 개별적으로 재시작 없이 설정을 업데이트해야 운영 효율성이 높아집니다.</p>
+
+<p>동적 설정 변경을 통해 서비스 중단 없이 빠르게 환경 변화에 대응할 수 있기 때문입니다.</p>
+
+<p>이로 인해 설정 값들의 일관성을 쉽게 유지할 수 있게 됩니다.</p>
+
+<h2 id="해당-기술이-없다면">해당 기술이 없다면?</h2>
+
+<p>설정을 변경할 때마다 각 서비스마다 재시작해야 하는 번거로움이 존재합니다. 이 과정에서 오타나, 잘못된 값이 설정된다면 또 다시 재시작 과정을 반복해야 하죠.</p>
+
+<p>또한 변경 사항이 즉각적으로 반영되지 않기 때문에(재시작으로 인해), 설정 불일치로 인한 오류가 발생할 수 있습니다.</p>
+
+<p>마지막으로, 분산 환경에서 개별적으로 설정을 관리하게 된다면 유지보수의 비용이 크게 증가할 것입니다.</p>
+
+<blockquote>
+  <p>Config Server를 사용한다면 애플리케이션을 재시작하지 않고도 설정 변경을 실시간으로 반영할 수 있도록 지원하는 Spring Cloud Bus, Spring Boot Actuator 기술 도입이 필수라고 생각합니다.</p>
+</blockquote>
+
+<h1 id="마이크로서비스와-config-server-연동하기">마이크로서비스와 Config Server 연동하기</h1>
+
+<p>클라이언트(마이크로서비스)는 Config Server에서 설정 파일을 읽어올 수 있어야 하기 때문에, Config Server와 연결을 진행해야 합니다.</p>
+
+<h2 id="dependency">Dependency</h2>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.cloud:spring-cloud-starter-config'</span>
+<span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Config Server와 연결을 위해 <code class="language-plaintext highlighter-rouge">spring-cloud-starter-config</code> 의존성을 추가해줍니다.</li>
+  <li>Config Server에게 설정 파일 조회 또는 갱신 요청을 위해 <code class="language-plaintext highlighter-rouge">actuator</code> 의존성을 추가해줍니다.</li>
+  <li>actuator의 엔드포인트로 <code class="language-plaintext highlighter-rouge">/refresh</code>, <code class="language-plaintext highlighter-rouge">/busrefresh</code> 를 사용할 예정입니다.</li>
+</ul>
+
+<h2 id="applicationyml">application.yml</h2>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">config</span><span class="pi">:</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="c1"># 읽어올 파일명</span>
+  <span class="na">config</span><span class="pi">:</span>
+    <span class="na">import</span><span class="pi">:</span> <span class="s">optional:configserver:http://localhost:8888</span>
+  <span class="na">profiles</span><span class="pi">:</span>
+    <span class="na">active</span><span class="pi">:</span> <span class="c1"># 프로파일명</span>
+    
+<span class="na">management</span><span class="pi">:</span>
+  <span class="na">endpoints</span><span class="pi">:</span>
+    <span class="na">web</span><span class="pi">:</span>
+      <span class="na">exposure</span><span class="pi">:</span>
+        <span class="na">include</span><span class="pi">:</span> <span class="s">refresh, busrefresh</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">spring.cloud.config.name</code>: Config Server로 부터 읽어올 파일명을 지정해줍니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">spring.config.import</code>: Config Server 연결 URL을 지정해줍니다. (로컬 테스트: Config Server가 port 번호 8888로 실행 가정)</li>
+  <li><code class="language-plaintext highlighter-rouge">spring.profiles.active</code>: 읽어올 파일의 프로파일을 지정할 수 있습니다. (기본 프로파일: <code class="language-plaintext highlighter-rouge">default</code>)</li>
+  <li><code class="language-plaintext highlighter-rouge">management.endpoints.web.exposure.include</code>: actuator에서 활성화시킬 엔드포인트 입니다.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">/refresh</code>: 개별 클라이언트만 설정을 갱신합니다.</li>
+      <li><code class="language-plaintext highlighter-rouge">/busrefresh</code>: Bus(RabbitMQ 또는 Kafka)에 연결된 모든 클라이언트의 설정을 갱신합니다.</li>
+    </ul>
+  </li>
+</ul>
+
+<p>여기까지 설정을 마치면, <code class="language-plaintext highlighter-rouge">/refresh</code> 엔드포인트 요청으로 Config Server로 부터 설정 파일을 읽어와서 클라이언트의 설정을 동적으로 실시간 변경할 수 있게 됩니다.</p>
+
+<p>하지만, 이것은 개별 클라이언트에만 변화가 생깁니다.</p>
+
+<p>만약 변경된 설정 값을 여러 마이크로서비스들에게 공통적으로 동시에 적용하고 싶다면 어떡해야 할까요?</p>
+
+<p>개별 클라이언트마다 <code class="language-plaintext highlighter-rouge">/refresh</code> 요청을 날려야 할까요? (아마도 매우 번거롭고 귀찮은 작업일 것입니다.)</p>
+
+<p>이럴 때 사용하는 것이 <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code> 입니다.</p>
+
+<h1 id="spring-cloud-bus란">Spring Cloud Bus란?</h1>
+
+<p><code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code>는 <strong>메시지 브로커(RabbitMQ, Kafka 등)를 이용해 여러 마이크로서비스 간에 설정 변경 이벤트를 실시간으로 전파</strong>합니다.</p>
+
+<p>이제 <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code> 도 추가 설정하여 동시에 여러 마이크로서비스들의 설정 값들을 실시간으로 반영하도록 해봅시다.</p>
+
+<p>Bus 작동 테스트를 위해 <strong>RabbitMQ</strong>와 <strong>Kafka</strong> 두 개를 이용하여 테스트를 진행해봤습니다.</p>
+
+<p>두 메시지 브로커 모두 Bus를 쉽게 구성할 수 있었습니다.</p>
+
+<p>하지만 백엔드 개발자라면, 기술을 채택하는 데 있어 근거를 가지고 있어야겠죠?</p>
+
+<p>결과적으로 저는 개인 사이드 프로젝트를 위해 Kafka를 적용하긴 했습니다만, 두 메시지 브로커 설정 방식에 대해 모두 설명 해드리겠습니다.</p>
+
+<h2 id="bus로-사용하기-적합한-메시지-브로커">Bus로 사용하기 적합한 메시지 브로커?</h2>
+
+<p>설정 방식을 알아보기 전에, Spring Cloud Bus의 메시지 브로커로 RabbitMQ와 Kafka를 선택할 때 고려할 수 있는 장단점을 비교해보겠습니다.</p>
+
+<h3 id="rabbitmq">RabbitMQ</h3>
+
+<p><strong>장점</strong></p>
+
+<ul>
+  <li>비교적 간단하게 설치 및 운영할 수 있으며, 관리 UI도 직관적입니다.</li>
+  <li>AMQP를 기반으로 하여 Pub/Sub, Work Queue, RPC 등 다양한 패턴을 쉽게 구현할 수 있는 <strong>유연한 메시징 패턴</strong>을 제공합니다.</li>
+  <li>일반적인 애플리케이션 환경에서는 충분한 성능을 제공하며, <strong>소규모 시스템에 적합합니다.</strong></li>
+</ul>
+
+<p><strong>단점</strong></p>
+
+<ul>
+  <li>대용량 데이터 처리에는 적합하지 않습니다.</li>
+  <li>Kafka에 비해 수평 클러스터 확장성이 떨어집니다.</li>
+</ul>
+
+<h3 id="kafka">Kafka</h3>
+
+<p><strong>장점</strong></p>
+
+<ul>
+  <li><strong>대용량 메시지를 빠르게 처리</strong>할 수 잇으며, <strong>클러스터 확장이 용이</strong>합니다.</li>
+  <li>메시지를 디스크에 지속적으로 저장하여 <strong>내구성을 제공</strong>합니다.</li>
+  <li><strong>스트리밍 데이터 처리에 최적화</strong>되어 있습니다.</li>
+</ul>
+
+<p><strong>단점</strong></p>
+
+<ul>
+  <li>초기 설정과 운영 및 모니터링이 RabbitMQ보다 복잡합니다.</li>
+  <li>메시지 시스템의 개념과 운영 전략에 대한 Kafka 학습 비용이 필요합니다.</li>
+  <li>단순한 시스템에 도입하기에는 오버엔지니어링이 될 수 있습니다.</li>
+</ul>
+
+<h3 id="선택-기준-정리">선택 기준 정리</h3>
+
+<ul>
+  <li>소규모 시스템이나 간단한 메시징 패턴이 필요하다면 <strong>RabbitMQ</strong>가 빠르고 쉽게 도입할 수 있는 선택입니다.</li>
+  <li>대규모 분산 환경이나 높은 처리량, 내구성이 요구되는 경우에는 <strong>Kafka</strong>가 적합합니다.</li>
+</ul>
+
+<p>두 메시지 브로커 모두 Spring Cloud Bus를 활용한 동적 설정 변경을 지원하므로, 시스템 규모와 메시지 처리량, 확장성을 고려하여 적절한 브로커를 선택하시면 됩니다.</p>
+
+<hr />
+
+<h1 id="spring-cloud-bus-설정">Spring Cloud Bus 설정</h1>
+
+<h2 id="kafka를-이용한-bus">Kafka를 이용한 Bus</h2>
+
+<h3 id="dependency-1">Dependency</h3>
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.cloud:spring-cloud-starter-bus-kafka'</span>
+</code></pre></div></div>
+<ul>
+  <li>클라이언트가 Kafka를 통해 Bus 이벤트를 수신 및 발신할 수 있도록 의존성 추가해줍니다.</li>
+</ul>
+
+<h3 id="클라이언트-applicationyml">클라이언트 application.yml</h3>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">kafka</span><span class="pi">:</span>
+    <span class="na">bootstrap-servers</span><span class="pi">:</span> <span class="s">http://localhost:9092</span> <span class="c1"># Kafka URL</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">bus</span><span class="pi">:</span>
+      <span class="na">destination</span><span class="pi">:</span> <span class="s">bus-topic</span> <span class="c1"># Bus 이벤트를 주고받을 토픽</span>
+</code></pre></div></div>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">spring.kafka.bootstrap-servers</code>: Bus로 이용할 Kafka 브로커 서버의 URL (클러스터링이 된 경우 <code class="language-plaintext highlighter-rouge">,</code>를 기준으로 여러 브로커 URL을 명시하면 됩니다.)</li>
+  <li><code class="language-plaintext highlighter-rouge">spring.cloud.bus.destination</code>: Bus 이벤트를 Pub/Sub 할 토픽을 명시해줍니다.</li>
+  <li>⚠️ 위 설정은 <strong>Config Server도 마찬가지로 동일하게 설정</strong>되어 있어야 합니다!</li>
+</ul>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">management</span><span class="pi">:</span>
+  <span class="na">endpoints</span><span class="pi">:</span>
+    <span class="na">web</span><span class="pi">:</span>
+      <span class="na">exposure</span><span class="pi">:</span>
+        <span class="na">include</span><span class="pi">:</span> <span class="s">refresh, busrefresh</span>
+</code></pre></div></div>
+<ul>
+  <li>클라이언트의 <code class="language-plaintext highlighter-rouge">actuator</code> 엔드포인트 <code class="language-plaintext highlighter-rouge">/busrefresh</code>를 이용하면 메시지 브로커의 설정된 토픽으로 이벤트가 발송됩니다.</li>
+  <li>해당 토픽을 Consume(소비/구독)하는 클라이언트들은 모두 Config Server로 부터 설정 파일의 갱신을 요청하게 됩니다.</li>
+  <li>이로써 동시에 여러 마이크로서비스들의 설정 값을 실시간으로 업데이트 할 수 있게 됩니다.</li>
+</ul>
+
+<h2 id="busrefresh">/busrefresh</h2>
+
+<figure align="center">
+<img src="/post_images/spring-cloud-side-project/config-server3.png" />
+<figcaption>/busrefresh 성공 응답으로 204(no-content) 응답이 옵니다.</figcaption>
+</figure>
+
+<h2 id="bus-topic-log">bus topic Log</h2>
+
+<p><code class="language-plaintext highlighter-rouge">/busrefresh</code> 이벤트가 발생하여 Kafka 토픽에 메시지가 도달하면 아래와 같은 <strong>JSON 포맷</strong>으로 기록되는 것을 확인하실 수 있습니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">type</code> 필드와 <code class="language-plaintext highlighter-rouge">originService</code> 를 살펴보면 어떤 클라이언트에서 이벤트를 발송했고, 어떤 클라이언트가 이벤트를 수신했는지 확인할 수 있습니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">type</code>: 어떤 클라이언트에서 <code class="language-plaintext highlighter-rouge">/busrefresh</code> 요청이 발생했고, 어디서 그 이벤트를 수신했는지 확인할 수 있습니다.
+    <ul>
+      <li><code class="language-plaintext highlighter-rouge">RefreshRemoteApplicationEvent</code>: <code class="language-plaintext highlighter-rouge">/busrefresh</code>를 호출한 이벤트입니다.</li>
+      <li><code class="language-plaintext highlighter-rouge">AckRemoteApplicationEvent</code>: <code class="language-plaintext highlighter-rouge">/busrefresh</code> 요청을 수신했다는 응답 이벤트입니다.</li>
+    </ul>
+  </li>
+  <li><code class="language-plaintext highlighter-rouge">originService</code>: 이벤트를 처리한 클라이언트(마이크로서비스)의 애플리케이션 이름 정보가 담겨있습니다.</li>
+</ul>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">[</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RefreshRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394015516</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"order-service:default:8082:48ea6afcb8f6479b592a8cf041d2927b"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394015600</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"order-service:default:8082:48ea6afcb8f6479b592a8cf041d2927b"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"f7c31aa1-a1df-4952-9e6c-a2ddd51c65f9"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394018002</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"config-service:8888:5cadfc3cecb50346571c4e594886d273"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ce0d38d8-bd5a-43ce-b9cf-ea96456265d1"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394021382</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"user-service:default:8080:4938cf08c833b263a04aa56c247721d3"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5bb5898f-a570-475d-b6c6-3efa7516b4b6"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"AckRemoteApplicationEvent"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"timestamp"</span><span class="p">:</span><span class="w"> </span><span class="mi">1738394022065</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"originService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"product-service:8081:2dc75521f12081519f46be8f3441ee00"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"destinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"949d77da-9861-4066-8aca-b9b3aaacb678"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"d52e5139-9137-4371-8da9-f5152a3ed8f0"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"ackDestinationService"</span><span class="p">:</span><span class="w"> </span><span class="s2">"**"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"event"</span><span class="p">:</span><span class="w"> </span><span class="s2">"org.springframework.cloud.bus.event.RefreshRemoteApplicationEvent"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">]</span><span class="w">
+</span></code></pre></div></div>
+
+<ul>
+  <li>위 Json 파일을 살펴보면, <code class="language-plaintext highlighter-rouge">order-service</code>에서 <code class="language-plaintext highlighter-rouge">/busrefresh</code>를 호출한 것을 알 수 있습니다.</li>
+  <li>그리고 <code class="language-plaintext highlighter-rouge">order-service</code>, <code class="language-plaintext highlighter-rouge">config-service</code>, <code class="language-plaintext highlighter-rouge">user-service</code>, <code class="language-plaintext highlighter-rouge">product-service</code> 가 확인 응답을 하여, 설정 파일이 갱신되었다는 것을 알 수 있습니다.</li>
+</ul>
+
+<blockquote>
+  <p>참고로 Kafka는 도커 이미지를 이용하여 구동하였습니다. 이번 포스트는 Kafka에 대한 포스트가 아니므로, Kafka 도커 실행에 대한 내용은 생략하도록 하겠습니다.</p>
+</blockquote>
+
+<p>여기까지 Kafka를 이용한 Spring Cloud Bus 를 알아보았습니다.</p>
+
+<h2 id="rabbitmq를-이용한-bus">RabbitMQ를 이용한 Bus</h2>
+
+<p>이번에는 RabbitMQ를 이용한 Spring Cloud Bus 설정 방법을 알아보겠습니다.</p>
+
+<p>동작 흐름은 Kafka와 동일하기 때문에, RabbitMQ는 설정법만 간단히 짚고 넘어가도록 하겠습니다.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">user-service</span>
+  <span class="na">config</span><span class="pi">:</span>
+    <span class="na">import</span><span class="pi">:</span> <span class="s">optional:configserver:http://localhost:8888</span>
+  <span class="na">profiles</span><span class="pi">:</span>
+    <span class="na">active</span><span class="pi">:</span> <span class="s">default</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">config</span><span class="pi">:</span>
+      <span class="na">name</span><span class="pi">:</span> <span class="s">test</span>
+  <span class="na">rabbitmq</span><span class="pi">:</span>
+    <span class="na">host</span><span class="pi">:</span> <span class="s">localhost</span> <span class="c1"># RabbitMQ Host</span>
+    <span class="na">port</span><span class="pi">:</span> <span class="m">5672</span> <span class="c1"># RabbitMQ Port</span>
+    <span class="na">username</span><span class="pi">:</span> <span class="s">guest</span> 
+    <span class="na">password</span><span class="pi">:</span> <span class="s">guest</span>
+
+<span class="na">management</span><span class="pi">:</span>
+  <span class="na">endpoints</span><span class="pi">:</span>
+    <span class="na">web</span><span class="pi">:</span>
+      <span class="na">exposure</span><span class="pi">:</span>
+        <span class="na">include</span><span class="pi">:</span> <span class="s">refresh, busrefresh</span>
+</code></pre></div></div>
+
+<ul>
+  <li>Spring Cloud Bus를 위해서 Config Server와 연결 설정과 RabbitMQ 설정 그리고 액추에이터의 <code class="language-plaintext highlighter-rouge">/busrefresh</code> 엔드포인트를 설정해주기만 하면 됩니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">/busrefresh</code> 를 호출하면 RabbitMQ에 메시지를 발송하여, RabbitMQ(Bus 역할)에 연결된 서비스들의 설정 파일들을 갱신시키게 됩니다.</li>
+</ul>
+
+<blockquote>
+  <p>RabbitMQ는 도커 이미지를 이용하여 구동하였습니다.</p>
+</blockquote>
+
+<h1 id="-정리">🚀 정리</h1>
+
+<p>이번 포스트에서는 Spring Cloud Bus와 Spring Boot Actuator를 활용하여 Config Server에서 읽어온 설정 파일을 애플리케이션 재시작 없이 동적으로 갱신하는 방법을 다뤘습니다.</p>
+
+<p>Kafka와 RabbitMQ 두 가지 메시지 브로커를 통한 Bus 설정 방법과 각각의 장단점에 대해서도 알아봤습니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">/refresh</code>와 <code class="language-plaintext highlighter-rouge">/busrefresh</code> 엔드포인트를 활용해 개별 서비스와 전체 마이크로서비스에 동시에 설정 변경 이벤트를 전파하는 과정도 살펴봤습니다.</p>
+
+<h1 id="-요약">🎯 요약</h1>
+
+<ul>
+  <li>Spring Cloud Bus와 Actuator를 사용하면 Config Server의 설정 변경을 각 마이크로서비스에 실시간으로 적용할 수 있습니다.</li>
+  <li>Kafka는 대용량 처리와 확장성이 뛰어나고, RabbitMQ는 설치와 운영이 간편하다는 장점을 제공합니다.</li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="Spring Cloud Config" /><category term="Spring Cloud Bus" /><summary type="html"><![CDATA[분산 환경에서 각 마이크로서비스가 Config Server로부터 설정 파일을 읽어오는 방법을 알아봅시다!]]></summary></entry></feed>

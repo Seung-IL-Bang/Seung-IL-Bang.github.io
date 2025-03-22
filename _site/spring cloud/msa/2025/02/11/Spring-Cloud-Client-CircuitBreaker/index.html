@@ -1,0 +1,1526 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Circuit Breaker,Resilience4j," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="마이크로 서비스 간 통신 장애 대처 방식 중 CircuitBreaker 사용 방법에 대해 알아보자!">
+<meta name="keywords" content="Circuit Breaker, Resilience4j">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud CircuitBreaker">
+<meta property="og:url" content="http://localhost:4000/spring%20cloud/msa/2025/02/11/Spring-Cloud-Client-CircuitBreaker/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="마이크로 서비스 간 통신 장애 대처 방식 중 CircuitBreaker 사용 방법에 대해 알아보자!">
+<meta property="og:locale" content="ko">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring Cloud CircuitBreaker">
+<meta name="twitter:description" content="마이크로 서비스 간 통신 장애 대처 방식 중 CircuitBreaker 사용 방법에 대해 알아보자!">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Spring Cloud CircuitBreaker | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20cloud/msa/2025/02/11/Spring-Cloud-Client-CircuitBreaker/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spring Cloud CircuitBreaker
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-02-11T00:00:00+09:00">
+                2025-02-11
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Cloud" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/MSA" itemprop="url" rel="index">
+                    <span itemprop="name">MSA</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20cloud/msa/2025/02/11/Spring-Cloud-Client-CircuitBreaker/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20cloud/msa/2025/02/11/Spring-Cloud-Client-CircuitBreaker/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>마이크로 서비스 간 통신 장애 대처 방식 중 CircuitBreaker 사용 방법에 대해 알아보자!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="들어가기">들어가기</h1>
+
+<p>MSA 통신 중 장애가 발생한 경우, 장애 대처 방식 중 하나인 CircuitBreaker 에 대해 알아보겠습니다.</p>
+
+<p>CircuitBreaker 를 직역하자면, 회로 차단기로 볼 수 있습니다.</p>
+
+<p>회로 차단기를 전류의 흐름을 막거나 흐르게 하는 흐름 제어기입니다.</p>
+
+<p>CircuitBreaker는 API 요청의 흐름을 막거나 흐르게 하는 API 요청 제어기로 볼 수 있습니다.</p>
+
+<p>만약 어떤 서버가 다운되버렸다면, 그 서버에 API 호출을 하더라도 응답을 받지 못할 것입니다.</p>
+
+<p>단순히 응답을 받지 못하는 것에 그치지 않고, 이 에러는 MSA 환경에서 전파가 됩니다.</p>
+
+<p>예를 들어, 사용자가 자기 자신의 주문 정보를 조회하는 API가 User Service에 있다고 가정해보겠습니다.</p>
+
+<p>클라이언트의 요청은 <code class="language-plaintext highlighter-rouge">User Service -&gt; Order Service</code> 서비스를 거치면서 필요한 정보들을 조회하는 API를 연달아 호출합니다. 이때 Order Service에 장애가 발생한다면, User Service는 응답을 받지 못 할 것이고 결국 User Service를 호출한 클라이언트도 에러를 응답받게 될 것 입니다.</p>
+
+<p>이런 상황의 경우, Order Service가 회복되기 전까지 반복적으로 요청을 해봤자 에러 응답만 받을 뿐입니다.</p>
+
+<p>그리고 주문 관련 데이터를 조회 못 했을 뿐, 사용자의 정보는 User Service에서 조회가 가능합니다. 단지, 주문 데이터를 조회 못 했다는 이유로 사용자에게 에러 응답을 보내는 것은 부자연스런 처리라고 생각합니다.</p>
+
+<p>이런 문제점들을 해결하고자, Spring Cloud 는 CircuitBreaker의 추상화 계층을 제공하며 CircuitBreak의 구현체 클래스로 Resilience4j가 널리 사용되고 있습니다.</p>
+
+<p>그러면 <a href="https://github.com/resilience4j/resilience4j">Resilience4j</a>의 많은 기능 중 CircuitBreaker에 대해 알아보도록 하겠습니다.</p>
+
+<h1 id="spring-cloud-circuitbreaker">Spring Cloud CircuitBreaker</h1>
+
+<p><strong>스프링 클라우드는 CircuitBreaker의 추상화 계층을 제공합니다.</strong></p>
+
+<p>아래 코드는 스프링 클라우드가 제공하는 CircuitBreaker의 인터페이스 입니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14</pre></td><td class="code"><pre class="highlight"><code><span class="kn">package</span> <span class="nn">org.springframework.cloud.client.circuitbreaker</span><span class="o">;</span>
+
+<span class="kn">import</span> <span class="nn">java.util.function.Function</span><span class="o">;</span>
+<span class="kn">import</span> <span class="nn">java.util.function.Supplier</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">interface</span> <span class="nc">CircuitBreaker</span> <span class="o">{</span>
+    <span class="k">default</span> <span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="no">T</span> <span class="nf">run</span><span class="o">(</span><span class="nc">Supplier</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">toRun</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">toRun</span><span class="o">,</span> <span class="o">(</span><span class="n">throwable</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">NoFallbackAvailableException</span><span class="o">(</span><span class="s">"No fallback available."</span><span class="o">,</span> <span class="n">throwable</span><span class="o">);</span>
+        <span class="o">});</span>
+    <span class="o">}</span>
+
+    <span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="no">T</span> <span class="nf">run</span><span class="o">(</span><span class="nc">Supplier</span><span class="o">&lt;</span><span class="no">T</span><span class="o">&gt;</span> <span class="n">toRun</span><span class="o">,</span> <span class="nc">Function</span><span class="o">&lt;</span><span class="nc">Throwable</span><span class="o">,</span> <span class="no">T</span><span class="o">&gt;</span> <span class="n">fallback</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+<p>CircuitBreaker의 사용법에 대해 간단히 알아보겠습니다.</p>
+
+<ul>
+  <li>우선, CircuitBreaker 인터페이스를 구현한 객체를 생성합니다.</li>
+  <li>구현체를 생성하고 <code class="language-plaintext highlighter-rouge">run</code> 메서드에 <code class="language-plaintext highlighter-rouge">Supplier</code>와 <code class="language-plaintext highlighter-rouge">Function</code>을 인자로 전달합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Supplier</code> 은 실제로 처리하고자 하는 비즈니스 로직을 작성해주면 됩니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">Function</code> 은 만약 <code class="language-plaintext highlighter-rouge">Supplier</code>가 실패하거나 회로가 차단된 경우에 실행하는 <code class="language-plaintext highlighter-rouge">fallback</code> 메서드를 작성해주면 됩니다. 즉, 에러를 응답하는 대신 별도의 로직을 처리하는 로직을 전달합니다.</li>
+</ul>
+
+<h1 id="circuitbreakerfactory">CircuitBreakerFactory</h1>
+
+<p>스프링 클라우드는 CircuitBreaker의 Factory 패턴의 인터페이스도 제공합니다.</p>
+
+<p>Resilience4j는 해당 Factory 인터페이스의 구현체를 제공합니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12</pre></td><td class="code"><pre class="highlight"><code><span class="kn">package</span> <span class="nn">org.springframework.cloud.client.circuitbreaker</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">CircuitBreakerFactory</span><span class="o">&lt;</span><span class="no">CONF</span><span class="o">,</span> <span class="no">CONFB</span> <span class="kd">extends</span> <span class="nc">ConfigBuilder</span><span class="o">&lt;</span><span class="no">CONF</span><span class="o">&gt;&gt;</span> <span class="kd">extends</span> <span class="nc">AbstractCircuitBreakerFactory</span><span class="o">&lt;</span><span class="no">CONF</span><span class="o">,</span> <span class="no">CONFB</span><span class="o">&gt;</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="nf">CircuitBreakerFactory</span><span class="o">()</span> <span class="o">{</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">abstract</span> <span class="nc">CircuitBreaker</span> <span class="nf">create</span><span class="o">(</span><span class="nc">String</span> <span class="n">id</span><span class="o">);</span>
+
+    <span class="kd">public</span> <span class="nc">CircuitBreaker</span> <span class="nf">create</span><span class="o">(</span><span class="nc">String</span> <span class="n">id</span><span class="o">,</span> <span class="nc">String</span> <span class="n">groupName</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">this</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="n">id</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<p>Resilience4j의 의존성을 추가하면 CircuitBreakerFactory 구현체를 사용할 수 있게 됩니다.</p>
+
+<h1 id="resilience4j-circuitbreaker">Resilience4j CircuitBreaker</h1>
+
+<p>우선 Resilience4j 의존성을 추가해줍니다.</p>
+
+<div class="language-groovy highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4</pre></td><td class="code"><pre class="highlight"><code><span class="c1">// gradle</span>
+<span class="n">dependencies</span> <span class="o">{</span>
+  <span class="n">implementation</span> <span class="s1">'org.springframework.cloud:spring-cloud-starter-circuitbreaker-resilience4j:3.2.0'</span>  
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<p>그 다음으로 CircuitBreaker의 설정을 구성해줍니다.</p>
+
+<p>마지막으로 해당 설정을 가진 커스텀 CircuitBreakerFactory를 <code class="language-plaintext highlighter-rouge">Bean</code> 으로 등록하여 사용하면 됩니다.</p>
+
+<p>아래 코드는 CircuitBreaker의 설정을 커스텀한 CircuitBreakerFactory를 Bean 으로 등록하는 코드입니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Bean</span>
+<span class="kd">public</span> <span class="nc">Customizer</span><span class="o">&lt;</span><span class="nc">Resilience4JCircuitBreakerFactory</span><span class="o">&gt;</span> <span class="nf">defaultCustomizer</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">factory</span> <span class="o">-&gt;</span> <span class="n">factory</span><span class="o">.</span><span class="na">configureDefault</span><span class="o">(</span><span class="n">id</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">Resilience4JConfigBuilder</span><span class="o">(</span><span class="n">id</span><span class="o">)</span>
+            <span class="o">.</span><span class="na">timeLimiterConfig</span><span class="o">(</span><span class="nc">TimeLimiterConfig</span><span class="o">.</span><span class="na">custom</span><span class="o">().</span><span class="na">timeoutDuration</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="na">ofSeconds</span><span class="o">(</span><span class="mi">3</span><span class="o">)).</span><span class="na">build</span><span class="o">())</span>
+            <span class="o">.</span><span class="na">circuitBreakerConfig</span><span class="o">(</span><span class="nc">CircuitBreakerConfig</span><span class="o">.</span><span class="na">ofDefaults</span><span class="o">())</span>
+            <span class="o">.</span><span class="na">build</span><span class="o">());</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>기본적으로 설정값으로 제공하는 CircuitBreakerConfig 기본 베이스로 설정해줍니다.</li>
+  <li>그 외 커스텀마이징 하고 싶은 값들은 빌더(Builder) 패턴으로 각각 설정할 수 있습니다.</li>
+  <li>위 코드에서는 커스텀마이징한 <code class="language-plaintext highlighter-rouge">timeLimiterConfig</code> 설정은 지정한 시간 내에 작업이 완료되지 않으면 타임아웃을 발생시키는 설정입니다. 타임아웃이 계속 발생하다가 임계치를 넘어가게 되면, 회로가 차단(Closed)됩니다.</li>
+</ul>
+
+<p>기본 설정 값들은 <code class="language-plaintext highlighter-rouge">CircuitBreakerConfig.ofDefault()</code>는 아래와 같은 설정  값들로 구성되어 있습니다.</p>
+
+<p>각 설정들에 대한 의미는 <a href="https://resilience4j.readme.io/docs/circuitbreaker">공식 문서</a>에 잘 정리되어 있습니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20</pre></td><td class="code"><pre class="highlight"><code><span class="kd">public</span> <span class="nf">Builder</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">currentTimestampFunction</span> <span class="o">=</span> <span class="nc">CircuitBreakerConfig</span><span class="o">.</span><span class="na">DEFAULT_TIMESTAMP_FUNCTION</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">timestampUnit</span> <span class="o">=</span> <span class="nc">CircuitBreakerConfig</span><span class="o">.</span><span class="na">DEFAULT_TIMESTAMP_UNIT</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">recordExceptions</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[</span><span class="mi">0</span><span class="o">];</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">ignoreExceptions</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Class</span><span class="o">[</span><span class="mi">0</span><span class="o">];</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">failureRateThreshold</span> <span class="o">=</span> <span class="mf">50.0</span><span class="no">F</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">minimumNumberOfCalls</span> <span class="o">=</span> <span class="mi">100</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">writableStackTraceEnabled</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">permittedNumberOfCallsInHalfOpenState</span> <span class="o">=</span> <span class="mi">10</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">slidingWindowSize</span> <span class="o">=</span> <span class="mi">100</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">recordResultPredicate</span> <span class="o">=</span> <span class="nc">CircuitBreakerConfig</span><span class="o">.</span><span class="na">DEFAULT_RECORD_RESULT_PREDICATE</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">waitIntervalFunctionInOpenState</span> <span class="o">=</span> <span class="nc">IntervalFunction</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="nc">Duration</span><span class="o">.</span><span class="na">ofSeconds</span><span class="o">(</span><span class="mi">60L</span><span class="o">));</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">transitionOnResult</span> <span class="o">=</span> <span class="nc">CircuitBreakerConfig</span><span class="o">.</span><span class="na">DEFAULT_TRANSITION_ON_RESULT</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">automaticTransitionFromOpenToHalfOpenEnabled</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">slidingWindowType</span> <span class="o">=</span> <span class="nc">CircuitBreakerConfig</span><span class="o">.</span><span class="na">DEFAULT_SLIDING_WINDOW_TYPE</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">slowCallRateThreshold</span> <span class="o">=</span> <span class="mf">100.0</span><span class="no">F</span><span class="o">;</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">slowCallDurationThreshold</span> <span class="o">=</span> <span class="nc">Duration</span><span class="o">.</span><span class="na">ofSeconds</span><span class="o">(</span><span class="mi">60L</span><span class="o">);</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">maxWaitDurationInHalfOpenState</span> <span class="o">=</span> <span class="nc">Duration</span><span class="o">.</span><span class="na">ofSeconds</span><span class="o">(</span><span class="mi">0L</span><span class="o">);</span>
+    <span class="k">this</span><span class="o">.</span><span class="na">createWaitIntervalFunctionCounter</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<h1 id="사이드-프로젝트-적용-코드">사이드 프로젝트 적용 코드</h1>
+
+<p>사이드 프로젝트에서 CircuitBreaker를 적용한 코드를 간단히 살펴 보도록 하겠습니다.</p>
+
+<p>아래 코드는 <code class="language-plaintext highlighter-rouge">userId</code> 를 통해 사용자 정보와 주문 정보를 합쳐서 응답하는 간단한 메서드입니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Override</span>
+<span class="kd">public</span> <span class="nc">UserDto</span> <span class="nf">getUserByUserId</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">)</span> <span class="o">{</span>
+    <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"user-service: 회원ID로 회원정보 및 주문 목록 조회"</span><span class="o">);</span>
+
+    <span class="nc">Optional</span><span class="o">&lt;</span><span class="nc">Users</span><span class="o">&gt;</span> <span class="n">findUser</span> <span class="o">=</span> <span class="n">userRepository</span><span class="o">.</span><span class="na">findByUserId</span><span class="o">(</span><span class="n">userId</span><span class="o">);</span>
+
+    <span class="k">if</span> <span class="o">(</span><span class="n">findUser</span><span class="o">.</span><span class="na">isEmpty</span><span class="o">())</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">NoSuchElementException</span><span class="o">(</span><span class="s">"User not found"</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nc">UserDto</span> <span class="n">userDto</span> <span class="o">=</span> <span class="n">modelMapper</span><span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="n">findUser</span><span class="o">.</span><span class="na">get</span><span class="o">(),</span> <span class="nc">UserDto</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+
+    <span class="nc">List</span><span class="o">&lt;</span><span class="nc">ResponseOrder</span><span class="o">&gt;</span> <span class="n">orders</span> <span class="o">=</span> <span class="n">orderClient</span><span class="o">.</span><span class="na">getOrdersByUserId</span><span class="o">(</span><span class="n">userId</span><span class="o">);</span>
+
+    <span class="n">userDto</span><span class="o">.</span><span class="na">setOrders</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+
+    <span class="k">return</span> <span class="n">userDto</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">userId</code> 로 user 엔티티를 조회합니다.</li>
+  <li>만약 <code class="language-plaintext highlighter-rouge">userId</code>에 해당하는 User가 없다면 에러가 발생합니다.</li>
+  <li>user 엔티티를 DTO로 매핑합니다.</li>
+  <li>CircuitBreaker를 적용한 OrderClient를 통해 user의 주문 목록을 조회해옵니다.</li>
+  <li>주문 목록을 DTO에 설정해주고 반환합니다.</li>
+</ol>
+
+<p>여기서 UserService -&gt; OrderService 는 에러가 발생할 수 있기 때문에, 주문 목록을 조회해오지 못 하고 에러가 전파될 가능성이 있습니다.</p>
+
+<p>아래 코드는 CircuitBreakerFactory 로 부터 CircuitBreaker 객체를 생성하고, 주문 목록을 조회해오는 API 호출 로직(Supplier)과 호출 실패 또는 회로 차단의 경우 대신할 로직(Fallback Function)을 CircuitBreaker 의 인자로 전달하는 코드입니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Service</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">OrderClient</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">OrderApiService</span> <span class="n">orderApiService</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">CircuitBreakerFactory</span> <span class="n">circuitBreakerFactory</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">ResponseOrder</span><span class="o">&gt;</span> <span class="nf">getOrdersByUserId</span><span class="o">(</span><span class="nc">String</span> <span class="n">userId</span><span class="o">)</span> <span class="o">{</span>
+        <span class="nc">CircuitBreaker</span> <span class="n">circuitBreaker</span> <span class="o">=</span> <span class="n">circuitBreakerFactory</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s">"circuitbreaker"</span><span class="o">);</span>
+        <span class="nc">ResponseEntity</span><span class="o">&lt;</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">ResponseOrder</span><span class="o">&gt;&gt;</span> <span class="n">orderResponse</span> <span class="o">=</span> <span class="n">circuitBreaker</span><span class="o">.</span><span class="na">run</span><span class="o">(</span>
+                <span class="o">()</span> <span class="o">-&gt;</span> <span class="n">orderApiService</span><span class="o">.</span><span class="na">getOrdersByUserId</span><span class="o">(</span><span class="n">userId</span><span class="o">),</span>
+                <span class="n">throwable</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">ResponseEntity</span><span class="o">&lt;&gt;(</span><span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;&gt;(),</span> <span class="kc">null</span><span class="o">,</span> <span class="nc">HttpStatus</span><span class="o">.</span><span class="na">INTERNAL_SERVER_ERROR</span><span class="o">));</span>
+        <span class="k">return</span> <span class="n">orderResponse</span><span class="o">.</span><span class="na">getBody</span><span class="o">();</span>
+    <span class="o">}</span>
+
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>회로가 차단되어 있지 않은 상태에서 정상적으로 API 응답을 받으면 기존 흐름대로 정상 응답합니다.</li>
+  <li>만약 Order Service가 응답에 실패하거나 회로가 차단되어 있는 상태라면 fallback 메서드를 수행하여 에러를 응답하는 대신 위 코드에서는 빈 리스트(Empty List)를 반환하도록 구성했습니다.</li>
+  <li>회로의 상태 전이, 실패 임계치 등 더 자세한 정보는 <a href="https://resilience4j.readme.io/docs/circuitbreaker">공식 문서</a>를 통해 확인하실 수 있습니다.</li>
+</ul>
+
+<h1 id="스프링-aop와-circuitbreaker">스프링 AOP와 CircuitBreaker</h1>
+
+<p>CircuitBreaker 의 역할은 API 요청에 대한 흐름 제어입니다.</p>
+
+<p>기존 흐름대로 흘러가게 할 지, 아니면 기존 요청을 차단하고 다른 응답을 대신 처리 할 지를 결정합니다.</p>
+
+<p>만약 CircuitBreaker의 역할이 담긴 코드가 핵심 비즈니스 로직과 섞여있다면 가독성이 떨어지고 유지보수가 어려워질 것입니다.</p>
+
+<p>따라서 스프링은 애너테이션을 활용한 <code class="language-plaintext highlighter-rouge">@CircuitBreaker</code> 를 제공합니다.</p>
+
+<p><strong>이는 프록시 패턴을 활용한 스프링 AOP를 적용한 사례입니다.</strong></p>
+
+<p>아래 코드는 <code class="language-plaintext highlighter-rouge">@CircuitBreaker</code>를 활용한 간단한 예제 코드입니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21<br/>22<br/>23</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@RestController</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">SampleController</span> <span class="o">{</span>
+
+    <span class="c1">// name: 회로 차단기 이름, fallbackMethod: 실패 시 호출할 메서드명</span>
+    <span class="nd">@GetMapping</span><span class="o">(</span><span class="s">"/process"</span><span class="o">)</span>
+    <span class="nd">@CircuitBreaker</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">"myCircuitBreaker"</span><span class="o">,</span> <span class="n">fallbackMethod</span> <span class="o">=</span> <span class="s">"fallbackProcess"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">process</span><span class="o">()</span> <span class="o">{</span>
+        
+        <span class="c1">// 핵심 비즈니스 로직</span>
+        
+        <span class="c1">// 임의로 예외 발생</span>
+        <span class="k">if</span> <span class="o">(</span><span class="nc">Math</span><span class="o">.</span><span class="na">random</span><span class="o">()</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">"Simulated exception"</span><span class="o">);</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="s">"Operation succeeded!"</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="c1">// 폴백 메서드: 원래 메서드와 같은 반환 타입, 동일 파라미터 목록에 Throwable 추가</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">fallbackProcess</span><span class="o">(</span><span class="nc">Throwable</span> <span class="n">throwable</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// 예외 메시지를 로깅하거나 별도의 처리 가능</span>
+        <span class="k">return</span> <span class="s">"Fallback response: "</span> <span class="o">+</span> <span class="n">throwable</span><span class="o">.</span><span class="na">getMessage</span><span class="o">();</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<ul>
+  <li>위 코드를 보면 CircuitBreaker의 역할인 회로 차단에 관한 코드가 전혀 보이질 않습니다. 즉, 스프링 AOP에 의해 관심사가 완전히 분리된 것입니다.</li>
+  <li>따라서 CircuitBreaker를 적용하면서도 비즈니스 로직에 더 집중 할 수 있게 됩니다.</li>
+</ul>
+
+<h1 id="-추가-개발-및-고려하면-좋을-내용">🚀 추가 개발 및 고려하면 좋을 내용</h1>
+<ul>
+  <li>Resilience4j의 메트릭 및 모니터링 기능(prometheus, micrometer와의 연동)</li>
+  <li>fallback 로직 외에도, 재시도(Retry)나 백오프(Backoff) 전략 조합</li>
+</ul>
+
+<hr />
+
+<h1 id="-요약">📌 요약</h1>
+
+<h2 id="circuitbreaker-개념">CircuitBreaker 개념:</h2>
+<p>서비스 장애 시, 지속적인 요청으로 인한 오류 전파를 막고 대체 로직(fallback)을 실행하여 시스템 안정성을 높이는 역할을 합니다.</p>
+
+<h2 id="spring-cloud-circuitbreaker-1">Spring Cloud CircuitBreaker:</h2>
+<p>다양한 CircuitBreaker 구현체(예: Resilience4j)를 추상화하여 사용하기 쉽고, Spring 생태계와 통합되어 있으며, AOP를 활용해 비즈니스 로직과 관심사를 분리합니다.</p>
+
+<h2 id="resilience4j-circuitbreaker-1">Resilience4j CircuitBreaker:</h2>
+<p>세밀한 설정과 최적화된 구현체를 제공하며, 커스텀마이징한 설정과 함께 사용할 수 있습니다.</p>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Circuit%20Breaker" rel="tag"># Circuit Breaker</a>
+          
+            
+            <a href="/tag/#/Resilience4j" rel="tag"># Resilience4j</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/15/Spring-Cloud-FeignClient/" rel="next" title="Spring Cloud FeignClient 로깅 및 에러 핸들링">
+                <i class="fa fa-chevron-left"></i> Spring Cloud FeignClient 로깅 및 에러 핸들링
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/10/Spring-Cloud-%EA%B8%B0%EB%B0%98-%EB%A7%88%EC%9D%B4%ED%81%AC%EB%A1%9C%EC%84%9C%EB%B9%84%EC%8A%A4-%EA%B5%AC%EC%B6%95-%EA%B3%BC%EC%A0%95/" rel="prev" title="Spring Cloud 기반 마이크로 서비스 간 통신">
+                Spring Cloud 기반 마이크로 서비스 간 통신 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#들어가기"> <span class="nav-number">1</span> <span class="nav-text">들어가기</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#spring-cloud-circuitbreaker"> <span class="nav-number">2</span> <span class="nav-text">Spring Cloud CircuitBreaker</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#circuitbreakerfactory"> <span class="nav-number">3</span> <span class="nav-text">CircuitBreakerFactory</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#resilience4j-circuitbreaker"> <span class="nav-number">4</span> <span class="nav-text">Resilience4j CircuitBreaker</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#사이드-프로젝트-적용-코드"> <span class="nav-number">5</span> <span class="nav-text">사이드 프로젝트 적용 코드</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#스프링-aop와-circuitbreaker"> <span class="nav-number">6</span> <span class="nav-text">스프링 AOP와 CircuitBreaker</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-추가-개발-및-고려하면-좋을-내용"> <span class="nav-number">7</span> <span class="nav-text">🚀 추가 개발 및 고려하면 좋을 내용</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-요약"> <span class="nav-number">8</span> <span class="nav-text">📌 요약</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#circuitbreaker-개념"> <span class="nav-number">8.1</span> <span class="nav-text">CircuitBreaker 개념:</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#spring-cloud-circuitbreaker-1"> <span class="nav-number">8.2</span> <span class="nav-text">Spring Cloud CircuitBreaker:</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#resilience4j-circuitbreaker-1"> <span class="nav-number">8.3</span> <span class="nav-text">Resilience4j CircuitBreaker:</span> </a> </li> </ol> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20cloud/msa/2025/02/11/Spring-Cloud-Client-CircuitBreaker/';
+              this.page.identifier = '/spring%20cloud/msa/2025/02/11/Spring-Cloud-Client-CircuitBreaker/';
+              this.page.title = 'Spring Cloud CircuitBreaker';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

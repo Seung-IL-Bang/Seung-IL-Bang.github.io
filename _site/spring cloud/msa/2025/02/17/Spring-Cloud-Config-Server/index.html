@@ -1,0 +1,1424 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Spring Cloud Config,Git," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Spring Cloud Config로 분산 환경에서 환경 변수 설정을 관리하는 방법에 대해 알아봅시다!">
+<meta name="keywords" content="Spring Cloud Config, Git">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud Config를 이용한 환경 변수 관리">
+<meta property="og:url" content="http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Config-Server/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="Spring Cloud Config로 분산 환경에서 환경 변수 설정을 관리하는 방법에 대해 알아봅시다!">
+<meta property="og:locale" content="ko">
+<meta property="og:image" content="/post_images/spring-cloud-side-project/config-server.png">
+<meta property="og:image" content="/post_images/spring-cloud-side-project/config-server2.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring Cloud Config를 이용한 환경 변수 관리">
+<meta name="twitter:description" content="Spring Cloud Config로 분산 환경에서 환경 변수 설정을 관리하는 방법에 대해 알아봅시다!">
+<meta name="twitter:image" content="/post_images/spring-cloud-side-project/config-server.png">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Spring Cloud Config를 이용한 환경 변수 관리 | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Config-Server/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spring Cloud Config를 이용한 환경 변수 관리
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-02-17T00:00:00+09:00">
+                2025-02-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Cloud" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/MSA" itemprop="url" rel="index">
+                    <span itemprop="name">MSA</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20cloud/msa/2025/02/17/Spring-Cloud-Config-Server/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20cloud/msa/2025/02/17/Spring-Cloud-Config-Server/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>Spring Cloud Config로 분산 환경에서 환경 변수 설정을 관리하는 방법에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="spring-cloud-config란">Spring Cloud Config란?</h1>
+
+<p>Spring Cloud Config는 마이크로서비스 아키텍처 환경에서 각 서비스의 설정을 중앙 집중식으로 관리할 수 있게 도와주는 도구입니다.</p>
+
+<p>설정 정보를 별도의 Config Server에서 관리하고, 각 서비스는 Config Server로부터 설정을 전달받아 애플리케이션 구성을 하게 됩니다.</p>
+
+<h2 id="왜-spring-config-server가-필요한가">왜 Spring Config Server가 필요한가?</h2>
+
+<h3 id="일관성">일관성</h3>
+<p>MSA 환경에서는 각 서비스가 개별적으로 설정을 관리할 경우 설정의 중복 및 불일치 문제가 발생할 수 있습니다.</p>
+
+<p>Config Server를 통해 중앙 집중식으로 설정을 관리하게 되면 <strong>설정 정보의 일관성을 유지</strong>할 수 있게 됩니다.</p>
+
+<p>그러므로 분산 시스템의 설정 복잡성을 해소할 수 있게 되는 것이죠.</p>
+
+<h3 id="동적-대응">동적 대응</h3>
+
+<p>애플리케이션의 새로운 설정을 적용하려면, 보통 애프리케이션을 재시작해야만 합니다.</p>
+
+<p>하지만, Config Server는 각 서비스 애플리케이션들이 <strong>재시작하지 않고도 동적으로 설정을 변경</strong>할 수 있도록 해줍니다.</p>
+
+<p>이로써 운영 중 발생할 수 있는 이슈에 빠르게 대응할 수 있다는 장점이 있습니다.</p>
+
+<h3 id="버전-관리-용이">버전 관리 용이</h3>
+
+<p>Config Server가 중앙 집중식으로 관리하는 설정 파일들의 저장소로 Git을 사용할 수 있습니다.</p>
+
+<p>Git과 같은 버전관리 시스템과 연동하여 변경 이력을 관리하게 되면, 추후 필요에 따라 원하는 버전으로 롤백이 용이합니다.</p>
+
+<h2 id="만약-config-server가-없다면">만약 Config Server가 없다면?</h2>
+
+<h3 id="설정-관리">설정 관리</h3>
+
+<p>각 서비스마다 개별적으로 설정을 관리하면, 환경별로 일관된 설정 유지가 어려워집니다.</p>
+
+<h3 id="운영-효율성-저하">운영 효율성 저하</h3>
+
+<p>분산된 설정 파일을 하나하나 수정하고 배포해야 하므로, 관리 비용이 대폭 증가하여 운영 효율성이 떨어집니다.</p>
+
+<h3 id="동적-반영-불가">동적 반영 불가</h3>
+
+<p>설정을 변경하려면 애플리케이션을 재시작해야 합니다.</p>
+
+<p>그리고 변경 사항이 즉각 반영되지 않기 때문에 서비스 중단이나 오류에 대해 대응이 느려질 수 밖에 없습니다.</p>
+
+<blockquote>
+  <p>이와 같이 Spring Cloud Config는 분산 환경에서의 설정 관리를 단순화하고, 운영 안정성을 높여주는 핵심 기술이라고 생각합니다.</p>
+</blockquote>
+
+<h1 id="config-server-설정하기">Config Server 설정하기</h1>
+
+<h2 id="dependency">Dependency</h2>
+<div class="language-groovy highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3</pre></td><td class="code"><pre class="highlight"><code><span class="n">dependencies</span> <span class="o">{</span>
+	<span class="n">implementation</span> <span class="s1">'org.springframework.cloud:spring-cloud-config-server'</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>Config Server 사용을 위해 의존성을 추가해줍니다.</li>
+</ul>
+
+<h2 id="enableconfigserver-적용하기">@EnableConfigServer 적용하기</h2>
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@SpringBootApplication</span>
+<span class="nd">@EnableConfigServer</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">ConfigServiceApplication</span> <span class="o">{</span>
+
+	<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="nc">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+		<span class="nc">SpringApplication</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="nc">ConfigServiceApplication</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="n">args</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>Config Server의 자동 구성을 위해 <code class="language-plaintext highlighter-rouge">@EnableConfigServer</code> 애너테이션을 적용해줍니다.</li>
+</ul>
+
+<h2 id="applicationyml">application.yml</h2>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13</pre></td><td class="code"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
+  <span class="na">application</span><span class="pi">:</span>
+    <span class="na">name</span><span class="pi">:</span> <span class="s">config-service</span>
+  <span class="na">cloud</span><span class="pi">:</span>
+    <span class="na">config</span><span class="pi">:</span>
+      <span class="na">server</span><span class="pi">:</span>
+        <span class="na">git</span><span class="pi">:</span>
+          <span class="na">uri</span><span class="pi">:</span> <span class="s">https://github.com/Seung-IL-Bang/spring-cloud-ecosystem-remote-config.git</span>
+<span class="c1">#          username: # private 저장소인 경우</span>
+<span class="c1">#          password: # private 저장소인 경우</span>
+
+<span class="na">server</span><span class="pi">:</span>
+  <span class="na">port</span><span class="pi">:</span> <span class="m">8888</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>위와 같이 설정하면 <code class="language-plaintext highlighter-rouge">spring.cloud.config.server.git.uri</code> 경로의 레포지토리로부터 설정 파일들을 Config Server에서 읽어올 수 있습니다.</li>
+  <li>private 저장소인 경우 접근 가능한 Git 계정의 <code class="language-plaintext highlighter-rouge">username</code>과 <code class="language-plaintext highlighter-rouge">password</code>를 입력해줍니다. (암호화해서 입력해야 안전합니다.)</li>
+</ul>
+
+<h1 id="config-server-설정-파일-조회">Config Server 설정 파일 조회</h1>
+
+<figure align="center">
+<img src="/post_images/spring-cloud-side-project/config-server.png" />
+<figcaption></figcaption>
+</figure>
+
+<ul>
+  <li>public git 저장소에 위와 같이 <code class="language-plaintext highlighter-rouge">test.yml</code> 파일 하나를 업로드 해놨습니다. 파일 내용은 다음과 같습니다.</li>
+</ul>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2</pre></td><td class="code"><pre class="highlight"><code><span class="na">test</span><span class="pi">:</span>
+  <span class="na">value</span><span class="pi">:</span> <span class="m">123</span>
+</code></pre></td></tr></tbody></table></div></div>
+<ul>
+  <li>위 파일의 설정 값을 Config Server 에서 조회할 수 있습니다.</li>
+</ul>
+
+<h1 id="hostportfilenameprofile">{HOST:PORT}/{filename}/{profile}</h1>
+
+<p>로컬 환경에서 테스트하는 경우 <code class="language-plaintext highlighter-rouge">http://localhost:8888/test/default</code> 경로로 Config Server에 <code class="language-plaintext highlighter-rouge">GET</code> 요청을 하시면 됩니다.</p>
+
+<p>배포 환경에 따라 <strong>프로파일(profile)</strong>별로 설정 파일들을 다르게 조회할 수 있습니다.</p>
+
+<p>파일명에 프로파일을 명시하지 않은 경우 기본 값으로 <code class="language-plaintext highlighter-rouge">default</code> 가 적용 됩니다.</p>
+
+<h3 id="예시">예시</h3>
+<ul>
+  <li>운영 환경: <code class="language-plaintext highlighter-rouge">{HOST:PORT}/test/prod</code></li>
+  <li>개발 환경: <code class="language-plaintext highlighter-rouge">{HOST:PORT}/test/dev</code></li>
+  <li>로컬 환경: <code class="language-plaintext highlighter-rouge">{HOST:PORT}/test/local</code></li>
+</ul>
+
+<figure align="center">
+<img src="/post_images/spring-cloud-side-project/config-server2.png" />
+<figcaption></figcaption>
+</figure>
+
+<ul>
+  <li>위 이미지는 Config Service로부터 test.yml 설정 파일을 읽어들인 화면입니다.</li>
+  <li>Config Server는 저장소(Git)로부터 설정 파일을 중앙 집중 관리하여 다른 서비스들에게 설정값들을 제공하는 역할을 합니다.</li>
+</ul>
+
+<h1 id="-요약">📌 요약</h1>
+
+<ul>
+  <li>Spring Cloud Config는 분산 환경에서 각 서비스의 설정을 중앙 집중식으로 관리해 일관성과 동적 반영을 가능하게 합니다.</li>
+  <li>Git 연동을 통해 버전 관리와 롤백이 용이하여 운영 효율성을 크게 향상시킵니다.</li>
+</ul>
+
+<h1 id="-정리">🚀 정리</h1>
+
+<p>이번 포스트에서는 Spring Cloud Config Server의 개념과 필요성에 대해 알아보았습니다.</p>
+
+<p>다음 포스트에서는 Spring Cloud 기반 MSA 환경에서 각 마이크로 서비스들이 Config Server로부터 파일을 읽어오는 방법과,</p>
+
+<p><code class="language-plaintext highlighter-rouge">Spring Boot Actuator</code> 와 <code class="language-plaintext highlighter-rouge">Spring Cloud Bus</code>를 이용한 실시간 설정 반영 방법에 대해서도 살펴보도록 하겠습니다.</p>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Spring%20Cloud%20Config" rel="tag"># Spring Cloud Config</a>
+          
+            
+            <a href="/tag/#/Git" rel="tag"># Git</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/" rel="next" title="Spring Cloud Gateway를 활용한 API Gateway 구축">
+                <i class="fa fa-chevron-left"></i> Spring Cloud Gateway를 활용한 API Gateway 구축
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/spring%20cloud/msa/2025/02/17/Spring-Cloud-Bus/" rel="prev" title="Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리">
+                Spring Config Server와 Spring Cloud Bus를 통한 동적 설정 관리 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">42</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">50</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#spring-cloud-config란"> <span class="nav-number">1</span> <span class="nav-text">Spring Cloud Config란?</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#왜-spring-config-server가-필요한가"> <span class="nav-number">1.1</span> <span class="nav-text">왜 Spring Config Server가 필요한가?</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#일관성"> <span class="nav-number">1.1.1</span> <span class="nav-text">일관성</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#동적-대응"> <span class="nav-number">1.1.2</span> <span class="nav-text">동적 대응</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#버전-관리-용이"> <span class="nav-number">1.1.3</span> <span class="nav-text">버전 관리 용이</span> </a> </li> </ol> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#만약-config-server가-없다면"> <span class="nav-number">1.2</span> <span class="nav-text">만약 Config Server가 없다면?</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#설정-관리"> <span class="nav-number">1.2.1</span> <span class="nav-text">설정 관리</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#운영-효율성-저하"> <span class="nav-number">1.2.2</span> <span class="nav-text">운영 효율성 저하</span> </a> </li> <li class="nav-item nav-level-3"> <a class="nav-link" href="#동적-반영-불가"> <span class="nav-number">1.2.3</span> <span class="nav-text">동적 반영 불가</span> </a> </li> </ol> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#config-server-설정하기"> <span class="nav-number">2</span> <span class="nav-text">Config Server 설정하기</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#dependency"> <span class="nav-number">2.1</span> <span class="nav-text">Dependency</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#enableconfigserver-적용하기"> <span class="nav-number">2.2</span> <span class="nav-text">@EnableConfigServer 적용하기</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#applicationyml"> <span class="nav-number">2.3</span> <span class="nav-text">application.yml</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#config-server-설정-파일-조회"> <span class="nav-number">3</span> <span class="nav-text">Config Server 설정 파일 조회</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#hostportfilenameprofile"> <span class="nav-number">4</span> <span class="nav-text">{HOST:PORT}/{filename}/{profile}</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-3"> <a class="nav-link" href="#예시"> <span class="nav-number">4.1</span> <span class="nav-text">예시</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-요약"> <span class="nav-number">5</span> <span class="nav-text">📌 요약</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-정리"> <span class="nav-number">6</span> <span class="nav-text">🚀 정리</span> </a> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20cloud/msa/2025/02/17/Spring-Cloud-Config-Server/';
+              this.page.identifier = '/spring%20cloud/msa/2025/02/17/Spring-Cloud-Config-Server/';
+              this.page.title = 'Spring Cloud Config를 이용한 환경 변수 관리';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+
