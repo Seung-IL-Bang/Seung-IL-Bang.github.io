@@ -1,71 +1,416 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-22T23:10:47+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Batch 대용량 처리의 이해</title><link href="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/" rel="alternate" type="text/html" title="Spring Batch 대용량 처리의 이해" /><published>2025-03-22T00:00:00+09:00</published><updated>2025-03-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/"><![CDATA[<blockquote>
-  <p>스프링 배치를 통한 대용량 처리에 대해 알아봅시다!</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-23T12:34:45+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Batch 데이터 집계(Aggregation) 최적화</title><link href="http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/" rel="alternate" type="text/html" title="Spring Batch 데이터 집계(Aggregation) 최적화" /><published>2025-03-23T00:00:00+09:00</published><updated>2025-03-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/"><![CDATA[<blockquote>
+  <p>데이터 집계를 위한 배치 처리 시 <code class="language-plaintext highlighter-rouge">GROUP BY</code>와 <code class="language-plaintext highlighter-rouge">SUM</code> 대신 <strong>Redis</strong>를 활용하여 성능을 대폭 개선할 수 있는 방법에 대해 알아봅시다!</p>
 </blockquote>
 
 <!-- more -->
 
 <h1 id="-들어가기">🚀 들어가기</h1>
 
-<p>본 포스트에서는 배치 처리의 개념과 사용 시나리오를 중심으로, 일괄 생성, 일괄 수정, 통계 처리에 대해 알아보고 대량 데이터 처리 시 발생하는 일반적인 문제점까지 살펴보도록 하겠습니다.</p>
+<p>대용량 데이터의 집계 처리는 배치 애플리케이션에서 자주 발생하는 작업이지만, 처리해야 할 데이터 양이 증가할수록 성능 이슈가 발생합니다. 본 포스트에서는 기존 <code class="language-plaintext highlighter-rouge">GROUP BY</code>, <code class="language-plaintext highlighter-rouge">SUM</code> 등 SQL 기반 집계 대신 <strong>Redis</strong>를 활용한 고성능 집계 방법과 그 최적화 과정에 대해 단계별로 알아보겠습니다.</p>
 
-<h1 id="배치-처리의-개념과-사용-시나리오">배치 처리의 개념과 사용 시나리오</h1>
+<h1 id="기존-group-by-sum-쿼리의-한계">기존 GROUP BY, SUM 쿼리의 한계</h1>
 
-<p><strong>배치(batch) 처리</strong>는 특정 시간에 <strong>많은 데이터를 일괄적으로 처리하는 프로세스</strong>를 의미합니다. 예를 들어, e-커머스 플랫폼에서 오후 4시에 상품 배송 정보를 고객들에게 문자로 일괄 전송하는 경우가 이에 해당합니다. 서버 개발자들은 특정 시간에 일괄 처리해야 하는 작업이 필요할 때 이를 배치 프로세스로 구현하는 것이 일반적입니다.</p>
+<p>통계 처리 시 일반적으로 <code class="language-plaintext highlighter-rouge">GROUP BY</code>, <code class="language-plaintext highlighter-rouge">SUM</code> 쿼리를 사용하는 것은 데이터가 적을 때는 효율적입니다. 그러나 데이터가 대용량으로 증가하고 쿼리가 복잡해질수록 여러 성능 문제가 발생합니다:</p>
 
-<h1 id="일괄-생성-일괄-수정-통계-처리-개념">일괄 생성, 일괄 수정, 통계 처리 개념</h1>
+<ul>
+  <li>여러 테이블을 <code class="language-plaintext highlighter-rouge">JOIN</code>하고 <code class="language-plaintext highlighter-rouge">GROUP BY</code>하는 복잡한 쿼리는 데이터베이스 옵티마이저가 비효율적인 실행 계획을 생성할 수 있습니다.</li>
+  <li>대량의 데이터 처리 과정에서 임시 테이블 생성으로 인한 디스크 I/O 부하가 증가합니다.</li>
+  <li>데이터 양이 증가할수록 쿼리 실행 시간이 기하급수적으로 증가합니다.</li>
+  <li>쿼리 튜닝이 복잡해지고 데이터베이스 리소스 사용량이 급증합니다.</li>
+</ul>
 
-<p>배치 처리는 크게 세 가지 형태로 구분할 수 있습니다.</p>
+<p>아래 코드는 배치 과정에서 정산 데이터를 집계하기 위해 <code class="language-plaintext highlighter-rouge">GROUP BY</code>, <code class="language-plaintext highlighter-rouge">SUM</code>을 사용한 SQL문 입니다:</p>
 
-<h2 id="1-일괄-생성read-create-write">1. 일괄 생성(Read-Create-Write)</h2>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nc">String</span> <span class="n">sql</span> <span class="o">=</span> <span class="s">"""
+            SELECT
+                    ds.settlement_id,
+                    ds.seller_id,
+                    ds.settlement_date,
+                    SUM(IF(dsd.settlement_status = 'COMPLETED', 1, 0)) AS total_order_count,
+                    SUM(IF(dsd.settlement_status = 'REFUNDED', 1, 0)) AS total_claim_count,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.quantity
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.quantity
+                            ELSE 0
+                        END) AS total_quantity,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.sales_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.sales_amount
+                            ELSE 0
+                        END) AS total_sales_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.tax_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.tax_amount
+                            ELSE 0
+                        END) AS total_tax_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.promotion_discount_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.promotion_discount_amount
+                            ELSE 0
+                        END) AS total_promotion_discount_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.coupon_discount_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.coupon_discount_amount
+                            ELSE 0
+                        END) AS total_coupon_discount_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.point_used_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.point_used_amount
+                            ELSE 0
+                        END) AS total_point_used_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.shipping_fee
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.shipping_fee
+                            ELSE 0
+                        END) AS total_shipping_fee,
+                    SUM(IF(dsd.settlement_status = 'REFUNDED', dsd.claim_shipping_fee, 0)) AS total_claim_shipping_fee,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.commission_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.commission_amount
+                            ELSE 0
+                        END) AS total_commission_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.settlement_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.settlement_amount
+                            ELSE 0
+                        END) AS total_settlement_amount
+            FROM daily_settlement_detail dsd
+            JOIN daily_settlement ds on dsd.daily_settlement_id = ds.settlement_id
+            WHERE ds.settlement_date = ?
+            GROUP BY ds.settlement_id, ds.seller_id, ds.settlement_date
+        """</span><span class="o">;</span>
 
-<p>기존 저장된 정보를 조합해 새로운 정보를 만듭니다. 예를 들어, 주문 정보를 읽어 사용자 정보와 합친 후 문자 정보를 생성하는 경우가 이에 해당합니다.</p>
+</code></pre></div></div>
 
-<h2 id="2-일괄-수정read-update-write">2. 일괄 수정(Read-Update-Write)</h2>
+<h1 id="redis를-활용한-효율적인-집계-처리">Redis를 활용한 효율적인 집계 처리</h1>
 
-<p>A 데이터를 읽고 B 데이터를 참고하여 A 데이터를 수정 합니다. 예를 들어, 주문 정보를 읽고 배송 정보를 참고해 주문 정보를 수정합니다.</p>
+<p>대용량 데이터 집계 시 발생하는 <code class="language-plaintext highlighter-rouge">GROUP BY</code> 쿼리의 문제를 해결하기 위해 집계 연산을 <strong>디스크 기반 RDB 데이터베이스</strong>가 아닌 <strong>인메모리 데이터베이스인 Redis</strong>로 이관할 수 있습니다.</p>
 
-<h2 id="3-통계-처리read-sum-write">3. 통계 처리(Read-Sum-Write)</h2>
+<p><strong>Redis</strong>를 집계 처리에 활용하면 다음과 같은 장점이 있습니다:</p>
 
-<p>데이터를 집계하여 통계 형식의 데이터를 만듭니다. 예를 들어, 주문 정보를 <code class="language-plaintext highlighter-rouge">GROUP BY</code> 형태로 질의해온 다음 상품별 주문 금액 합산 데이터를 만들 수 있습니다.</p>
+<ol>
+  <li>집계에 최적화된 연산 API 지원 (<code class="language-plaintext highlighter-rouge">hincrby</code>, <code class="language-plaintext highlighter-rouge">hincrbyfloat</code> 등)</li>
+  <li>메모리 기반 처리로 디스크 I/O 병목 현상 제거</li>
+  <li>인메모리 데이터베이스의 초고속 연산 처리 능력</li>
+</ol>
 
-<h1 id="사이드-프로젝트-소개">사이드 프로젝트 소개</h1>
+<p>🚨 <strong>주의사항:</strong></p>
 
-<p>스프링 배치의 성능을 최적화하는 <a href="https://github.com/Seung-IL-Bang/spring-batch-optimization-side-project" target="_blank" rel="noopener noreferrer">사이드 프로젝트</a>를 진행했습니다. 이 프로젝트에서는 e-커머스 플랫폼에서 상품을 등록한 판매자에게 일일 정산을 제공하기 위해, 하루 동안 발생한 구매 확정 데이터를 기반으로 매일 특정 시각에 판매자별 일일 정산을 수행하는 배치 프로세스를 구현했습니다.</p>
+<p><strong>Redis</strong>를 사용하면 집계 연산을 빠르게 처리할 순 있지만, 병목 지점이 될 수 있는 지점이 네트워크 레이턴시입니다. 1,000만 개의 데이터를 합산하기 위해 1,000만 번의 개별 네트워크 요청이 발생한다면, 이로 인한 성능 저하는 피할 수 없습니다. ☠️</p>
 
-<p>다음 이미지는 일일 정산 배치를 수행하는 각 단계별 상태를 나타낸 다이어그램입니다.</p>
+<h1 id="redis-pipeline을-통한-네트워크-레이턴시-최소화">Redis Pipeline을 통한 네트워크 레이턴시 최소화</h1>
+
+<p><strong>Redis Pipeline</strong>을 활용하면 수많은 <strong>Redis 명령을 묶어서 한 번의 네트워크 왕복으로 처리</strong>할 수 있습니다. 이를 통해 <strong>1,000만 번의 개별 네트워크 요청</strong>을 청크 단위로 묶어 <strong>1만 번</strong> 정도로 줄이면 집계 처리 시간을 획기적으로 단축할 수 있습니다.</p>
+
+<h2 id="개별-요청-방식">개별 요청 방식</h2>
+
 <figure align="center">
-<img src="/post_images/spring-batch-optimization/batch-state-diagram.png" />
+<img src="/post_images/spring-batch-optimization/redis-latency1.png" />
 <figcaption></figcaption>
 </figure>
 
+<h2 id="pipeline-방식">Pipeline 방식</h2>
+
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/redis-latency2.png" />
+<figcaption></figcaption>
+</figure>
+
+<p>💡 <strong>중요한 구현 포인트:</strong></p>
+
+<p><strong>Spring Batch</strong>의 청크 프로세싱 아키텍처를 고려할 때, Redis 파이프라인은 반드시 <code class="language-plaintext highlighter-rouge">ItemWriter</code>에서 생성해야 합니다. Spring Batch는 <code class="language-plaintext highlighter-rouge">ItemReader</code> → <code class="language-plaintext highlighter-rouge">ItemProcessor</code> 단계에서는 항목을 하나씩 처리하다가, 지정된 Chunk 크기만큼 항목이 처리되면 <code class="language-plaintext highlighter-rouge">ItemWriter</code>에게 묶음으로 전달합니다.</p>
+
+<p>만약 <code class="language-plaintext highlighter-rouge">ItemProcessor</code>에서 Redis Pipeline을 생성한다면, 항목마다 Redis 연결을 맺고 끊는 불필요한 오버헤드가 발생합니다. 따라서 <code class="language-plaintext highlighter-rouge">ItemWriter</code>에서 청크 단위로 파이프라인을 처리하는 것이 최적의 구현 방식입니다.</p>
+
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/spring-batch-chunk-diagram.svg" />
+<figcaption></figcaption>
+</figure>
+
+<p>(처음에 청크 프로세싱 아키텍처를 고려하지 않고, 단순히 <code class="language-plaintext highlighter-rouge">ItemProcessor</code>에서 처리하는게 자연스럽단 착각 덕분에 성능이 나빠진 제 경험으로부터 알려드립니다. 😂)</p>
+
+<p>다음은 정산 데이터(<code class="language-plaintext highlighter-rouge">settlement_detail</code>) 청크를 정산 항목별로 <strong>Redis</strong>에서 파이프라인을 사용해 집계 처리하는 코드입니다:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Bean</span>
+<span class="kd">public</span> <span class="nc">ItemWriter</span><span class="o">&lt;</span><span class="nc">SettlementAggregate</span><span class="o">&gt;</span> <span class="nf">optimizedRedisAggregateWriter</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">items</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="c1">// 청크의</span>
+        <span class="c1">// 파이프라인 시작</span>
+        <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">multi</span><span class="o">();</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Processing {} items in a single Redis pipeline transaction"</span><span class="o">,</span> <span class="n">items</span><span class="o">.</span><span class="na">size</span><span class="o">());</span>
+
+        <span class="k">for</span> <span class="o">(</span><span class="nc">SettlementAggregate</span> <span class="n">detail</span> <span class="o">:</span> <span class="n">items</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">String</span> <span class="n">key</span> <span class="o">=</span> <span class="s">"daily_settlement:"</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementId</span><span class="o">();</span>
+
+            <span class="c1">// 상태별 처리</span>
+            <span class="k">if</span> <span class="o">(</span><span class="no">COMPLETED</span><span class="o">.</span><span class="na">name</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">()))</span> <span class="o">{</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrby</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalOrderCount"</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrby</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalQuantity"</span><span class="o">,</span> <span class="n">detail</span><span class="o">.</span><span class="na">getQuantity</span><span class="o">());</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="no">REFUNDED</span><span class="o">.</span><span class="na">name</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">()))</span> <span class="o">{</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrby</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalClaimCount"</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrby</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalQuantity"</span><span class="o">,</span> <span class="o">-</span><span class="n">detail</span><span class="o">.</span><span class="na">getQuantity</span><span class="o">());</span>
+            <span class="o">}</span>
+
+            <span class="c1">// 금액 관련 필드 처리</span>
+            <span class="nc">String</span> <span class="n">statusMultiplier</span> <span class="o">=</span> <span class="no">REFUNDED</span><span class="o">.</span><span class="na">name</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">())</span> <span class="o">?</span> <span class="s">"-"</span> <span class="o">:</span> <span class="s">""</span><span class="o">;</span>
+
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalSalesAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSalesAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalTaxAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getTaxAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalPromotionDiscountAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getPromotionDiscountAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalCouponDiscountAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getCouponDiscountAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalPointUsedAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getPointUsedAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalShippingFee"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getShippingFee</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalCommissionAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getCommissionAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalSettlementAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+
+            <span class="c1">// REFUNDED인 경우 클레임 배송비 추가</span>
+            <span class="k">if</span> <span class="o">(</span><span class="no">REFUNDED</span><span class="o">.</span><span class="na">name</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">()))</span> <span class="o">{</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalClaimShippingFee"</span><span class="o">,</span>
+                        <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getClaimShippingFee</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="o">}</span>
+
+            <span class="c1">// seller_id와 settlement_date 저장 (덮어쓰기 - 모든 레코드가 동일한 값을 가짐)</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hset</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"sellerId"</span><span class="o">,</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSellerId</span><span class="o">().</span><span class="na">toString</span><span class="o">());</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hset</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"settlementDate"</span><span class="o">,</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementDate</span><span class="o">().</span><span class="na">toString</span><span class="o">());</span>
+
+            <span class="c1">// 해당 settlement에 대한 키 목록에 추가</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">sadd</span><span class="o">(</span><span class="s">"settlement_keys:"</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementDate</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span> <span class="n">key</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="c1">// 모든 명령을 한 번에 실행</span>
+        <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">exec</span><span class="o">();</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Successfully processed batch of {} settlement details to Redis"</span><span class="o">,</span> <span class="n">items</span><span class="o">.</span><span class="na">size</span><span class="o">());</span>
+    <span class="o">};</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>이 방식을 적용한 후에도 <code class="language-plaintext highlighter-rouge">redisAsyncCommands</code> 클라이언트를 통해 <strong>반복되는 연산 요청을 매번 파이프라인에 적재</strong>해야 하므로, 기존 <code class="language-plaintext highlighter-rouge">GROUP BY</code> 대비 성능 개선이 기대보다 크지 않았습니다.</p>
+
+<p>더 높은 성능 개선을 위해 구글링과 AI에게 조언을 구하여, 저수준 API 활용 방법 중 Lua 스크립트 사용을 고려해 보게 되었습니다.</p>
+
+<h1 id="lua-스크립트를-활용한-집계-처리">Lua 스크립트를 활용한 집계 처리</h1>
+
+<p><strong>파이프라인에 연산 명령어를 적재하는 과정</strong>에서도 여전히 애플리케이션 측에서 <strong>많은 연산</strong> 로직이 필요하다는 사실을 발견했습니다.</p>
+
+<p>(🤔 <code class="language-plaintext highlighter-rouge">StepListener</code>를 활용하여 명령어를 적재하는 과정이 얼마나 시간이 걸리는지 측정했습니다.)</p>
+
+<p>이를 해결하기 위해 <strong>Lua 스크립트</strong>를 활용하여 데이터만 Redis 서버로 전송하고, 모든 집계 연산은 Redis 서버에서 <strong>직접 수행</strong>하도록 개선했습니다.</p>
+
+<p>이 접근 방식의 핵심 장점은 다음과 같습니다:</p>
+
 <ul>
-  <li><code class="language-plaintext highlighter-rouge">주문-상품 구매 확정 처리</code>: 특정 조건을 만족시키는 주문-상품 건에 대하여 <strong>구매 확정</strong> 상태로 일괄 수정 합니다.</li>
-  <li><code class="language-plaintext highlighter-rouge">클레임 처리 완료</code>: 클레임(취소/환불/반품)이 끝난 건에 대하여 <strong>클레임 완료 처리</strong> 상태로 일괄 수정 합니다.</li>
-  <li><code class="language-plaintext highlighter-rouge">판매자별 일일 정산 생성</code>: 금일 판매건이 존재하는 판매자에 대하여 일일 정산을 일괄 생성 합니다.</li>
-  <li><code class="language-plaintext highlighter-rouge">주문-상품 정산 Detail 생성</code>: 구매 확정 상태의 주문-상품 건에 대하여 <strong>(+) 정산 처리</strong>한 데이터를 일괄 생성합니다.</li>
-  <li><code class="language-plaintext highlighter-rouge">클레임-환불 정산 Detail 생성</code>: 클레임 처리 완료 건 중 환불건에 대하여 <strong>(-) 정산 처리</strong>한 데이터를 일괄 생성합니다.</li>
-  <li><code class="language-plaintext highlighter-rouge">판매자별 정산 Detail 집계</code>: 판매자별로 <strong>(+)정산과 (-)정산을 집계</strong>하여 통계 데이터를 생성합니다.</li>
-  <li><code class="language-plaintext highlighter-rouge">판매자별 일일 정산 업데이트</code>: 이전 단계에서 생성해두었던 일일 정산에 집계 데이터를 업데이트합니다.</li>
+  <li>애플리케이션 측의 연산 오버헤드 제거</li>
+  <li>데이터 전송량 최소화</li>
+  <li>Redis 서버에서의 원자적 실행 보장</li>
+  <li>복잡한 로직을 단일 스크립트로 캡슐화</li>
 </ul>
 
-<!--일일 정산 배치 프로세스 상태 다이어그램-->
+<p>다음은 정산 집계를 위한 Lua 스크립트입니다:</p>
 
-<h1 id="대량-데이터-처리-시-발생하는-일반적인-문제점">대량 데이터 처리 시 발생하는 일반적인 문제점</h1>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 집계를 위한 Lua 스크립트</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="nc">String</span> <span class="no">AGGREGATE_SCRIPT</span> <span class="o">=</span> <span class="s">"""
+        local key = KEYS[1]
+        local settlement_key = KEYS[2]
+        local status = ARGV[1]
+        local seller_id = ARGV[2]
+        local settlement_date = ARGV[3]
+        local quantity = tonumber(ARGV[4])
+        local tax_amount = tonumber(ARGV[5])
+        local sales_amount = tonumber(ARGV[6])
+        local promotion_discount_amount = tonumber(ARGV[7])
+        local coupon_discount_amount = tonumber(ARGV[8])
+        local point_used_amount = tonumber(ARGV[9])
+        local shipping_fee = tonumber(ARGV[10])
+        local claim_shipping_fee = tonumber(ARGV[11])
+        local commission_amount = tonumber(ARGV[12])
+        local settlement_amount = tonumber(ARGV[13])
+        
+        if status == 'COMPLETED' then
+          redis.call('hincrby', key, 'totalOrderCount', 1)
+          redis.call('hincrby', key, 'totalQuantity', quantity)
+        else
+          redis.call('hincrby', key, 'totalClaimCount', 1)
+          redis.call('hincrby', key, 'totalQuantity', -quantity)
+        end
+        
+        local multiplier = status == 'REFUNDED' and -1 or 1
+        redis.call('hincrbyfloat', key, 'totalSalesAmount', multiplier * sales_amount)
+        redis.call('hincrbyfloat', key, 'totalTaxAmount', multiplier * tax_amount)
+        redis.call('hincrbyfloat', key, 'totalPromotionDiscountAmount', multiplier * promotion_discount_amount)
+        redis.call('hincrbyfloat', key, 'totalCouponDiscountAmount', multiplier * coupon_discount_amount)
+        redis.call('hincrbyfloat', key, 'totalPointUsedAmount', multiplier * point_used_amount)
+        redis.call('hincrbyfloat', key, 'totalShippingFee', multiplier * shipping_fee)
+        redis.call('hincrbyfloat', key, 'totalCommissionAmount', multiplier * commission_amount)
+        redis.call('hincrbyfloat', key, 'totalSettlementAmount', multiplier * settlement_amount)
+        
+        if status == 'REFUNDED' then
+          redis.call('hincrbyfloat', key, 'totalClaimShippingFee', claim_shipping_fee)
+        end
+        
+        redis.call('hset', key, 'sellerId', seller_id)
+        redis.call('hset', key, 'settlementDate', settlement_date)
+        redis.call('sadd', settlement_key, key)
+        
+        return 1
+        """</span><span class="o">;</span>
 
-<p>개발자들은 종종 배치 성능에 상대적으로 무관심한 경향이 있습니다. 이는 배치 작업이 주로 트래픽이 적은 시간대인 새벽에 자동으로 스케줄링되어 실행되기 때문에, 배치 처리 시간이 오래 걸리더라도 큰 문제로 인식되지 않는 경우가 많기 때문입니다. 또한 배치를 개발한 뒤 배포 후 초기에만 로그를 모니터링하다가, 문제가 없다고 확인된 후에는 실제 문제가 발생하기 전까지 잘 살펴보지 않는 관리 소홀로 이어지기도 합니다. 특히 배치 모니터링 환경이 제대로 구축되어 있지 않다면, 문제를 파악하고 해결하는 데 상당한 시간이 소요될 수 있습니다.</p>
+</code></pre></div></div>
 
-<p>대량 데이터 처리 시 흔히 발생하는 문제점들은 다음과 같습니다:</p>
+<p>다음은 <strong>Lua 스크립트</strong>를 활용해 <strong>Redis</strong>에서 집계 연산을 수행하는 <code class="language-plaintext highlighter-rouge">ItemWriter</code> 구현입니다:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Bean</span>
+<span class="kd">public</span> <span class="nc">ItemWriter</span><span class="o">&lt;</span><span class="nc">SettlementAggregate</span><span class="o">&gt;</span> <span class="nf">luaScriptDirectWriter</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">items</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Processing {} items with Redis Lua Script direct execution"</span><span class="o">,</span> <span class="n">items</span><span class="o">.</span><span class="na">size</span><span class="o">());</span>
+
+        <span class="c1">// Lua 스크립트를 활용한 처리</span>
+        <span class="k">try</span> <span class="o">(</span><span class="nc">StatefulRedisConnection</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">redisClient</span><span class="o">.</span><span class="na">connect</span><span class="o">())</span> <span class="o">{</span>
+            <span class="nc">RedisAsyncCommands</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">async</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="na">async</span><span class="o">();</span>
+            <span class="n">async</span><span class="o">.</span><span class="na">setAutoFlushCommands</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+            <span class="nc">List</span><span class="o">&lt;</span><span class="nc">RedisFuture</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">futures</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;&gt;();</span>
+
+            <span class="k">for</span> <span class="o">(</span><span class="nc">SettlementAggregate</span> <span class="n">detail</span> <span class="o">:</span> <span class="n">items</span><span class="o">)</span> <span class="o">{</span>
+                <span class="nc">String</span> <span class="n">key</span> <span class="o">=</span> <span class="s">"daily_settlement:"</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementId</span><span class="o">();</span>
+                <span class="nc">String</span> <span class="n">settlementKeysKey</span> <span class="o">=</span> <span class="s">"settlement_keys:"</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementDate</span><span class="o">().</span><span class="na">toString</span><span class="o">();</span>
+
+                <span class="c1">// Lua 스크립트 실행 - 모든 연산을 레디스 서버에서 처리</span>
+                <span class="n">futures</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">async</span><span class="o">.</span><span class="na">eval</span><span class="o">(</span>
+                        <span class="no">AGGREGATE_SCRIPT</span><span class="o">,</span>
+                        <span class="nc">ScriptOutputType</span><span class="o">.</span><span class="na">INTEGER</span><span class="o">,</span>
+                        <span class="k">new</span> <span class="nc">String</span><span class="o">[]{</span><span class="n">key</span><span class="o">,</span> <span class="n">settlementKeysKey</span><span class="o">},</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSellerId</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementDate</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="nc">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getQuantity</span><span class="o">()),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getTaxAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSalesAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getPromotionDiscountAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getCouponDiscountAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getPointUsedAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getShippingFee</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getClaimShippingFee</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getCommissionAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()</span>
+                <span class="o">));</span>
+            <span class="o">}</span>
+
+            <span class="c1">// 모든 명령어 한번에 전송</span>
+            <span class="n">async</span><span class="o">.</span><span class="na">flushCommands</span><span class="o">();</span>
+
+            <span class="c1">// 모든 작업 완료 대기</span>
+            <span class="nc">CompletableFuture</span><span class="o">.</span><span class="na">allOf</span><span class="o">(</span><span class="n">futures</span><span class="o">.</span><span class="na">toArray</span><span class="o">(</span><span class="k">new</span> <span class="nc">CompletableFuture</span><span class="o">[</span><span class="mi">0</span><span class="o">]))</span>
+                    <span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">"Error processing settlements with Lua script: {}"</span><span class="o">,</span> <span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">(),</span> <span class="n">e</span><span class="o">);</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">"Error executing Redis Lua script"</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Successfully processed batch of {} settlement details to Redis using Lua script"</span><span class="o">,</span> <span class="n">items</span><span class="o">.</span><span class="na">size</span><span class="o">());</span>
+    <span class="o">};</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h1 id="lua-스크립트-사용-시-주의사항과-트레이드-오프">Lua 스크립트 사용 시 주의사항과 트레이드 오프</h1>
+
+<p><strong>Lua 스크립트</strong>를 통한 최적화는 큰 성능 향상을 가져올 수 있지만, 몇 가지 중요한 고려사항과 <strong>트레이드 오프</strong>가 존재합니다:</p>
+
+<p>📌 <strong>Redis 서버 부하 증가:</strong></p>
+
 <ul>
-  <li>처리 시간이 예상보다 크게 길어지는 현상</li>
-  <li>메모리 부족(OOM, Out Of Memory) 오류 발생</li>
-  <li>데이터베이스 부하 증가 및 성능 저하</li>
-  <li>동시에 실행되는 배치 작업 간 자원 경쟁으로 인한 성능 저하</li>
-  <li>배치 처리 이력 관리 및 모니터링의 어려움</li>
+  <li>집계 연산의 부하가 애플리케이션에서 Redis 서버로 이동합니다.</li>
+  <li>복잡한 스크립트는 Redis의 싱글 스레드 특성으로 인해 다른 작업을 차단할 수 있습니다.</li>
+  <li>특히 고부하 상황에서 Redis 서버의 CPU 사용률을 모니터링해야 합니다.</li>
 </ul>
 
-<p>사이드 프로젝트를 진행하면서 위 문제들을 어떻게 개선해나갔는지 다음 포스트들에서 하나씩 자세히 살펴보도록 하겠습니다.</p>
+<p>📌 <strong>디버깅 복잡성:</strong></p>
 
-<h2 id="감사합니다">감사합니다.</h2>]]></content><author><name>Bang Seung IL</name></author><category term="Spring Batch" /><category term="Spring Batch" /><summary type="html"><![CDATA[스프링 배치를 통한 대용량 처리에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Batch 효과적인 대량 데이터 리드(Read) 전략</title><link href="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-Optimized-read-strategy/" rel="alternate" type="text/html" title="Spring Batch 효과적인 대량 데이터 리드(Read) 전략" /><published>2025-03-22T00:00:00+09:00</published><updated>2025-03-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-Optimized-read-strategy</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-Optimized-read-strategy/"><![CDATA[<blockquote>
+<ul>
+  <li>Lua 스크립트 내부에서 발생하는 오류는 디버깅이 어렵습니다.</li>
+  <li>로그 출력 등 디버깅 정보를 얻기 어려우므로 철저한 테스트가 필요합니다.</li>
+  <li>스크립트 오류 시 전체 트랜잭션이 실패할 수 있어 롤백 전략이 필요합니다.</li>
+</ul>
+
+<p>📌 <strong>유지보수 복잡성:</strong></p>
+
+<ul>
+  <li>Lua 스크립트에 대한 버전 관리와 배포 전략이 필요합니다.</li>
+</ul>
+
+<p>📌 <strong>Lua 언어 학습 곡선:</strong></p>
+
+<ul>
+  <li>개발팀이 Lua 언어에 익숙하지 않을 경우 추가적인 학습 비용이 발생합니다.</li>
+</ul>
+
+<p>📌 <strong>원자성 제한:</strong></p>
+
+<ul>
+  <li>Lua 스크립트는 단일 Redis 인스턴스에서는 원자적이지만, 클러스터 환경에서는 원자성이 보장되지 않습니다.</li>
+  <li>클러스터에서 여러 키에 걸친 작업을 수행할 때는 모든 키가 동일한 슬롯에 있어야 합니다.</li>
+</ul>
+
+<p>📌 <strong>메모리 사용량 증가:</strong></p>
+
+<ul>
+  <li>Lua 스크립트 실행 중 생성되는 임시 데이터는 Redis 메모리를 사용합니다.</li>
+  <li>대규모 데이터 처리 시 <code class="language-plaintext highlighter-rouge">maxmemory</code> 설정과 메모리 모니터링이 중요합니다.</li>
+</ul>
+
+<p>이러한 트레이드 오프를 고려하여, 다음과 같은 상황에서 Lua 스크립트 사용을 권장합니다:</p>
+
+<ul>
+  <li>집계, 카운팅 등 단순하고 반복적인 연산이 필요한 경우</li>
+  <li>네트워크 왕복을 최소화해야 하는 성능 매우 중요한 상황</li>
+  <li>Redis 서버의 리소스가 충분한 경우</li>
+</ul>
+
+<p>반면, 다음과 같은 경우는 파이프라인이나 다른 방식을 고려해 볼 수 있습니다:</p>
+
+<ul>
+  <li>로직이 매우 복잡하고 자주 변경되는 경우</li>
+  <li>Redis 클러스터 환경에서 여러 키를 사용해야 하는 경우</li>
+  <li>Redis 서버가 이미 높은 부하를 겪고 있는 경우</li>
+</ul>
+
+<h1 id="성능-비교-및-결론">성능 비교 및 결론</h1>
+<p>세 가지 구현 방식의 성능을 비교한 결과는 다음과 같습니다:</p>
+
+<ol>
+  <li><strong>처리 속도 향상</strong>: <code class="language-plaintext highlighter-rouge">GROUP BY</code> 쿼리 대비 최대 9배 성능 개선</li>
+  <li><strong>데이터베이스 부하 감소</strong>: 데이터베이스의 집계 연산 부담 제거</li>
+  <li><strong>확장성 향상</strong>: 데이터 증가에도 선형적인 성능 유지</li>
+  <li><strong>실시간 집계 가능</strong>: 배치 작업과 실시간 집계를 병행 가능</li>
+</ol>
+
+<h1 id="결론">결론</h1>
+
+<p>대용량 데이터 집계가 필요한 <strong>Spring Batch</strong> 애플리케이션에서는 단순히 SQL의 <code class="language-plaintext highlighter-rouge">GROUP BY</code>에 의존하기보다 <strong>Redis</strong>와 같은 인메모리 데이터베이스를 활용하고, <strong>Lua 스크립트</strong>를 통한 서버 사이드 처리를 구현하여 최적의 성능을 얻을 수도 있습니다. 본 포스트가 배치 처리의 성능을 높이는 데 도움이 되었으면 좋겠습니다.</p>
+
+<p>감사합니다.</p>
+
+<hr />
+
+<h1 id="참고-자료">참고 자료</h1>
+
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=2IIwQDIi3ys&amp;t=1534s" target="_blank">Batch Performance 극한으로 끌어올리기: 1억 건 데이터 처리를 위한 노력 / if(kakao)dev2022</a></li>
+  <li><a href="https://www.youtube.com/watch?v=VSwWHHkdQI4&amp;t=1369s" target="_blank">Spring Batch 애플리케이션 성능 향상을 위한 주요 팁 (kakao tech)</a></li>
+  <li><a href="https://redis.io/docs/latest/commands/hincrby/" target="_blank">Redis Commands Docs - hincrby</a></li>
+  <li><a href="https://redis.io/docs/latest/commands/hincrbyfloat/" target="_blank">Redis Commands Docs - hincrbyfloat</a></li>
+  <li><a href="https://redis.io/docs/latest/develop/interact/programmability/eval-intro/" target="_blank">Redis Docs - Scripting with Lua</a></li>
+</ul>
+
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Batch" /><category term="Spring Batch" /><category term="Redis" /><category term="Aggregation" /><category term="Performance Optimization" /><summary type="html"><![CDATA[데이터 집계를 위한 배치 처리 시 GROUP BY와 SUM 대신 Redis를 활용하여 성능을 대폭 개선할 수 있는 방법에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Batch 효과적인 대량 데이터 리드(Read) 전략</title><link href="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-Optimized-read-strategy/" rel="alternate" type="text/html" title="Spring Batch 효과적인 대량 데이터 리드(Read) 전략" /><published>2025-03-22T00:00:00+09:00</published><updated>2025-03-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-Optimized-read-strategy</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-Optimized-read-strategy/"><![CDATA[<blockquote>
   <p>스프링 배치를 이용할 때 효과적인 대량 데이터를 읽기 위한 전략에 대해 알아봅시다!</p>
 </blockquote>
 
@@ -334,11 +679,78 @@
 
 <ul>
   <li><a href="https://www.youtube.com/watch?v=2IIwQDIi3ys&amp;t=1534s" target="_blank">Batch Performance 극한으로 끌어올리기: 1억 건 데이터 처리를 위한 노력 / if(kakao)dev2022</a></li>
-  <li><a herf="https://www.youtube.com/watch?v=VSwWHHkdQI4&amp;t=1369s" target="_blank">Spring Batch 애플리케이션 성능 향상을 위한 주요 팁 (kakao tech)</a></li>
+  <li><a href="https://www.youtube.com/watch?v=VSwWHHkdQI4&amp;t=1369s" target="_blank">Spring Batch 애플리케이션 성능 향상을 위한 주요 팁 (kakao tech)</a></li>
   <li><a href="https://docs.spring.io/spring-batch/reference/5.2-SNAPSHOT/readers-and-writers/database.html#JdbcCursorItemReader" target="_blank">Spring Batch Documentation: Cursor-based ItemReader Implementations</a></li>
 </ul>
 
-<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Batch" /><category term="Spring Batch" /><category term="Zero Offset" /><category term="Limit-Offset" /><category term="Cursor-Based" /><summary type="html"><![CDATA[스프링 배치를 이용할 때 효과적인 대량 데이터를 읽기 위한 전략에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축</title><link href="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/" rel="alternate" type="text/html" title="Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축" /><published>2025-02-24T00:00:00+09:00</published><updated>2025-02-24T00:00:00+09:00</updated><id>http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring</id><content type="html" xml:base="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/"><![CDATA[<blockquote>
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Batch" /><category term="Spring Batch" /><category term="Zero Offset" /><category term="Limit-Offset" /><category term="Cursor-Based" /><summary type="html"><![CDATA[스프링 배치를 이용할 때 효과적인 대량 데이터를 읽기 위한 전략에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Batch 대용량 처리의 이해</title><link href="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/" rel="alternate" type="text/html" title="Spring Batch 대용량 처리의 이해" /><published>2025-03-22T00:00:00+09:00</published><updated>2025-03-22T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/"><![CDATA[<blockquote>
+  <p>스프링 배치를 통한 대용량 처리에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">🚀 들어가기</h1>
+
+<p>본 포스트에서는 배치 처리의 개념과 사용 시나리오를 중심으로, 일괄 생성, 일괄 수정, 통계 처리에 대해 알아보고 대량 데이터 처리 시 발생하는 일반적인 문제점까지 살펴보도록 하겠습니다.</p>
+
+<h1 id="배치-처리의-개념과-사용-시나리오">배치 처리의 개념과 사용 시나리오</h1>
+
+<p><strong>배치(batch) 처리</strong>는 특정 시간에 <strong>많은 데이터를 일괄적으로 처리하는 프로세스</strong>를 의미합니다. 예를 들어, e-커머스 플랫폼에서 오후 4시에 상품 배송 정보를 고객들에게 문자로 일괄 전송하는 경우가 이에 해당합니다. 서버 개발자들은 특정 시간에 일괄 처리해야 하는 작업이 필요할 때 이를 배치 프로세스로 구현하는 것이 일반적입니다.</p>
+
+<h1 id="일괄-생성-일괄-수정-통계-처리-개념">일괄 생성, 일괄 수정, 통계 처리 개념</h1>
+
+<p>배치 처리는 크게 세 가지 형태로 구분할 수 있습니다.</p>
+
+<h2 id="1-일괄-생성read-create-write">1. 일괄 생성(Read-Create-Write)</h2>
+
+<p>기존 저장된 정보를 조합해 새로운 정보를 만듭니다. 예를 들어, 주문 정보를 읽어 사용자 정보와 합친 후 문자 정보를 생성하는 경우가 이에 해당합니다.</p>
+
+<h2 id="2-일괄-수정read-update-write">2. 일괄 수정(Read-Update-Write)</h2>
+
+<p>A 데이터를 읽고 B 데이터를 참고하여 A 데이터를 수정 합니다. 예를 들어, 주문 정보를 읽고 배송 정보를 참고해 주문 정보를 수정합니다.</p>
+
+<h2 id="3-통계-처리read-sum-write">3. 통계 처리(Read-Sum-Write)</h2>
+
+<p>데이터를 집계하여 통계 형식의 데이터를 만듭니다. 예를 들어, 주문 정보를 <code class="language-plaintext highlighter-rouge">GROUP BY</code> 형태로 질의해온 다음 상품별 주문 금액 합산 데이터를 만들 수 있습니다.</p>
+
+<h1 id="사이드-프로젝트-소개">사이드 프로젝트 소개</h1>
+
+<p>스프링 배치의 성능을 최적화하는 <a href="https://github.com/Seung-IL-Bang/spring-batch-optimization-side-project" target="_blank" rel="noopener noreferrer">사이드 프로젝트</a>를 진행했습니다. 이 프로젝트에서는 e-커머스 플랫폼에서 상품을 등록한 판매자에게 일일 정산을 제공하기 위해, 하루 동안 발생한 구매 확정 데이터를 기반으로 매일 특정 시각에 판매자별 일일 정산을 수행하는 배치 프로세스를 구현했습니다.</p>
+
+<p>다음 이미지는 일일 정산 배치를 수행하는 각 단계별 상태를 나타낸 다이어그램입니다.</p>
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/batch-state-diagram.png" />
+<figcaption></figcaption>
+</figure>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">주문-상품 구매 확정 처리</code>: 특정 조건을 만족시키는 주문-상품 건에 대하여 <strong>구매 확정</strong> 상태로 일괄 수정 합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">클레임 처리 완료</code>: 클레임(취소/환불/반품)이 끝난 건에 대하여 <strong>클레임 완료 처리</strong> 상태로 일괄 수정 합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">판매자별 일일 정산 생성</code>: 금일 판매건이 존재하는 판매자에 대하여 일일 정산을 일괄 생성 합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">주문-상품 정산 Detail 생성</code>: 구매 확정 상태의 주문-상품 건에 대하여 <strong>(+) 정산 처리</strong>한 데이터를 일괄 생성합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">클레임-환불 정산 Detail 생성</code>: 클레임 처리 완료 건 중 환불건에 대하여 <strong>(-) 정산 처리</strong>한 데이터를 일괄 생성합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">판매자별 정산 Detail 집계</code>: 판매자별로 <strong>(+)정산과 (-)정산을 집계</strong>하여 통계 데이터를 생성합니다.</li>
+  <li><code class="language-plaintext highlighter-rouge">판매자별 일일 정산 업데이트</code>: 이전 단계에서 생성해두었던 일일 정산에 집계 데이터를 업데이트합니다.</li>
+</ul>
+
+<!--일일 정산 배치 프로세스 상태 다이어그램-->
+
+<h1 id="대량-데이터-처리-시-발생하는-일반적인-문제점">대량 데이터 처리 시 발생하는 일반적인 문제점</h1>
+
+<p>개발자들은 종종 배치 성능에 상대적으로 무관심한 경향이 있습니다. 이는 배치 작업이 주로 트래픽이 적은 시간대인 새벽에 자동으로 스케줄링되어 실행되기 때문에, 배치 처리 시간이 오래 걸리더라도 큰 문제로 인식되지 않는 경우가 많기 때문입니다. 또한 배치를 개발한 뒤 배포 후 초기에만 로그를 모니터링하다가, 문제가 없다고 확인된 후에는 실제 문제가 발생하기 전까지 잘 살펴보지 않는 관리 소홀로 이어지기도 합니다. 특히 배치 모니터링 환경이 제대로 구축되어 있지 않다면, 문제를 파악하고 해결하는 데 상당한 시간이 소요될 수 있습니다.</p>
+
+<p>대량 데이터 처리 시 흔히 발생하는 문제점들은 다음과 같습니다:</p>
+<ul>
+  <li>처리 시간이 예상보다 크게 길어지는 현상</li>
+  <li>메모리 부족(OOM, Out Of Memory) 오류 발생</li>
+  <li>데이터베이스 부하 증가 및 성능 저하</li>
+  <li>동시에 실행되는 배치 작업 간 자원 경쟁으로 인한 성능 저하</li>
+  <li>배치 처리 이력 관리 및 모니터링의 어려움</li>
+</ul>
+
+<p>사이드 프로젝트를 진행하면서 위 문제들을 어떻게 개선해나갔는지 다음 포스트들에서 하나씩 자세히 살펴보도록 하겠습니다.</p>
+
+<h2 id="감사합니다">감사합니다.</h2>]]></content><author><name>Bang Seung IL</name></author><category term="Spring Batch" /><category term="Spring Batch" /><summary type="html"><![CDATA[스프링 배치를 통한 대용량 처리에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축</title><link href="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/" rel="alternate" type="text/html" title="Spring Boot + Prometheus + Grafana로 마이크로서비스 모니터링 시스템 구축" /><published>2025-02-24T00:00:00+09:00</published><updated>2025-02-24T00:00:00+09:00</updated><id>http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring</id><content type="html" xml:base="http://localhost:4000/msa/monitoring/prometheus/grafana/2025/02/24/Prometheus-Grafana-Monitoring/"><![CDATA[<blockquote>
   <p>Prometheus와 Grafana를 활용하여 Spring Boot 기반 마이크로서비스를 모니터링 하는 방법에 대해 알아봅시다!</p>
 </blockquote>
 
@@ -1450,202 +1862,4 @@
   <li>효율적인 리소스 사용</li>
 </ul>
 
-<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="JWT" /><category term="Spring Cloud Gateway" /><summary type="html"><![CDATA[Spring Cloud Gateway와 JWT를 활용한 중앙 집중식 인증에 대해 알아봅시다!]]></summary></entry><entry><title type="html">Spring Cloud Gateway를 활용한 API Gateway 구축</title><link href="http://localhost:4000/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/" rel="alternate" type="text/html" title="Spring Cloud Gateway를 활용한 API Gateway 구축" /><published>2025-02-18T00:00:00+09:00</published><updated>2025-02-18T00:00:00+09:00</updated><id>http://localhost:4000/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway</id><content type="html" xml:base="http://localhost:4000/spring%20cloud/msa/2025/02/18/Spring-Cloud-Gateway/"><![CDATA[<blockquote>
-  <p>Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!</p>
-</blockquote>
-
-<!-- more -->
-
-<h1 id="-들어가기">📌 들어가기</h1>
-
-<h2 id="gateway란-무엇인가">Gateway란 무엇인가?</h2>
-
-<p>Gateway는 클라이언트와 내부 시스템(ex: 마이크로서비스) 간의 <strong>단일 진입점 역할</strong>을 하는 미들 웨어입니다.</p>
-
-<p>모든 외부 요청은 먼저 Gateway를 통해 들어오며, 이곳에서 <strong>인증, 인가, 로깅, 모니터링 등 공통 기능을 처리</strong>한 후 적절한 내부 서비스로 요청을 전달합니다.</p>
-
-<p>이를 통해 <strong>개별 서비스는 본연의 비즈니스 로직에 집중</strong>할 수 있게 됩니다.</p>
-
-<h2 id="왜-spring-cloud-gateway를-사용해야-할까">왜 Spring Cloud Gateway를 사용해야 할까?</h2>
-
-<ol>
-  <li>
-    <p>Spring Cloud Gateway는 Spring Boot, Spring Security 등과 자연스럽게 연동되므로, 기존 Spring 기반 시스템에 쉽게 도입할 수 있습니다.</p>
-  </li>
-  <li>
-    <p><strong>Netty</strong> 기반의 <code class="language-plaintext highlighter-rouge">Spring Cloud Gateway</code>는 비동기, 논블로킹 방식으로 동작하여 높은 동시성 처리가 가능하며, 성능과 확장성 면에서 우수합니다.</p>
-  </li>
-  <li>
-    <p><code class="language-plaintext highlighter-rouge">application.yml</code> 설정 파일에 <strong>선언적</strong> 설정을 통해 <strong>쉽게 라우팅 규칙을 정의하고, 전/후 처리 필터를 적용</strong>할 수 있습니다. 이는 다양한 요구사항에 맞춰 Gateway를 유연하게 구성할 수 있게 해줍니다.</p>
-  </li>
-</ol>
-
-<p>이와 같이 Spring Cloud Gateway는 Spring 생태계와의 원활한 통합을 지원하며, 마이크로서비스 환경에서 발생할 수 있는 다양한 문제(코드 중복, 보안 취약점, 성능 및 확장성 문제 등)를 효과적으로 해결해줍니다.</p>
-
-<h1 id="기본-라우팅-설정">기본 라우팅 설정</h1>
-
-<p>application.yml 파일에 선언적 라우팅 설정을 통해, 요청 URL에 따라 내부 서비스로 요청을 전달합니다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
-  <span class="na">application</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
-  <span class="na">cloud</span><span class="pi">:</span>
-    <span class="na">gateway</span><span class="pi">:</span>
-      <span class="na">routes</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">user-service</span>
-          <span class="na">uri</span><span class="pi">:</span> <span class="s">http://localhost:8080</span> <span class="c1"># lb://USER-SERVICE</span>
-          <span class="na">predicates</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="s">Path=/user-service/test/**</span>
-            <span class="pi">-</span> <span class="s">Method=GET</span>
-</code></pre></div></div>
-
-<ul>
-  <li>위 게이트웨이 라우팅 설정은 HTTP 메서드가 <code class="language-plaintext highlighter-rouge">GET</code> 요청이고, 경로가 <code class="language-plaintext highlighter-rouge">/user-service/test/**</code>에 매칭되는 경우 <code class="language-plaintext highlighter-rouge">http://localhost:8080</code> 에서 실행중인 <code class="language-plaintext highlighter-rouge">user-service</code> 로 라우팅해줍니다.</li>
-  <li>만약 디스커버리 서비스인 Eureka를 사용한다면, 라우팅 URI를 <code class="language-plaintext highlighter-rouge">lb://USER-SERVICE</code> 처럼 서비스 이름으로 작성할 수 있습니다. (<code class="language-plaintext highlighter-rouge">lb://{application.name}</code>)</li>
-</ul>
-
-<h1 id="전역-필터">전역 필터</h1>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
-  <span class="na">application</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
-  <span class="na">cloud</span><span class="pi">:</span>
-    <span class="na">gateway</span><span class="pi">:</span>
-      <span class="na">default-filters</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MyGlobalFilter</span>
-          <span class="na">args</span><span class="pi">:</span>
-            <span class="na">preFilter</span><span class="pi">:</span> <span class="no">true</span>
-            <span class="na">postFilter</span><span class="pi">:</span> <span class="no">true</span>
-</code></pre></div></div>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">spring.cloud.gateway.default-filters</code>: 전역 필터 클래스를 지정해줄 수 있습니다. 이때 필터 객체에 인수(<code class="language-plaintext highlighter-rouge">args</code>)를 전달해줄 수 있습니다.
-    <ul>
-      <li><code class="language-plaintext highlighter-rouge">name</code>: 전역 필터 클래스명</li>
-      <li><code class="language-plaintext highlighter-rouge">args</code>: 명시된 인수값들이 전역 필터 내부의 중첩 클래스인 <code class="language-plaintext highlighter-rouge">Config</code>와 매핑된 후, 필터 기능을 하는 <code class="language-plaintext highlighter-rouge">apply</code> 메서드의 인자로 전달됩니다. (코드를 보면 쉽게 이해하실 수 있을 겁니다.)</li>
-    </ul>
-  </li>
-  <li>💡 참고로 필터에 인자 값을 전달하려면 필터에 <code class="language-plaintext highlighter-rouge">name</code> 속성값을 적용해야 합니다. 그 다음 아랫줄에 <code class="language-plaintext highlighter-rouge">args</code> 를 작성하면 됩니다.</li>
-</ul>
-
-<h2 id="myglobalfilter">MyGlobalFilter</h2>
-
-<p>Spring Cloud Gateway에서 동작하는 필터 클래스는 만들기 위해서는 <code class="language-plaintext highlighter-rouge">AbstractGatewayFilterFactory</code>를 상속하고 <code class="language-plaintext highlighter-rouge">apply</code> 메서드를 오버라이딩 해줘야 합니다.</p>
-
-<p>그리고, <code class="language-plaintext highlighter-rouge">args</code>를 전달 받을 중첩 클래스(<code class="language-plaintext highlighter-rouge">MyGlobalFilter.Config</code>)를 부모 클래스의 제네릭으로 전달 해줍니다.</p>
-
-<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Slf4j</span>
-<span class="nd">@Component</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MyGlobalFilter</span> <span class="kd">extends</span> <span class="nc">AbstractGatewayFilterFactory</span><span class="o">&lt;</span><span class="nc">MyGlobalFilter</span><span class="o">.</span><span class="na">Config</span><span class="o">&gt;</span> <span class="o">{</span>
-
-    <span class="kd">public</span> <span class="nf">MyGlobalFilter</span><span class="o">()</span> <span class="o">{</span>
-        <span class="kd">super</span><span class="o">(</span><span class="nc">Config</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="nc">GatewayFilter</span> <span class="nf">apply</span><span class="o">(</span><span class="nc">Config</span> <span class="n">config</span><span class="o">)</span> <span class="o">{</span>
-        <span class="k">return</span> <span class="o">(</span><span class="n">exchange</span><span class="o">,</span> <span class="n">chain</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
-            <span class="c1">// Pre Filter</span>
-            <span class="k">if</span> <span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">isPreFilter</span><span class="o">())</span> <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Global Pre Filter executed"</span><span class="o">);</span>
-
-            <span class="c1">// Post Filter</span>
-            <span class="k">return</span> <span class="n">chain</span><span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="n">exchange</span><span class="o">).</span><span class="na">then</span><span class="o">(</span><span class="nc">Mono</span><span class="o">.</span><span class="na">fromRunnable</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="o">{</span>
-                <span class="k">if</span> <span class="o">(</span><span class="n">config</span><span class="o">.</span><span class="na">isPostFilter</span><span class="o">())</span> <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Global Post Filter executed"</span><span class="o">);</span>
-            <span class="o">}));</span>
-        <span class="o">};</span>
-    <span class="o">}</span>
-
-    <span class="nd">@Data</span>
-    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">class</span> <span class="nc">Config</span> <span class="o">{</span>
-        <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">preFilter</span><span class="o">;</span>
-        <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">postFilter</span><span class="o">;</span>
-    <span class="o">}</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">MyGlobalFilter</code> 클래스 내부의 중첩 클래스인 <code class="language-plaintext highlighter-rouge">Config</code> 객체에 <code class="language-plaintext highlighter-rouge">application.yml</code> 에서 설정한 <code class="language-plaintext highlighter-rouge">args</code> 를 전달받게 됩니다.</li>
-  <li><code class="language-plaintext highlighter-rouge">apply</code> 메서드 내부에서 <code class="language-plaintext highlighter-rouge">return</code> <strong>전 영역은 PreFilter</strong> 이고, <code class="language-plaintext highlighter-rouge">return</code> <strong>구문은 PostFilter 영역</strong>입니다.</li>
-  <li>요청을 라우팅 하기 전에 PreFilter가 동작하고, 요청된 라우팅이 마이크로서비스에서 처리를 마친 후 응답이 돌아오면 그제서야 PostFilter가 동작합니다.</li>
-</ul>
-
-<h1 id="custom-filter">Custom Filter</h1>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
-  <span class="na">application</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
-  <span class="na">cloud</span><span class="pi">:</span>
-    <span class="na">gateway</span><span class="pi">:</span>
-      <span class="na">default-filters</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MyGlobalFilter</span>
-          <span class="na">args</span><span class="pi">:</span>
-            <span class="na">preFilter</span><span class="pi">:</span> <span class="no">true</span>
-            <span class="na">postFilter</span><span class="pi">:</span> <span class="no">true</span>
-      <span class="na">routes</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">user-service</span>
-          <span class="na">uri</span><span class="pi">:</span> <span class="s">http://localhost:8080</span>
-          <span class="na">predicates</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="s">Path=/user-service/**</span>
-          <span class="na">filters</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="s">RemoveRequestHeader=Cookie</span>
-            <span class="pi">-</span> <span class="s">RewritePath=/user-service/(?&lt;segment&gt;.*), /$\{segment}</span>
-            <span class="pi">-</span> <span class="err">`</span><span class="s">MyCustomFilter`</span>
-            <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">MyLoggingFilter</span>
-              <span class="na">args</span><span class="pi">:</span>
-                <span class="na">baseMessage</span><span class="pi">:</span> <span class="s">MyLoggingFilter start</span>
-                <span class="na">preLogger</span><span class="pi">:</span> <span class="no">true</span>
-                <span class="na">postLogger</span><span class="pi">:</span> <span class="no">true</span>
-</code></pre></div></div>
-
-<ul>
-  <li><code class="language-plaintext highlighter-rouge">spring.cloud.gateway.routes.filters</code>: 해당 속성에 선언된 필터들은 라우팅 조건을 만족하는 요청에 대해서만 필터가 작동합니다. 즉, 다른 라우팅 조건을 만족하는 요청에 대해선 필터가 동작하지 않습니다.
-    <ul>
-      <li>예를 들어, 위 설정에서는 uri가 <code class="language-plaintext highlighter-rouge">http://localhost:8080</code> 이고, path(경로)가 <code class="language-plaintext highlighter-rouge">/user-service/**</code> 에 매칭되는 요청에 대해서만 <code class="language-plaintext highlighter-rouge">filters</code> 들이 적용됩니다.</li>
-    </ul>
-  </li>
-  <li><code class="language-plaintext highlighter-rouge">RemoveRequestHeader</code>, <code class="language-plaintext highlighter-rouge">RewritePath</code>와 같이 기본적으로 스프링에서 지원하는 선언적 설정도 존재하고, <code class="language-plaintext highlighter-rouge">MyCustomFilter</code>, <code class="language-plaintext highlighter-rouge">MyLoggingFilter</code>와 같이 개발자가 정의한 커스텀 필터를 지정할 수도 있습니다.</li>
-</ul>
-
-<blockquote>
-  <p>✅ 설정 파일(application.yml) 내에서 나열된 라우트(route)나 각 라우트에 정의된 필터(filters)는 선언한 순서(위에서 아래)대로 처리되는 것이 일반적입니다. 즉, 별도의 order 속성을 지정하지 않는 경우에는 위에서 아래로 우선순위가 적용됩니다.</p>
-</blockquote>
-
-<h1 id="discovery-service와-spring-cloud-gateway">Discovery Service와 Spring Cloud Gateway</h1>
-
-<p>Spring Cloud Netflix Eureka를 사용 환경이라면, Spring Cloud Gateway는 <strong>로드밸런서</strong>의 역할도 수행할 수 있습니다.</p>
-
-<p>앞서 살펴봤던 <code class="language-plaintext highlighter-rouge">user-service</code> 의 Uri 경로를 <code class="language-plaintext highlighter-rouge">lb://USER-SERVICE</code> 처럼 애플리케이션 네임을 적어주면 디스커버리 서비스로부터 해당 서비스의 위치를 탐색하여 로드밸런싱 할 수 있습니다.</p>
-
-<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spring</span><span class="pi">:</span>
-  <span class="na">application</span><span class="pi">:</span>
-    <span class="na">name</span><span class="pi">:</span> <span class="s">gateway-service</span>
-  <span class="na">cloud</span><span class="pi">:</span>
-    <span class="na">gateway</span><span class="pi">:</span>
-      <span class="na">routes</span><span class="pi">:</span>
-        <span class="pi">-</span> <span class="na">id</span><span class="pi">:</span> <span class="s">user-service</span>
-          <span class="na">uri</span><span class="pi">:</span> <span class="s">lb://USER-SERVICE</span>
-          <span class="na">predicates</span><span class="pi">:</span>
-            <span class="pi">-</span> <span class="s">Path=/user-service/test/**</span>
-            <span class="pi">-</span> <span class="s">Method=GET</span>
-</code></pre></div></div>
-
-<p>이때, 만약 user-service 의 인스턴스가 다중화 되어 있다면, Spring Cloud Gateway는 라운드 로빈(Round Robin) 알고리즘으로 로드밸런싱을 처리하게 됩니다. 이와 같이 <strong>Spring Cloud Gateway는 단순한 API 게이트웨이 기능을 넘어, 서비스 디스커버리와 통합되어 여러 인스턴스 간의 로드밸런싱 기능을 제공</strong>합니다.</p>
-
-<p>따라서 시스템의 부하를 효과적으로 분산시켜, 서비스의 가용성과 안정성을 높여주고 마이크로서비스 아키텍처에서의 운영 효율성을 크게 향상시켜 줍니다.</p>
-
-<h1 id="-요약">🎯 요약</h1>
-
-<ul>
-  <li>클라이언트와 내부 시스템 간의 단일 진입점 역할을 수행하며, 인증, 인가, 로깅, 모니터링 등 공통 기능을 중앙집중적으로 처리.</li>
-  <li>Spring 생태계와의 원활한 통합, Netty 기반의 비동기 논블로킹 처리, 선언적 설정을 통한 유연한 라우팅 및 필터 관리 등으로 높은 성능과 확장성을 제공.</li>
-  <li>Spring Cloud Netflix Eureka와 연동하여, <code class="language-plaintext highlighter-rouge">lb://</code> 접두사를 사용함으로써 동적 로드밸런싱(라운드 로빈 알고리즘)을 수행, 여러 인스턴스 간의 부하 분산과 시스템 안정성을 확보</li>
-</ul>
-
-<h1 id="-참고-자료">📂 참고 자료</h1>
-
-<ul>
-  <li><a href="https://docs.spring.io/spring-cloud-gateway/reference/spring-cloud-gateway/how-it-works.html">Spring Cloud Gateway Docs</a></li>
-  <li><a href="https://en.wikipedia.org/wiki/Netty_(software)">Netty</a></li>
-</ul>
-
-<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="Spring Cloud Gateway" /><summary type="html"><![CDATA[Spring Cloud Gateway의 역할, 라우팅 및 필터 처리 방법에 대해 알아봅시다!]]></summary></entry></feed>
+<hr />]]></content><author><name>Bang Seung IL</name></author><category term="Spring Cloud" /><category term="MSA" /><category term="JWT" /><category term="Spring Cloud Gateway" /><summary type="html"><![CDATA[Spring Cloud Gateway와 JWT를 활용한 중앙 집중식 인증에 대해 알아봅시다!]]></summary></entry></feed>

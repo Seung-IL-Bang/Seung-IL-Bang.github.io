@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400">
+  <!-- 배경 -->
+  <rect width="800" height="400" fill="#f8f9fa" />
+  
+  <!-- 제목 -->
+  <text x="400" y="30" font-family="Arial" font-size="20" font-weight="bold" text-anchor="middle" fill="#333">Spring Batch 청크 처리 모델</text>
+  
+  <!-- 데이터 영역 -->
+  <rect x="60" y="70" width="680" height="60" rx="5" ry="5" fill="#e6f7ff" stroke="#91d5ff" stroke-width="2" />
+  <text x="400" y="105" font-family="Arial" font-size="16" text-anchor="middle" fill="#333">대용량 데이터 소스 (수백만 ~ 수천만 레코드)</text>
+  
+  <!-- 화살표 -->
+  <path d="M400,130 L400,150" stroke="#333" stroke-width="2" />
+  <polygon points="400,150 395,140 405,140" fill="#333" />
+
+  <!-- Spring Batch 처리 흐름 -->
+  <rect x="100" y="150" width="600" height="180" rx="10" ry="10" fill="#f0f0f0" stroke="#d9d9d9" stroke-width="2" />
+  <text x="400" y="175" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#333">Spring Batch Job</text>
+  
+  <!-- Reader -->
+  <rect x="140" y="190" width="120" height="100" rx="5" ry="5" fill="#d6e4ff" stroke="#597ef7" stroke-width="2" />
+  <text x="200" y="215" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">ItemReader</text>
+  <text x="200" y="240" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">항목 단위 읽기</text>
+  <text x="200" y="260" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">(한 번에 1개)</text>
+  <text x="200" y="280" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">read()</text>
+  
+  <!-- Processor -->
+  <rect x="340" y="190" width="120" height="100" rx="5" ry="5" fill="#fff1f0" stroke="#ff7875" stroke-width="2" />
+  <text x="400" y="215" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">ItemProcessor</text>
+  <text x="400" y="240" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">항목 단위 처리</text>
+  <text x="400" y="260" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">(한 번에 1개)</text>
+  <text x="400" y="280" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">process()</text>
+  
+  <!-- Writer -->
+  <rect x="540" y="190" width="120" height="100" rx="5" ry="5" fill="#f6ffed" stroke="#73d13d" stroke-width="2" />
+  <text x="600" y="215" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle" fill="#333">ItemWriter</text>
+  <text x="600" y="240" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">청크 단위 처리</text>
+  <text x="600" y="260" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">(한 번에 N개)</text>
+  <text x="600" y="280" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">write(chunk)</text>
+  
+  <!-- Reader -> Processor 화살표 -->
+  <path d="M260,240 L340,240" stroke="#333" stroke-width="2" />
+  <polygon points="340,240 330,235 330,245" fill="#333" />
+  
+  <!-- Processor -> Writer 화살표 -->
+  <path d="M460,240 L540,240" stroke="#333" stroke-width="2" />
+  <polygon points="540,240 530,235 530,245" fill="#333" />
+
+  <!-- 청크 표시 - Writer 영역 -->
+  <rect x="560" y="290" width="80" height="30" rx="5" ry="5" fill="#73d13d" stroke="#52c41a" stroke-width="1" />
+  <text x="600" y="310" font-family="Arial" font-size="12" font-weight="bold" text-anchor="middle" fill="white">청크 단위</text>
+  
+  <!-- 키 포인트 및 설명 -->
+  <rect x="100" y="350" width="600" height="30" rx="5" ry="5" fill="#fff2e8" stroke="#ffbb96" stroke-width="1" />
+  <text x="400" y="370" font-family="Arial" font-size="12" text-anchor="middle" fill="#333">
+    Redis Pipeline이나 Lua Script는 ItemWriter에서 청크 단위로 처리해야 최적의 성능을 얻을 수 있음
+  </text>
+</svg>

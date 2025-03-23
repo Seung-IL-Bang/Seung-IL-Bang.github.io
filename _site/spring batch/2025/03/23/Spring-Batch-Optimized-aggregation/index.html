@@ -1,0 +1,1668 @@
+
+<!doctype html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<html class="theme-next muse use-motion" lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/assets/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/assets/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Spring Batch,Redis,Aggregation,Performance Optimization," />
+
+
+
+
+
+  <link rel="alternate" href="/atom.xml" title="Seung il's Blog" type="application/atom+xml" />
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/assets/favicon.ico?v=5.1.1" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="데이터 집계를 위한 배치 처리 시 GROUP BY와 SUM 대신 Redis를 활용하여 성능을 대폭 개선할 수 있는 방법에 대해 알아봅시다!">
+<meta name="keywords" content="Spring Batch, Redis, Aggregation, Performance Optimization">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Batch 데이터 집계(Aggregation) 최적화">
+<meta property="og:url" content="http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/">
+<meta property="og:site_name" content="Seung il&apos;s Blog">
+<meta property="og:description" content="데이터 집계를 위한 배치 처리 시 GROUP BY와 SUM 대신 Redis를 활용하여 성능을 대폭 개선할 수 있는 방법에 대해 알아봅시다!">
+<meta property="og:locale" content="ko">
+<meta property="og:image" content="/post_images/spring-batch-optimization/redis-latency1.png">
+<meta property="og:image" content="/post_images/spring-batch-optimization/redis-latency2.png">
+<meta property="og:image" content="/post_images/spring-batch-optimization/spring-batch-chunk-diagram.svg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spring Batch 데이터 집계(Aggregation) 최적화">
+<meta name="twitter:description" content="데이터 집계를 위한 배치 처리 시 GROUP BY와 SUM 대신 Redis를 활용하여 성능을 대폭 개선할 수 있는 방법에 대해 알아봅시다!">
+<meta name="twitter:image" content="/post_images/spring-batch-optimization/redis-latency1.png">
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '',
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post","offset":12,"offset_float":0,"b2t":false,"scrollpercent":false},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: '0',
+      author: '작성자'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://localhost:4000/"/>
+
+
+
+
+
+  <title>Spring Batch 데이터 집계(Aggregation) 최적화 | Seung il's Blog</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="ko">
+
+  
+  
+
+  <div class="container sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"> <div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Seung il's Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">주니어 개발자 성장기록</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            홈
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            카테고리
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            아카이브
+          </a>
+        </li>
+      
+        
+        
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            태그
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br />
+            
+            검색
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off"
+             placeholder="" spellcheck="false"
+             type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+<div id="posts" class="posts-expand">
+  
+  
+
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spring Batch 데이터 집계(Aggregation) 최적화
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-03-23T00:00:00+09:00">
+                2025-03-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Batch" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Batch</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
+    
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+  
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>데이터 집계를 위한 배치 처리 시 <code class="language-plaintext highlighter-rouge">GROUP BY</code>와 <code class="language-plaintext highlighter-rouge">SUM</code> 대신 <strong>Redis</strong>를 활용하여 성능을 대폭 개선할 수 있는 방법에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">🚀 들어가기</h1>
+
+<p>대용량 데이터의 집계 처리는 배치 애플리케이션에서 자주 발생하는 작업이지만, 처리해야 할 데이터 양이 증가할수록 성능 이슈가 발생합니다. 본 포스트에서는 기존 <code class="language-plaintext highlighter-rouge">GROUP BY</code>, <code class="language-plaintext highlighter-rouge">SUM</code> 등 SQL 기반 집계 대신 <strong>Redis</strong>를 활용한 고성능 집계 방법과 그 최적화 과정에 대해 단계별로 알아보겠습니다.</p>
+
+<h1 id="기존-group-by-sum-쿼리의-한계">기존 GROUP BY, SUM 쿼리의 한계</h1>
+
+<p>통계 처리 시 일반적으로 <code class="language-plaintext highlighter-rouge">GROUP BY</code>, <code class="language-plaintext highlighter-rouge">SUM</code> 쿼리를 사용하는 것은 데이터가 적을 때는 효율적입니다. 그러나 데이터가 대용량으로 증가하고 쿼리가 복잡해질수록 여러 성능 문제가 발생합니다:</p>
+
+<ul>
+  <li>여러 테이블을 <code class="language-plaintext highlighter-rouge">JOIN</code>하고 <code class="language-plaintext highlighter-rouge">GROUP BY</code>하는 복잡한 쿼리는 데이터베이스 옵티마이저가 비효율적인 실행 계획을 생성할 수 있습니다.</li>
+  <li>대량의 데이터 처리 과정에서 임시 테이블 생성으로 인한 디스크 I/O 부하가 증가합니다.</li>
+  <li>데이터 양이 증가할수록 쿼리 실행 시간이 기하급수적으로 증가합니다.</li>
+  <li>쿼리 튜닝이 복잡해지고 데이터베이스 리소스 사용량이 급증합니다.</li>
+</ul>
+
+<p>아래 코드는 배치 과정에서 정산 데이터를 집계하기 위해 <code class="language-plaintext highlighter-rouge">GROUP BY</code>, <code class="language-plaintext highlighter-rouge">SUM</code>을 사용한 SQL문 입니다:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21<br/>22<br/>23<br/>24<br/>25<br/>26<br/>27<br/>28<br/>29<br/>30<br/>31<br/>32<br/>33<br/>34<br/>35<br/>36<br/>37<br/>38<br/>39<br/>40<br/>41<br/>42<br/>43<br/>44<br/>45<br/>46<br/>47<br/>48<br/>49<br/>50<br/>51<br/>52<br/>53<br/>54<br/>55<br/>56<br/>57<br/>58<br/>59</pre></td><td class="code"><pre class="highlight"><code><span class="nc">String</span> <span class="n">sql</span> <span class="o">=</span> <span class="s">"""
+            SELECT
+                    ds.settlement_id,
+                    ds.seller_id,
+                    ds.settlement_date,
+                    SUM(IF(dsd.settlement_status = 'COMPLETED', 1, 0)) AS total_order_count,
+                    SUM(IF(dsd.settlement_status = 'REFUNDED', 1, 0)) AS total_claim_count,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.quantity
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.quantity
+                            ELSE 0
+                        END) AS total_quantity,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.sales_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.sales_amount
+                            ELSE 0
+                        END) AS total_sales_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.tax_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.tax_amount
+                            ELSE 0
+                        END) AS total_tax_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.promotion_discount_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.promotion_discount_amount
+                            ELSE 0
+                        END) AS total_promotion_discount_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.coupon_discount_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.coupon_discount_amount
+                            ELSE 0
+                        END) AS total_coupon_discount_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.point_used_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.point_used_amount
+                            ELSE 0
+                        END) AS total_point_used_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.shipping_fee
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.shipping_fee
+                            ELSE 0
+                        END) AS total_shipping_fee,
+                    SUM(IF(dsd.settlement_status = 'REFUNDED', dsd.claim_shipping_fee, 0)) AS total_claim_shipping_fee,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.commission_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.commission_amount
+                            ELSE 0
+                        END) AS total_commission_amount,
+                    SUM(CASE
+                            WHEN dsd.settlement_status = 'COMPLETED' THEN dsd.settlement_amount
+                            WHEN dsd.settlement_status = 'REFUNDED' THEN -dsd.settlement_amount
+                            ELSE 0
+                        END) AS total_settlement_amount
+            FROM daily_settlement_detail dsd
+            JOIN daily_settlement ds on dsd.daily_settlement_id = ds.settlement_id
+            WHERE ds.settlement_date = ?
+            GROUP BY ds.settlement_id, ds.seller_id, ds.settlement_date
+        """</span><span class="o">;</span>
+
+</code></pre></td></tr></tbody></table></div></div>
+
+<h1 id="redis를-활용한-효율적인-집계-처리">Redis를 활용한 효율적인 집계 처리</h1>
+
+<p>대용량 데이터 집계 시 발생하는 <code class="language-plaintext highlighter-rouge">GROUP BY</code> 쿼리의 문제를 해결하기 위해 집계 연산을 <strong>디스크 기반 RDB 데이터베이스</strong>가 아닌 <strong>인메모리 데이터베이스인 Redis</strong>로 이관할 수 있습니다.</p>
+
+<p><strong>Redis</strong>를 집계 처리에 활용하면 다음과 같은 장점이 있습니다:</p>
+
+<ol>
+  <li>집계에 최적화된 연산 API 지원 (<code class="language-plaintext highlighter-rouge">hincrby</code>, <code class="language-plaintext highlighter-rouge">hincrbyfloat</code> 등)</li>
+  <li>메모리 기반 처리로 디스크 I/O 병목 현상 제거</li>
+  <li>인메모리 데이터베이스의 초고속 연산 처리 능력</li>
+</ol>
+
+<p>🚨 <strong>주의사항:</strong></p>
+
+<p><strong>Redis</strong>를 사용하면 집계 연산을 빠르게 처리할 순 있지만, 병목 지점이 될 수 있는 지점이 네트워크 레이턴시입니다. 1,000만 개의 데이터를 합산하기 위해 1,000만 번의 개별 네트워크 요청이 발생한다면, 이로 인한 성능 저하는 피할 수 없습니다. ☠️</p>
+
+<h1 id="redis-pipeline을-통한-네트워크-레이턴시-최소화">Redis Pipeline을 통한 네트워크 레이턴시 최소화</h1>
+
+<p><strong>Redis Pipeline</strong>을 활용하면 수많은 <strong>Redis 명령을 묶어서 한 번의 네트워크 왕복으로 처리</strong>할 수 있습니다. 이를 통해 <strong>1,000만 번의 개별 네트워크 요청</strong>을 청크 단위로 묶어 <strong>1만 번</strong> 정도로 줄이면 집계 처리 시간을 획기적으로 단축할 수 있습니다.</p>
+
+<h2 id="개별-요청-방식">개별 요청 방식</h2>
+
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/redis-latency1.png" />
+<figcaption></figcaption>
+</figure>
+
+<h2 id="pipeline-방식">Pipeline 방식</h2>
+
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/redis-latency2.png" />
+<figcaption></figcaption>
+</figure>
+
+<p>💡 <strong>중요한 구현 포인트:</strong></p>
+
+<p><strong>Spring Batch</strong>의 청크 프로세싱 아키텍처를 고려할 때, Redis 파이프라인은 반드시 <code class="language-plaintext highlighter-rouge">ItemWriter</code>에서 생성해야 합니다. Spring Batch는 <code class="language-plaintext highlighter-rouge">ItemReader</code> → <code class="language-plaintext highlighter-rouge">ItemProcessor</code> 단계에서는 항목을 하나씩 처리하다가, 지정된 Chunk 크기만큼 항목이 처리되면 <code class="language-plaintext highlighter-rouge">ItemWriter</code>에게 묶음으로 전달합니다.</p>
+
+<p>만약 <code class="language-plaintext highlighter-rouge">ItemProcessor</code>에서 Redis Pipeline을 생성한다면, 항목마다 Redis 연결을 맺고 끊는 불필요한 오버헤드가 발생합니다. 따라서 <code class="language-plaintext highlighter-rouge">ItemWriter</code>에서 청크 단위로 파이프라인을 처리하는 것이 최적의 구현 방식입니다.</p>
+
+<figure align="center">
+<img src="/post_images/spring-batch-optimization/spring-batch-chunk-diagram.svg" />
+<figcaption></figcaption>
+</figure>
+
+<p>(처음에 청크 프로세싱 아키텍처를 고려하지 않고, 단순히 <code class="language-plaintext highlighter-rouge">ItemProcessor</code>에서 처리하는게 자연스럽단 착각 덕분에 성능이 나빠진 제 경험으로부터 알려드립니다. 😂)</p>
+
+<p>다음은 정산 데이터(<code class="language-plaintext highlighter-rouge">settlement_detail</code>) 청크를 정산 항목별로 <strong>Redis</strong>에서 파이프라인을 사용해 집계 처리하는 코드입니다:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21<br/>22<br/>23<br/>24<br/>25<br/>26<br/>27<br/>28<br/>29<br/>30<br/>31<br/>32<br/>33<br/>34<br/>35<br/>36<br/>37<br/>38<br/>39<br/>40<br/>41<br/>42<br/>43<br/>44<br/>45<br/>46<br/>47<br/>48<br/>49<br/>50<br/>51<br/>52<br/>53<br/>54<br/>55<br/>56<br/>57<br/>58<br/>59<br/>60</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Bean</span>
+<span class="kd">public</span> <span class="nc">ItemWriter</span><span class="o">&lt;</span><span class="nc">SettlementAggregate</span><span class="o">&gt;</span> <span class="nf">optimizedRedisAggregateWriter</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">items</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="c1">// 청크의</span>
+        <span class="c1">// 파이프라인 시작</span>
+        <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">multi</span><span class="o">();</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Processing {} items in a single Redis pipeline transaction"</span><span class="o">,</span> <span class="n">items</span><span class="o">.</span><span class="na">size</span><span class="o">());</span>
+
+        <span class="k">for</span> <span class="o">(</span><span class="nc">SettlementAggregate</span> <span class="n">detail</span> <span class="o">:</span> <span class="n">items</span><span class="o">)</span> <span class="o">{</span>
+            <span class="nc">String</span> <span class="n">key</span> <span class="o">=</span> <span class="s">"daily_settlement:"</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementId</span><span class="o">();</span>
+
+            <span class="c1">// 상태별 처리</span>
+            <span class="k">if</span> <span class="o">(</span><span class="no">COMPLETED</span><span class="o">.</span><span class="na">name</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">()))</span> <span class="o">{</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrby</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalOrderCount"</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrby</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalQuantity"</span><span class="o">,</span> <span class="n">detail</span><span class="o">.</span><span class="na">getQuantity</span><span class="o">());</span>
+            <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="no">REFUNDED</span><span class="o">.</span><span class="na">name</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">()))</span> <span class="o">{</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrby</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalClaimCount"</span><span class="o">,</span> <span class="mi">1</span><span class="o">);</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrby</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalQuantity"</span><span class="o">,</span> <span class="o">-</span><span class="n">detail</span><span class="o">.</span><span class="na">getQuantity</span><span class="o">());</span>
+            <span class="o">}</span>
+
+            <span class="c1">// 금액 관련 필드 처리</span>
+            <span class="nc">String</span> <span class="n">statusMultiplier</span> <span class="o">=</span> <span class="no">REFUNDED</span><span class="o">.</span><span class="na">name</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">())</span> <span class="o">?</span> <span class="s">"-"</span> <span class="o">:</span> <span class="s">""</span><span class="o">;</span>
+
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalSalesAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSalesAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalTaxAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getTaxAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalPromotionDiscountAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getPromotionDiscountAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalCouponDiscountAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getCouponDiscountAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalPointUsedAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getPointUsedAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalShippingFee"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getShippingFee</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalCommissionAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getCommissionAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalSettlementAmount"</span><span class="o">,</span>
+                    <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">statusMultiplier</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+
+            <span class="c1">// REFUNDED인 경우 클레임 배송비 추가</span>
+            <span class="k">if</span> <span class="o">(</span><span class="no">REFUNDED</span><span class="o">.</span><span class="na">name</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">()))</span> <span class="o">{</span>
+                <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hincrbyfloat</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"totalClaimShippingFee"</span><span class="o">,</span>
+                        <span class="nc">Double</span><span class="o">.</span><span class="na">parseDouble</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getClaimShippingFee</span><span class="o">().</span><span class="na">toString</span><span class="o">()));</span>
+            <span class="o">}</span>
+
+            <span class="c1">// seller_id와 settlement_date 저장 (덮어쓰기 - 모든 레코드가 동일한 값을 가짐)</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hset</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"sellerId"</span><span class="o">,</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSellerId</span><span class="o">().</span><span class="na">toString</span><span class="o">());</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">hset</span><span class="o">(</span><span class="n">key</span><span class="o">,</span> <span class="s">"settlementDate"</span><span class="o">,</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementDate</span><span class="o">().</span><span class="na">toString</span><span class="o">());</span>
+
+            <span class="c1">// 해당 settlement에 대한 키 목록에 추가</span>
+            <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">sadd</span><span class="o">(</span><span class="s">"settlement_keys:"</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementDate</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span> <span class="n">key</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="c1">// 모든 명령을 한 번에 실행</span>
+        <span class="n">redisAsyncCommands</span><span class="o">.</span><span class="na">exec</span><span class="o">();</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Successfully processed batch of {} settlement details to Redis"</span><span class="o">,</span> <span class="n">items</span><span class="o">.</span><span class="na">size</span><span class="o">());</span>
+    <span class="o">};</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<p>이 방식을 적용한 후에도 <code class="language-plaintext highlighter-rouge">redisAsyncCommands</code> 클라이언트를 통해 <strong>반복되는 연산 요청을 매번 파이프라인에 적재</strong>해야 하므로, 기존 <code class="language-plaintext highlighter-rouge">GROUP BY</code> 대비 성능 개선이 기대보다 크지 않았습니다.</p>
+
+<p>더 높은 성능 개선을 위해 구글링과 AI에게 조언을 구하여, 저수준 API 활용 방법 중 Lua 스크립트 사용을 고려해 보게 되었습니다.</p>
+
+<h1 id="lua-스크립트를-활용한-집계-처리">Lua 스크립트를 활용한 집계 처리</h1>
+
+<p><strong>파이프라인에 연산 명령어를 적재하는 과정</strong>에서도 여전히 애플리케이션 측에서 <strong>많은 연산</strong> 로직이 필요하다는 사실을 발견했습니다.</p>
+
+<p>(🤔 <code class="language-plaintext highlighter-rouge">StepListener</code>를 활용하여 명령어를 적재하는 과정이 얼마나 시간이 걸리는지 측정했습니다.)</p>
+
+<p>이를 해결하기 위해 <strong>Lua 스크립트</strong>를 활용하여 데이터만 Redis 서버로 전송하고, 모든 집계 연산은 Redis 서버에서 <strong>직접 수행</strong>하도록 개선했습니다.</p>
+
+<p>이 접근 방식의 핵심 장점은 다음과 같습니다:</p>
+
+<ul>
+  <li>애플리케이션 측의 연산 오버헤드 제거</li>
+  <li>데이터 전송량 최소화</li>
+  <li>Redis 서버에서의 원자적 실행 보장</li>
+  <li>복잡한 로직을 단일 스크립트로 캡슐화</li>
+</ul>
+
+<p>다음은 정산 집계를 위한 Lua 스크립트입니다:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21<br/>22<br/>23<br/>24<br/>25<br/>26<br/>27<br/>28<br/>29<br/>30<br/>31<br/>32<br/>33<br/>34<br/>35<br/>36<br/>37<br/>38<br/>39<br/>40<br/>41<br/>42<br/>43<br/>44<br/>45<br/>46<br/>47</pre></td><td class="code"><pre class="highlight"><code><span class="c1">// 집계를 위한 Lua 스크립트</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="nc">String</span> <span class="no">AGGREGATE_SCRIPT</span> <span class="o">=</span> <span class="s">"""
+        local key = KEYS[1]
+        local settlement_key = KEYS[2]
+        local status = ARGV[1]
+        local seller_id = ARGV[2]
+        local settlement_date = ARGV[3]
+        local quantity = tonumber(ARGV[4])
+        local tax_amount = tonumber(ARGV[5])
+        local sales_amount = tonumber(ARGV[6])
+        local promotion_discount_amount = tonumber(ARGV[7])
+        local coupon_discount_amount = tonumber(ARGV[8])
+        local point_used_amount = tonumber(ARGV[9])
+        local shipping_fee = tonumber(ARGV[10])
+        local claim_shipping_fee = tonumber(ARGV[11])
+        local commission_amount = tonumber(ARGV[12])
+        local settlement_amount = tonumber(ARGV[13])
+        
+        if status == 'COMPLETED' then
+          redis.call('hincrby', key, 'totalOrderCount', 1)
+          redis.call('hincrby', key, 'totalQuantity', quantity)
+        else
+          redis.call('hincrby', key, 'totalClaimCount', 1)
+          redis.call('hincrby', key, 'totalQuantity', -quantity)
+        end
+        
+        local multiplier = status == 'REFUNDED' and -1 or 1
+        redis.call('hincrbyfloat', key, 'totalSalesAmount', multiplier * sales_amount)
+        redis.call('hincrbyfloat', key, 'totalTaxAmount', multiplier * tax_amount)
+        redis.call('hincrbyfloat', key, 'totalPromotionDiscountAmount', multiplier * promotion_discount_amount)
+        redis.call('hincrbyfloat', key, 'totalCouponDiscountAmount', multiplier * coupon_discount_amount)
+        redis.call('hincrbyfloat', key, 'totalPointUsedAmount', multiplier * point_used_amount)
+        redis.call('hincrbyfloat', key, 'totalShippingFee', multiplier * shipping_fee)
+        redis.call('hincrbyfloat', key, 'totalCommissionAmount', multiplier * commission_amount)
+        redis.call('hincrbyfloat', key, 'totalSettlementAmount', multiplier * settlement_amount)
+        
+        if status == 'REFUNDED' then
+          redis.call('hincrbyfloat', key, 'totalClaimShippingFee', claim_shipping_fee)
+        end
+        
+        redis.call('hset', key, 'sellerId', seller_id)
+        redis.call('hset', key, 'settlementDate', settlement_date)
+        redis.call('sadd', settlement_key, key)
+        
+        return 1
+        """</span><span class="o">;</span>
+
+</code></pre></td></tr></tbody></table></div></div>
+
+<p>다음은 <strong>Lua 스크립트</strong>를 활용해 <strong>Redis</strong>에서 집계 연산을 수행하는 <code class="language-plaintext highlighter-rouge">ItemWriter</code> 구현입니다:</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><table style="margin: 0px"><tbody><tr><td class="gutter"><pre>1<br/>2<br/>3<br/>4<br/>5<br/>6<br/>7<br/>8<br/>9<br/>10<br/>11<br/>12<br/>13<br/>14<br/>15<br/>16<br/>17<br/>18<br/>19<br/>20<br/>21<br/>22<br/>23<br/>24<br/>25<br/>26<br/>27<br/>28<br/>29<br/>30<br/>31<br/>32<br/>33<br/>34<br/>35<br/>36<br/>37<br/>38<br/>39<br/>40<br/>41<br/>42<br/>43<br/>44<br/>45<br/>46<br/>47<br/>48<br/>49<br/>50<br/>51</pre></td><td class="code"><pre class="highlight"><code><span class="nd">@Bean</span>
+<span class="kd">public</span> <span class="nc">ItemWriter</span><span class="o">&lt;</span><span class="nc">SettlementAggregate</span><span class="o">&gt;</span> <span class="nf">luaScriptDirectWriter</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="n">items</span> <span class="o">-&gt;</span> <span class="o">{</span>
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Processing {} items with Redis Lua Script direct execution"</span><span class="o">,</span> <span class="n">items</span><span class="o">.</span><span class="na">size</span><span class="o">());</span>
+
+        <span class="c1">// Lua 스크립트를 활용한 처리</span>
+        <span class="k">try</span> <span class="o">(</span><span class="nc">StatefulRedisConnection</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">redisClient</span><span class="o">.</span><span class="na">connect</span><span class="o">())</span> <span class="o">{</span>
+            <span class="nc">RedisAsyncCommands</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">async</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="na">async</span><span class="o">();</span>
+            <span class="n">async</span><span class="o">.</span><span class="na">setAutoFlushCommands</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
+
+            <span class="nc">List</span><span class="o">&lt;</span><span class="nc">RedisFuture</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">futures</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ArrayList</span><span class="o">&lt;&gt;();</span>
+
+            <span class="k">for</span> <span class="o">(</span><span class="nc">SettlementAggregate</span> <span class="n">detail</span> <span class="o">:</span> <span class="n">items</span><span class="o">)</span> <span class="o">{</span>
+                <span class="nc">String</span> <span class="n">key</span> <span class="o">=</span> <span class="s">"daily_settlement:"</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementId</span><span class="o">();</span>
+                <span class="nc">String</span> <span class="n">settlementKeysKey</span> <span class="o">=</span> <span class="s">"settlement_keys:"</span> <span class="o">+</span> <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementDate</span><span class="o">().</span><span class="na">toString</span><span class="o">();</span>
+
+                <span class="c1">// Lua 스크립트 실행 - 모든 연산을 레디스 서버에서 처리</span>
+                <span class="n">futures</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="n">async</span><span class="o">.</span><span class="na">eval</span><span class="o">(</span>
+                        <span class="no">AGGREGATE_SCRIPT</span><span class="o">,</span>
+                        <span class="nc">ScriptOutputType</span><span class="o">.</span><span class="na">INTEGER</span><span class="o">,</span>
+                        <span class="k">new</span> <span class="nc">String</span><span class="o">[]{</span><span class="n">key</span><span class="o">,</span> <span class="n">settlementKeysKey</span><span class="o">},</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementStatus</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSellerId</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementDate</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="nc">String</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">detail</span><span class="o">.</span><span class="na">getQuantity</span><span class="o">()),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getTaxAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSalesAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getPromotionDiscountAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getCouponDiscountAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getPointUsedAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getShippingFee</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getClaimShippingFee</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getCommissionAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">(),</span>
+                        <span class="n">detail</span><span class="o">.</span><span class="na">getSettlementAmount</span><span class="o">().</span><span class="na">toString</span><span class="o">()</span>
+                <span class="o">));</span>
+            <span class="o">}</span>
+
+            <span class="c1">// 모든 명령어 한번에 전송</span>
+            <span class="n">async</span><span class="o">.</span><span class="na">flushCommands</span><span class="o">();</span>
+
+            <span class="c1">// 모든 작업 완료 대기</span>
+            <span class="nc">CompletableFuture</span><span class="o">.</span><span class="na">allOf</span><span class="o">(</span><span class="n">futures</span><span class="o">.</span><span class="na">toArray</span><span class="o">(</span><span class="k">new</span> <span class="nc">CompletableFuture</span><span class="o">[</span><span class="mi">0</span><span class="o">]))</span>
+                    <span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="nc">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Exception</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">"Error processing settlements with Lua script: {}"</span><span class="o">,</span> <span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">(),</span> <span class="n">e</span><span class="o">);</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">RuntimeException</span><span class="o">(</span><span class="s">"Error executing Redis Lua script"</span><span class="o">,</span> <span class="n">e</span><span class="o">);</span>
+        <span class="o">}</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="na">info</span><span class="o">(</span><span class="s">"Successfully processed batch of {} settlement details to Redis using Lua script"</span><span class="o">,</span> <span class="n">items</span><span class="o">.</span><span class="na">size</span><span class="o">());</span>
+    <span class="o">};</span>
+<span class="o">}</span>
+</code></pre></td></tr></tbody></table></div></div>
+
+<h1 id="lua-스크립트-사용-시-주의사항과-트레이드-오프">Lua 스크립트 사용 시 주의사항과 트레이드 오프</h1>
+
+<p><strong>Lua 스크립트</strong>를 통한 최적화는 큰 성능 향상을 가져올 수 있지만, 몇 가지 중요한 고려사항과 <strong>트레이드 오프</strong>가 존재합니다:</p>
+
+<p>📌 <strong>Redis 서버 부하 증가:</strong></p>
+
+<ul>
+  <li>집계 연산의 부하가 애플리케이션에서 Redis 서버로 이동합니다.</li>
+  <li>복잡한 스크립트는 Redis의 싱글 스레드 특성으로 인해 다른 작업을 차단할 수 있습니다.</li>
+  <li>특히 고부하 상황에서 Redis 서버의 CPU 사용률을 모니터링해야 합니다.</li>
+</ul>
+
+<p>📌 <strong>디버깅 복잡성:</strong></p>
+
+<ul>
+  <li>Lua 스크립트 내부에서 발생하는 오류는 디버깅이 어렵습니다.</li>
+  <li>로그 출력 등 디버깅 정보를 얻기 어려우므로 철저한 테스트가 필요합니다.</li>
+  <li>스크립트 오류 시 전체 트랜잭션이 실패할 수 있어 롤백 전략이 필요합니다.</li>
+</ul>
+
+<p>📌 <strong>유지보수 복잡성:</strong></p>
+
+<ul>
+  <li>Lua 스크립트에 대한 버전 관리와 배포 전략이 필요합니다.</li>
+</ul>
+
+<p>📌 <strong>Lua 언어 학습 곡선:</strong></p>
+
+<ul>
+  <li>개발팀이 Lua 언어에 익숙하지 않을 경우 추가적인 학습 비용이 발생합니다.</li>
+</ul>
+
+<p>📌 <strong>원자성 제한:</strong></p>
+
+<ul>
+  <li>Lua 스크립트는 단일 Redis 인스턴스에서는 원자적이지만, 클러스터 환경에서는 원자성이 보장되지 않습니다.</li>
+  <li>클러스터에서 여러 키에 걸친 작업을 수행할 때는 모든 키가 동일한 슬롯에 있어야 합니다.</li>
+</ul>
+
+<p>📌 <strong>메모리 사용량 증가:</strong></p>
+
+<ul>
+  <li>Lua 스크립트 실행 중 생성되는 임시 데이터는 Redis 메모리를 사용합니다.</li>
+  <li>대규모 데이터 처리 시 <code class="language-plaintext highlighter-rouge">maxmemory</code> 설정과 메모리 모니터링이 중요합니다.</li>
+</ul>
+
+<p>이러한 트레이드 오프를 고려하여, 다음과 같은 상황에서 Lua 스크립트 사용을 권장합니다:</p>
+
+<ul>
+  <li>집계, 카운팅 등 단순하고 반복적인 연산이 필요한 경우</li>
+  <li>네트워크 왕복을 최소화해야 하는 성능 매우 중요한 상황</li>
+  <li>Redis 서버의 리소스가 충분한 경우</li>
+</ul>
+
+<p>반면, 다음과 같은 경우는 파이프라인이나 다른 방식을 고려해 볼 수 있습니다:</p>
+
+<ul>
+  <li>로직이 매우 복잡하고 자주 변경되는 경우</li>
+  <li>Redis 클러스터 환경에서 여러 키를 사용해야 하는 경우</li>
+  <li>Redis 서버가 이미 높은 부하를 겪고 있는 경우</li>
+</ul>
+
+<h1 id="성능-비교-및-결론">성능 비교 및 결론</h1>
+<p>세 가지 구현 방식의 성능을 비교한 결과는 다음과 같습니다:</p>
+
+<ol>
+  <li><strong>처리 속도 향상</strong>: <code class="language-plaintext highlighter-rouge">GROUP BY</code> 쿼리 대비 최대 9배 성능 개선</li>
+  <li><strong>데이터베이스 부하 감소</strong>: 데이터베이스의 집계 연산 부담 제거</li>
+  <li><strong>확장성 향상</strong>: 데이터 증가에도 선형적인 성능 유지</li>
+  <li><strong>실시간 집계 가능</strong>: 배치 작업과 실시간 집계를 병행 가능</li>
+</ol>
+
+<h1 id="결론">결론</h1>
+
+<p>대용량 데이터 집계가 필요한 <strong>Spring Batch</strong> 애플리케이션에서는 단순히 SQL의 <code class="language-plaintext highlighter-rouge">GROUP BY</code>에 의존하기보다 <strong>Redis</strong>와 같은 인메모리 데이터베이스를 활용하고, <strong>Lua 스크립트</strong>를 통한 서버 사이드 처리를 구현하여 최적의 성능을 얻을 수도 있습니다. 본 포스트가 배치 처리의 성능을 높이는 데 도움이 되었으면 좋겠습니다.</p>
+
+<p>감사합니다.</p>
+
+<hr />
+
+<h1 id="참고-자료">참고 자료</h1>
+
+<ul>
+  <li><a href="https://www.youtube.com/watch?v=2IIwQDIi3ys&amp;t=1534s" target="_blank">Batch Performance 극한으로 끌어올리기: 1억 건 데이터 처리를 위한 노력 / if(kakao)dev2022</a></li>
+  <li><a href="https://www.youtube.com/watch?v=VSwWHHkdQI4&amp;t=1369s" target="_blank">Spring Batch 애플리케이션 성능 향상을 위한 주요 팁 (kakao tech)</a></li>
+  <li><a href="https://redis.io/docs/latest/commands/hincrby/" target="_blank">Redis Commands Docs - hincrby</a></li>
+  <li><a href="https://redis.io/docs/latest/commands/hincrbyfloat/" target="_blank">Redis Commands Docs - hincrbyfloat</a></li>
+  <li><a href="https://redis.io/docs/latest/develop/interact/programmability/eval-intro/" target="_blank">Redis Docs - Scripting with Lua</a></li>
+</ul>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Spring%20Batch" rel="tag"># Spring Batch</a>
+          
+            
+            <a href="/tag/#/Redis" rel="tag"># Redis</a>
+          
+            
+            <a href="/tag/#/Aggregation" rel="tag"># Aggregation</a>
+          
+            
+            <a href="/tag/#/Performance%20Optimization" rel="tag"># Performance Optimization</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/spring%20batch/2025/03/22/Spring-Batch-high-volume-processing/" rel="prev" title="Spring Batch 대용량 처리의 이해">
+                Spring Batch 대용량 처리의 이해 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
+</div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+        
+        
+        
+
+
+
+
+
+
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/assets/images/avatar.gif"
+               alt="Bang Seung IL" />
+          <p class="site-author-name" itemprop="name">Bang Seung IL</p>
+           
+              <p class="site-description motion-element" itemprop="description">방승일 깃헙 블로그</p>
+          
+        </div>
+        <nav class="site-state motion-element">
+
+          
+            <div class="site-state-item site-state-posts">
+              <a href="/archives/">
+                <span class="site-state-item-count">44</span>
+                <span class="site-state-item-name">포스트</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-categories">
+              <a href="/categories/">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">카테고리</span>
+              </a>
+            </div>
+          
+
+          
+            
+            
+            <div class="site-state-item site-state-tags">
+              <a href="/tags/">
+                <span class="site-state-item-count">56</span>
+                <span class="site-state-item-name">태그</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+        
+        
+          <div class="feed-link motion-element">
+            <a href="/atom.xml" rel="alternate">
+              <i class="fa fa-rss"></i>
+              RSS
+            </a>
+          </div>
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              
+              
+              <span class="links-of-author-item">
+                <a href="https://github.com/Seung-IL-Bang" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-들어가기"> <span class="nav-number">1</span> <span class="nav-text">🚀 들어가기</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#기존-group-by-sum-쿼리의-한계"> <span class="nav-number">2</span> <span class="nav-text">기존 GROUP BY, SUM 쿼리의 한계</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#redis를-활용한-효율적인-집계-처리"> <span class="nav-number">3</span> <span class="nav-text">Redis를 활용한 효율적인 집계 처리</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#redis-pipeline을-통한-네트워크-레이턴시-최소화"> <span class="nav-number">4</span> <span class="nav-text">Redis Pipeline을 통한 네트워크 레이턴시 최소화</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#개별-요청-방식"> <span class="nav-number">4.1</span> <span class="nav-text">개별 요청 방식</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#pipeline-방식"> <span class="nav-number">4.2</span> <span class="nav-text">Pipeline 방식</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#lua-스크립트를-활용한-집계-처리"> <span class="nav-number">5</span> <span class="nav-text">Lua 스크립트를 활용한 집계 처리</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#lua-스크립트-사용-시-주의사항과-트레이드-오프"> <span class="nav-number">6</span> <span class="nav-text">Lua 스크립트 사용 시 주의사항과 트레이드 오프</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#성능-비교-및-결론"> <span class="nav-number">7</span> <span class="nav-text">성능 비교 및 결론</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#결론"> <span class="nav-number">8</span> <span class="nav-text">결론</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#참고-자료"> <span class="nav-number">9</span> <span class="nav-text">참고 자료</span> </a> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Bang Seung IL</span>
+</div>
+
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://jekyllrb.com">Jekyll</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/simpleyyt/jekyll-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+   
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  
+  
+  
+  
+  <script type="text/javascript" src="/assets/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/utils.js?v=5.1.1"></script>
+
+  <script type="text/javascript" src="/assets/js/src/motion.js?v=5.1.1"></script>
+
+
+
+  
+  
+
+  <script type="text/javascript" src="/assets/js/src/scrollspy.js?v=5.1.1"></script>
+<script type="text/javascript" src="/assets/js/src/post-details.js?v=5.1.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/assets/js/src/bootstrap.js?v=5.1.1"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
+    
+
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/';
+              this.page.identifier = '/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/';
+              this.page.title = 'Spring Batch 데이터 집계(Aggregation) 최적화';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+
+
+
+
+
+
+  
+
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+  
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
+

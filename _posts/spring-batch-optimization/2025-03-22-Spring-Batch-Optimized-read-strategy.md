@@ -255,7 +255,7 @@ Kotlin 기반 프로젝트의 경우, **Exposed 라이브러리**를 활용하�
 # 참고 자료
 
 - <a href="https://www.youtube.com/watch?v=2IIwQDIi3ys&t=1534s" target="_blank">Batch Performance 극한으로 끌어올리기: 1억 건 데이터 처리를 위한 노력 / if(kakao)dev2022</a>
-- <a herf="https://www.youtube.com/watch?v=VSwWHHkdQI4&t=1369s" target="_blank">Spring Batch 애플리케이션 성능 향상을 위한 주요 팁 (kakao tech)</a>
+- <a href="https://www.youtube.com/watch?v=VSwWHHkdQI4&t=1369s" target="_blank">Spring Batch 애플리케이션 성능 향상을 위한 주요 팁 (kakao tech)</a>
 - <a href="https://docs.spring.io/spring-batch/reference/5.2-SNAPSHOT/readers-and-writers/database.html#JdbcCursorItemReader" target="_blank">Spring Batch Documentation: Cursor-based ItemReader Implementations</a>
 
 
