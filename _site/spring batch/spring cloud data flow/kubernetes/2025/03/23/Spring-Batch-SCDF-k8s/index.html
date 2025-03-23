@@ -83,7 +83,7 @@
 <link href="/assets/css/main.css?v=5.1.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="Jekyll, NexT" />
+  <meta name="keywords" content="Spring Batch,Spring Cloud Data Flow,Kubernetes," />
 
 
 
@@ -111,17 +111,17 @@
 
 
 
-<meta name="description" content="Building...">
-<meta name="keywords" content="Jekyll, NexT">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Seung il&apos;s Blog">
-<meta property="og:url" content="http://localhost:4000/about/">
+<meta name="description" content="Spring Cloud Data Flow와 Kuebernetes 연동하여 효과적인 배치 구동 환경에 대해 알아봅시다!">
+<meta name="keywords" content="Spring Batch, Spring Cloud Data Flow, Kubernetes">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축">
+<meta property="og:url" content="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/">
 <meta property="og:site_name" content="Seung il&apos;s Blog">
-<meta property="og:description" content="Building...">
+<meta property="og:description" content="Spring Cloud Data Flow와 Kuebernetes 연동하여 효과적인 배치 구동 환경에 대해 알아봅시다!">
 <meta property="og:locale" content="ko">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Seung il&apos;s Blog">
-<meta name="twitter:description" content="Building...">
+<meta name="twitter:title" content="Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축">
+<meta name="twitter:description" content="Spring Cloud Data Flow와 Kuebernetes 연동하여 효과적인 배치 구동 환경에 대해 알아봅시다!">
 
 
 <script type="text/javascript" id="hexo.configurations">
@@ -154,7 +154,7 @@
 
 
 
-  <title>              About | Seung il's Blog      </title>
+  <title>Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축 | Seung il's Blog</title>
   
 
 
@@ -314,24 +314,430 @@
         <div class="content-wrap">
           <div id="content" class="content">
             
+
 <div id="posts" class="posts-expand">
-<header class="post-header">
+  
+  
 
-	<h1 class="post-title" itemprop="name headline">
+  
+
+  
+  
+  
+
+  <article class="post post-type- " itemscope itemtype="http://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Bang Seung IL">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="assets/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Seung il's Blog">
+    </span>
+
     
-      About
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+          
+          
+            Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축
+          
+        </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">작성일</span>
+              
+              <time title="" itemprop="dateCreated datePublished" datetime="2025-03-23T00:00:00+09:00">
+                2025-03-23
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category" >
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Batch" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Batch</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Spring%20Cloud%20Data%20Flow" itemprop="url" rel="index">
+                    <span itemprop="name">Spring Cloud Data Flow</span>
+                  </a>
+                </span>
+
+                
+                
+                  , 
+                
+              
+                
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/category/#/Kubernetes" itemprop="url" rel="index">
+                    <span itemprop="name">Kubernetes</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count"
+                        data-disqus-identifier="/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+            
+                <div class="post-description">
+                    
+                </div>
+            
+          
+
+        </div>
+      </header>
     
-  </h1>
 
+    <div class="post-body" itemprop="articleBody">
 
+      
+      
 
-</header>
-
+      
+        
   
   
-    <p>Building…</p>
 
-  
+
+
+
+
+
+
+
+
+
+
+
+  <blockquote>
+  <p>Spring Cloud Data Flow와 Kuebernetes 연동하여 효과적인 배치 구동 환경에 대해 알아봅시다!</p>
+</blockquote>
+
+<!-- more -->
+
+<h1 id="-들어가기">🚀 들어가기</h1>
+
+<p>배치 작업은 현대 시스템의 핵심 부분으로, 특히 <strong>정산</strong>, <strong>로그 분석</strong>, <strong>데이터 마이그레이션</strong> 같은 작업들은 대용량 데이터를 효율적으로 처리해야 합니다. 이러한 배치 작업의 효율적인 관리와 모니터링은 시스템의 안정성과 성능에 직접적인 영향을 미칩니다. 이 글에서는 <strong>Spring Cloud Data Flow(SCDF)</strong>와 <strong>Kubernetes</strong>를 연동하여 효과적인 배치 구동 환경을 구축하는 방법에 대해 알아보겠습니다.</p>
+
+<h1 id="1-기존-배치-스케줄링-도구의-한계">1. 기존 배치 스케줄링 도구의 한계</h1>
+
+<p>많은 배치 작업의 스케줄링을 위해 크론(Cron), 젠킨스(Jenkins), 에어플로우(Airflow) 등을 사용해 배치를 스케줄링하고 있습니다.</p>
+
+<p>이러한 도구들은 다음과 같은 기능을 제공합니다:</p>
+
+<ul>
+  <li>배치 실행 요청</li>
+  <li>스케줄 관리</li>
+  <li>배치 애플리케이션 관리</li>
+  <li>워크플로우 관리 (배치 실행 순서 제어)</li>
+  <li>모니터링 제공</li>
+  <li>히스토리 저장 (메타 테이블)</li>
+</ul>
+
+<p>그러나 이러한 <strong>전통적인 스케줄링 도구들은 다음과 같은 두 가지 주용한 한계점</strong>을 가지고 있습니다.</p>
+
+<h2 id="1-1-자원-관리의-어려움">1-1. 자원 관리의 어려움</h2>
+
+<p>배치 작업은 특정 시간에만 동작하고, 완료되면 프로세스가 종료되어 자원을 운영체제에 반납합니다. 이로 인해 하루 중 시간대별로 자원 사용률이 크게 달라질 수 있습니다.</p>
+
+<p>예를 들어:</p>
+
+<ul>
+  <li><strong>새벽 1시</strong>: 실행 중인 배치가 없어 자원이 남음</li>
+  <li><strong>오전 9시</strong>: 4개의 배치가 동시에 실행되어 자원 사용률이 높음</li>
+  <li><strong>오후 1시</strong>: 2개의 배치만 실행되어 자원 사용률이 중간 수준</li>
+  <li><strong>오후 6시</strong>: 다시 1개의 배치만 실행되어 자원이 남음</li>
+</ul>
+
+<p>배치 작업이 항상 인스턴스로 떠 있는 것이 아니기 때문에, 자원 사용량을 예측하고 관리하는 것이 어렵습니다. 특히 동시에 <strong>여러 배치가 실행될 때는 자원 부족으로 OOM(Out of Memory) 오류</strong>가 발생할 수 있습니다.</p>
+
+<h2 id="1-1-배치-상태-파악의-어려움">1-1. 배치 상태 파악의 어려움</h2>
+
+<p>배치 작업의 각 단계는 일반적으로 매우 긴 시간이 소요됩니다. 예를 들어, 하나의 스텝이 시작되고 10분 이상 지나고나서야 완료되는 경우가 흔합니다. 대부분의 스케줄링 도구는 로그를 볼 수 있지만, 다음과 같은 한계가 있습니다:</p>
+
+<ul>
+  <li>배치 작업의 경우 로그 정보가 빈약한 경우가 많음</li>
+  <li>로그만으로는 서비스 상태를 직관적으로 파악하기 어려움</li>
+  <li>시각적인 모니터링 부재</li>
+</ul>
+
+<p>이러한 한계를 극복하고자 <strong>Spring Cloud Data Flow</strong>를 도입하는 것이 효과적입니다.</p>
+
+<h1 id="2-spring-cloud-data-flow-소개">2. Spring Cloud Data Flow 소개</h1>
+
+<p><strong>Spring Cloud Data Flow(SCDF)</strong>는 <strong>Spring Boot 기반</strong>의 데이터 통합 및 실시간 데이터 처리 애플리케이션을 개발하고 배포하기 위한 도구입니다.</p>
+
+<p><strong>SCDF</strong>는 다음과 같은 주요 기능을 제공합니다:</p>
+
+<ul>
+  <li><strong>통합된 개발 및 관리 환경</strong>: 데이터 파이프라인과 배치 작업의 개발, 배포, 관리를 위한 통합 환경</li>
+  <li><strong>시각적 디자인 인터페이스</strong>: 데이터 흐름 및 배치 작업을 시각적으로 설계</li>
+  <li><strong>확장성</strong>: 다양한 런타임 플랫폼(Local, Cloud Foundry, Kubernetes) 지원</li>
+  <li><strong>모니터링 및 관리</strong>: 작업 실행 상태 및 로그 모니터링, 작업 스케줄링</li>
+</ul>
+
+<p><strong>SCDF</strong>는 데이터 파이프라인 종류에 따라 두 가지 유형을 지원합니다:</p>
+
+<ol>
+  <li><strong>스트림(Stream)</strong>: 실시간 데이터 처리를 위한 파이프라인</li>
+  <li><strong>태스크(Task)</strong>: 배치 작업을 지원하는 파이프라인</li>
+</ol>
+
+<p>⭐️ 배치 작업을 위한 <strong>SCDF Task</strong>는 <strong>기존 스케줄링 도구의 모든 기능과 더불어 다음 두 가지 핵심 장점을 제공</strong>합니다:</p>
+
+<ol>
+  <li><strong>Kubernetes와의 완벽한 연동</strong>: 컨테이너를 오케스트레이션하는 것처럼 배치를 오케스트레이션</li>
+  <li><strong>Spring Batch와의 완벽한 호환</strong>: 유용한 배치 정보를 시각적으로 모니터링 가능</li>
+</ol>
+
+<h1 id="3-kubernetes와의-연동을-통한-자원-관리-최적화">3. Kubernetes와의 연동을 통한 자원 관리 최적화</h1>
+
+<p><strong>Spring Cloud Data Flow</strong>를 <strong>Kubernetes</strong>와 연동하면 다음과 같은 이점이 있습니다:</p>
+
+<h2 id="3-1-배치-오케스트레이션의-장점">3-1. 배치 오케스트레이션의 장점</h2>
+
+<ul>
+  <li><strong>독립적인 실행</strong>: 다수의 배치가 상호 간섭 없이 실행 가능</li>
+  <li><strong>리소스 컨트롤</strong>: Kubernetes에서 리소스의 사용과 반납을 조율하여 동시에 많은 배치가 실행되더라도 안정적인 자원 관리 가능</li>
+  <li><strong>스케일링</strong>: 필요에 따라 배치 작업의 자원을 동적으로 조정 가능</li>
+</ul>
+
+<h2 id="3-2-scdf와-kubernetes의-통합-기능">3-2. SCDF와 Kubernetes의 통합 기능</h2>
+
+<p><strong>Spring Cloud Data Flow</strong>와 <strong>Kubernetes</strong>의 통합은 다음과 같은 기능을 제공합니다:</p>
+
+<ol>
+  <li><strong>스케줄 관리</strong>: Kubernetes의 CronJob을 활용한 스케줄 관리</li>
+  <li><strong>애플리케이션 실행 및 배포</strong>: Kubernetes 요청을 통한 애플리케이션 실행 및 배포</li>
+  <li><strong>워크플로우 관리</strong>: 배치 실행 순서를 그래프 형태로 설정 가능</li>
+  <li><strong>자원 설정</strong>: CPU, 메모리 등 자원 할당 조정 가능
+    <ul>
+      <li>데이터 처리량이 많거나 멀티스레드 작업이 필요한 경우 더 많은 자원 할당 가능</li>
+    </ul>
+  </li>
+  <li><strong>모니터링</strong>:
+    <ul>
+      <li>애플리케이션 로그 제공</li>
+      <li>Pod 상태 모니터링</li>
+      <li>배치 상태 및 결과 모니터링</li>
+    </ul>
+  </li>
+</ol>
+
+<h2 id="3-3-그래프-기반-태스크-생성">3-3. 그래프 기반 태스크 생성</h2>
+
+<p><strong>SCDF</strong>는 여러 배치를 그래프 형태로 묶고, 실행 결과에 따라 다음 실행할 배치를 조건부로 결정할 수 있습니다.</p>
+
+<p>예를 들어:</p>
+
+<ul>
+  <li>배치 상태가 <code class="language-plaintext highlighter-rouge">FAILED</code>인 경우 → Task A 실행</li>
+  <li>배치 상태가 <code class="language-plaintext highlighter-rouge">COMPLETED</code>인 경우 → Task B 실행</li>
+</ul>
+
+<p>이러한 방식으로 <strong>복잡한 배치 워크플로우를 직관적으로 설계하고 관리</strong>할 수 있습니다.</p>
+
+<h1 id="4-배치-모니터링과-성능-분석">4. 배치 모니터링과 성능 분석</h1>
+
+<p>효과적인 배치 작업 관리를 위해서는 모니터링과 성능 분석이 필수적입니다. SCDF는 Spring Batch와의 강력한 호환성을 바탕으로 풍부한 모니터링 기능을 제공합니다.</p>
+
+<h2 id="4-1-scdf의-배치-모니터링-기능">4-1. SCDF의 배치 모니터링 기능</h2>
+
+<p>SCDF는 Spring Batch와의 호환성을 통해 다음과 같은 상세한 정보를 대시보드로 제공합니다:</p>
+
+<ol>
+  <li><strong>배치 실행 상태</strong>: 전체 배치 작업의 상태와 진행 상황</li>
+  <li><strong>스텝 상세 정보</strong>: 각 스텝별 정보
+    <ul>
+      <li>읽은 아이템 개수</li>
+      <li>쓴 아이템 개수</li>
+      <li>커밋 개수</li>
+      <li>롤백 개수</li>
+      <li>수행 시간</li>
+      <li>최종 상태</li>
+    </ul>
+  </li>
+</ol>
+
+<p>하나의 배치가 10개의 스텝으로 구성되어 있다고 가정할 때, 각 스텝별로 소요된 시간과 같은 상세한 정보를 볼 수 있습니다. 예를 들어, 특정 스텝이 100만 개의 데이터를 읽고 쓰는데 3분 35초가 소요되었다는 정보를 시각적으로 확인할 수 있습니다.</p>
+
+<h2 id="4-2-스텝-누적-히스토리">4-2. 스텝 누적 히스토리</h2>
+
+<p>SCDF는 각 스텝의 누적 히스토리도 제공합니다:</p>
+
+<ul>
+  <li>전체 소요 시간</li>
+  <li>한 번 읽을 때 소요 시간</li>
+  <li>읽기 횟수</li>
+  <li>쓰기 횟수</li>
+</ul>
+
+<p>이러한 정보는 <strong>최소, 최대, 평균, 표준편차 값으로 제공되어 배치 성능을 분석하는 데 도움</strong>이 됩니다.</p>
+
+<h2 id="4-3-prometheus와-연동하여-메트릭-수집">4-3. Prometheus와 연동하여 메트릭 수집</h2>
+
+<p>Prometheus는 시계열 데이터베이스로서, 애플리케이션에서 발생하는 다양한 메트릭을 수집하고 저장합니다. SCDF에서 실행한 배치 작업들에 대하여 Prometheus에 메트릭을 전송하고, 수집된 메트릭을 시각화하여 분석하기 위해 Grafana 대시보드를 구축할 수 있습니다.</p>
+
+<h1 id="결론">결론</h1>
+<p><strong>Spring Cloud Data Flow</strong>와 <strong>Kubernetes</strong>를 활용하면 효율적이고 확장 가능한 배치 구동 환경을 구축할 수 있습니다. 이러한 환경은 다음과 같은 장점을 제공합니다:</p>
+
+<ol>
+  <li><strong>효과적인 자원 관리</strong>: Kubernetes를 통한 동적 자원 할당과 회수</li>
+  <li><strong>직관적인 배치 워크플로우 관리</strong>: 그래프 기반의 시각적 워크플로우 설계</li>
+  <li><strong>상세한 모니터링</strong>: Spring Batch 및 SCDF와의 호환성을 통한 풍부한 모니터링 정보</li>
+</ol>
+
+<p><strong>Spring Cloud Data Flow</strong>의 시각적 인터페이스와 <strong>Kubernetes</strong>의 강력한 오케스트레이션 기능을 결합하여 효율적인 배치 시스템을 구축할 수 있었습니다.</p>
+
+<h1 id="참고-자료">참고 자료</h1>
+
+<ul>
+  <li><a href="https://dataflow.spring.io/docs/installation/kubernetes/">Spring Cloud Data Flow on Kubernetes</a></li>
+  <li><a href="https://prometheus.io/docs/introduction/overview/" target="_blank">Prometheus Documentation</a></li>
+  <li><a href="https://grafana.com/docs/">Grafana Documentation</a></li>
+</ul>
+
+<hr />
+
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            
+            <a href="/tag/#/Spring%20Batch" rel="tag"># Spring Batch</a>
+          
+            
+            <a href="/tag/#/Spring%20Cloud%20Data%20Flow" rel="tag"># Spring Cloud Data Flow</a>
+          
+            
+            <a href="/tag/#/Kubernetes" rel="tag"># Kubernetes</a>
+          
+        </div>
+      
+
+      
+      
+      
+      
+      
+
+      
+      
+        <div class="post-nav" id="post-nav-id">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/" rel="prev" title="Spring Batch 데이터 집계(Aggregation) 최적화">
+                Spring Batch 데이터 집계(Aggregation) 최적화 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+      
+
+      
+    </footer>
+  </article>
+
+  <div class="post-spread">
+    
+  </div>
 </div>
 
 
@@ -340,6 +746,17 @@
 
 
           
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
 
         </div>
         
@@ -357,10 +774,30 @@
     <div class="sidebar-inner">
 
       
+        
+        
+        
+
+
+
+
+
+
 
       
 
-      <section class="site-overview sidebar-panel sidebar-panel-active">
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            목차
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            흝어보기
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
           <img class="site-author-image" itemprop="image"
                src="/assets/images/avatar.gif"
@@ -444,6 +881,34 @@
 
       </section>
 
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+
+
+
+
+
+
+
+            
+              <div class="post-toc-content">
+    <ol class=nav>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-들어가기"> <span class="nav-number">1</span> <span class="nav-text">🚀 들어가기</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#1-기존-배치-스케줄링-도구의-한계"> <span class="nav-number">2</span> <span class="nav-text">1. 기존 배치 스케줄링 도구의 한계</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#1-1-자원-관리의-어려움"> <span class="nav-number">2.1</span> <span class="nav-text">1-1. 자원 관리의 어려움</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#1-1-배치-상태-파악의-어려움"> <span class="nav-number">2.2</span> <span class="nav-text">1-1. 배치 상태 파악의 어려움</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#2-spring-cloud-data-flow-소개"> <span class="nav-number">3</span> <span class="nav-text">2. Spring Cloud Data Flow 소개</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#3-kubernetes와의-연동을-통한-자원-관리-최적화"> <span class="nav-number">4</span> <span class="nav-text">3. Kubernetes와의 연동을 통한 자원 관리 최적화</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#3-1-배치-오케스트레이션의-장점"> <span class="nav-number">4.1</span> <span class="nav-text">3-1. 배치 오케스트레이션의 장점</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#3-2-scdf와-kubernetes의-통합-기능"> <span class="nav-number">4.2</span> <span class="nav-text">3-2. SCDF와 Kubernetes의 통합 기능</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#3-3-그래프-기반-태스크-생성"> <span class="nav-number">4.3</span> <span class="nav-text">3-3. 그래프 기반 태스크 생성</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#4-배치-모니터링과-성능-분석"> <span class="nav-number">5</span> <span class="nav-text">4. 배치 모니터링과 성능 분석</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#4-1-scdf의-배치-모니터링-기능"> <span class="nav-number">5.1</span> <span class="nav-text">4-1. SCDF의 배치 모니터링 기능</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#4-2-스텝-누적-히스토리"> <span class="nav-number">5.2</span> <span class="nav-text">4-2. 스텝 누적 히스토리</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#4-3-prometheus와-연동하여-메트릭-수집"> <span class="nav-number">5.3</span> <span class="nav-text">4-3. Prometheus와 연동하여 메트릭 수집</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#결론"> <span class="nav-number">6</span> <span class="nav-text">결론</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#참고-자료"> <span class="nav-number">7</span> <span class="nav-text">참고 자료</span> </a> </li>
+    </ol>
+  </div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
       
 
       
@@ -601,6 +1066,20 @@
       <script id="dsq-count-scr" src="https://seung-il-bang-github-io.disqus.com/count.js" async></script>
     
 
+    
+      
+      <script type="text/javascript">
+          var disqus_config = function () {
+              this.page.url = 'http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/';
+              this.page.identifier = '/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/';
+              this.page.title = 'Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축';
+          };
+          var d = document, s = d.createElement('script');
+          s.src = 'https://seung-il-bang-github-io.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', '' + +new Date());
+          (d.head || d.body).appendChild(s);
+      </script>
+      
     
 
   
