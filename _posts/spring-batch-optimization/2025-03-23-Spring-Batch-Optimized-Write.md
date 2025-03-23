@@ -146,7 +146,7 @@ public ItemWriter<SettlementAggregationResult> optimizedAggregateDailySettlement
 
 이 구현에서는 **JPA의 불필요한 오버헤드를 제거**하고, 주어진 청크 내의 모든 항목을 단일 배치 연산으로 처리함으로써 **네트워크 왕복 시간을 크게 감소**시킵니다.
 
-# JPA ID 생성 전략과 배치 인서트 제약
+# ID 생성 전략과 JPA 배치 인서트 제약
 
 **JPA**에서도 `hibernate.jdbc.batch_size` 속성을 통해 배치 인서트를 지원하지만, **ID 생성 전략**에 따라 중요한 **제약**이 존재합니다:
 
