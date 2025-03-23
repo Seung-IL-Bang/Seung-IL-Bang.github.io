@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-23T15:10:47+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Batch 데이터 집계(Aggregation) 최적화</title><link href="http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/" rel="alternate" type="text/html" title="Spring Batch 데이터 집계(Aggregation) 최적화" /><published>2025-03-23T00:00:00+09:00</published><updated>2025-03-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-23T15:10:59+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Batch 데이터 집계(Aggregation) 최적화</title><link href="http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/" rel="alternate" type="text/html" title="Spring Batch 데이터 집계(Aggregation) 최적화" /><published>2025-03-23T00:00:00+09:00</published><updated>2025-03-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation</id><content type="html" xml:base="http://localhost:4000/spring%20batch/2025/03/23/Spring-Batch-Optimized-aggregation/"><![CDATA[<blockquote>
   <p>데이터 집계를 위한 배치 처리 시 <code class="language-plaintext highlighter-rouge">GROUP BY</code>와 <code class="language-plaintext highlighter-rouge">SUM</code> 대신 <strong>Redis</strong>를 활용하여 성능을 대폭 개선할 수 있는 방법에 대해 알아봅시다!</p>
 </blockquote>
 
@@ -549,7 +549,7 @@
 
 <p>이 구현에서는 <strong>JPA의 불필요한 오버헤드를 제거</strong>하고, 주어진 청크 내의 모든 항목을 단일 배치 연산으로 처리함으로써 <strong>네트워크 왕복 시간을 크게 감소</strong>시킵니다.</p>
 
-<h1 id="jpa-id-생성-전략과-배치-인서트-제약">JPA ID 생성 전략과 배치 인서트 제약</h1>
+<h1 id="id-생성-전략과-jpa-배치-인서트-제약">ID 생성 전략과 JPA 배치 인서트 제약</h1>
 
 <p><strong>JPA</strong>에서도 <code class="language-plaintext highlighter-rouge">hibernate.jdbc.batch_size</code> 속성을 통해 배치 인서트를 지원하지만, <strong>ID 생성 전략</strong>에 따라 중요한 <strong>제약</strong>이 존재합니다:</p>
 
