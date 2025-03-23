@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
+  <!-- Background -->
+  <rect width="800" height="500" fill="#f8f9fa" rx="10" ry="10"/>
+  
+  <!-- Title -->
+  <text x="400" y="40" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#333">JPA 기반 ItemWriter 성능 제약 요인</text>
+  
+  <!-- JPA Engine -->
+  <rect x="100" y="90" width="600" height="320" fill="#e9ecef" stroke="#ced4da" stroke-width="2" rx="10" ry="10"/>
+  <text x="400" y="120" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#495057">JPA 엔진</text>
+  
+  <!-- Persistence Context -->
+  <rect x="150" y="140" width="240" height="230" fill="#fff" stroke="#6c757d" stroke-width="2" rx="8" ry="8"/>
+  <text x="270" y="165" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#495057">영속성 컨텍스트</text>
+  
+  <!-- Original Data Snapshot -->
+  <rect x="170" y="180" width="200" height="70" fill="#e3f2fd" stroke="#90caf9" stroke-width="2" rx="5" ry="5"/>
+  <text x="270" y="210" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#1e88e5">엔티티 스냅샷</text>
+  <text x="270" y="230" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#1e88e5">원본 상태 저장 (메모리 부하)</text>
+  
+  <!-- Dirty Checking -->
+  <rect x="170" y="270" width="200" height="70" fill="#e8f5e9" stroke="#a5d6a7" stroke-width="2" rx="5" ry="5"/>
+  <text x="270" y="300" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#43a047">더티 체킹</text>
+  <text x="270" y="320" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#43a047">변경 감지 연산 (CPU 부하)</text>
+  
+  <!-- SQL Generation -->
+  <rect x="410" y="140" width="240" height="230" fill="#fff" stroke="#6c757d" stroke-width="2" rx="8" ry="8"/>
+  <text x="530" y="165" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#495057">SQL 생성 엔진</text>
+  
+  <!-- Full Column Update -->
+  <rect x="430" y="180" width="200" height="70" fill="#fff3e0" stroke="#ffcc80" stroke-width="2" rx="5" ry="5"/>
+  <text x="530" y="210" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#ef6c00">전체 컬럼 업데이트</text>
+  <text x="530" y="230" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#ef6c00">불필요한 필드까지 포함</text>
+  
+  <!-- Individual Updates -->
+  <rect x="430" y="270" width="200" height="70" fill="#fce4ec" stroke="#f48fb1" stroke-width="2" rx="5" ry="5"/>
+  <text x="530" y="300" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#d81b60">개별 업데이트 실행</text>
+  <text x="530" y="320" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#d81b60">각 엔티티마다 별도 SQL</text>
+  
+  <!-- Database -->
+  <rect x="290" y="420" width="220" height="60" fill="#dcedc8" stroke="#7cb342" stroke-width="2" rx="10" ry="10"/>
+  <text x="400" y="455" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#33691e">데이터베이스</text>
+  
+  <!-- Arrows -->
+  <path d="M270 350 L270 400 L340 420" fill="none" stroke="#6c757d" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <path d="M530 350 L530 400 L460 420" fill="none" stroke="#6c757d" stroke-width="2" marker-end="url(#arrowhead)"/>
+  
+  <!-- Legend -->
+  <rect x="630" y="420" width="20" height="20" fill="#e3f2fd" stroke="#90caf9" stroke-width="1"/>
+  <text x="655" y="435" font-family="Arial, sans-serif" font-size="12" text-anchor="start" fill="#333">메모리 오버헤드</text>
+  
+  <rect x="630" y="450" width="20" height="20" fill="#fce4ec" stroke="#f48fb1" stroke-width="1"/>
+  <text x="655" y="465" font-family="Arial, sans-serif" font-size="12" text-anchor="start" fill="#333">네트워크 오버헤드</text>
+  
+  <!-- Arrowhead marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#6c757d"/>
+    </marker>
+  </defs>
+</svg>
