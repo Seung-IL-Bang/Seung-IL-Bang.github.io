@@ -544,6 +544,28 @@
   <li>위와 같이 의존성과 설정을 마치면, 자동으로 <strong>각 요청에 고유한 Trace ID와 Span ID를 부여하여, 서비스 간의 호출 관계를 추적</strong>하게 됩니다.</li>
 </ul>
 
+<h1 id="분산-트레이싱의-핵심-개념-traceid와-spanid">분산 트레이싱의 핵심 개념: TraceId와 SpanId</h1>
+
+<p>분산 시스템에서 요청 추적을 가능하게 하는 핵심 요소는 <strong>TraceId</strong>와 <strong>SpanId</strong>입니다. 이 두 식별자는 <strong>B3 Propagation 형식</strong>의 기반이 되며, 전체 시스템에서 요청 흐름을 추적하는 데 필수적입니다.</p>
+
+<h2 id="traceid">TraceId</h2>
+
+<p><strong>TraceId</strong>는 하나의 완전한 트랜잭션 흐름을 식별하는 고유 식별자입니다. <strong>사용자 요청이 시스템에 처음 들어올 때 생성</strong>되며, 해당 요청이 <strong>여러 서비스를 거치더라도 동일한 TraceId가 유지</strong>됩니다. 일반적으로 128비트(16바이트) 길이의 랜덤 값으로 생성되며, 16진수 문자열로 표현됩니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">예: 4bf92f3577b34da6a3ce929d0e0e4736</code></li>
+</ul>
+
+<h2 id="spanid">SpanId</h2>
+
+<p><strong>SpanId</strong>는 전체 트레이스 내에서 특정 작업 단위(Span)를 식별하는 고유 식별자입니다. <strong>하나의 트레이스는 여러 개의 스팬으로 구성</strong>되며, <strong>각 스팬은 서비스 내 호출이나 서비스 간 통신 같은 작업</strong>을 나타냅니다. SpanId는 일반적으로 64비트(8바이트) 길이이며, 역시 16진수 문자열로 표현됩니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">예: a2fb4a1d1a96d312</code></li>
+</ul>
+
+<p>서비스 간 통신에서 <strong>SpanId</strong>의 값은 변경되지만, 부모-자식 관계를 유지하기 위해 이전 <strong>SpanId</strong>는 <strong>ParentSpanId</strong>로 저장됩니다. 이를 통해 <strong>Zipkin</strong>과 같은 시스템에서 요청 처리 흐름을 계층적으로 시각화할 수 있습니다. 추가로 트레이싱 식별자(<strong>TraceId, SpanId</strong>)들이 <strong>Kafka</strong> 메시지와 함께 전파됨으로써, 비동기 메시징 환경에서도 일관된 트레이싱 컨텍스트를 유지할 수 있습니다.</p>
+
 <h1 id="zipkin-ui를-활용한-트레이스-분석">Zipkin UI를 활용한 트레이스 분석</h1>
 
 <h2 id="서비스-간-호출-흐름-시각화">서비스 간 호출 흐름 시각화</h2>
@@ -983,7 +1005,7 @@
             
               <div class="post-toc-content">
     <ol class=nav>
-      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-들어가기"> <span class="nav-number">1</span> <span class="nav-text">📌 들어가기</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#마이크로서비스-환경의-복잡성"> <span class="nav-number">2</span> <span class="nav-text">마이크로서비스 환경의 복잡성</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#zipkin을-활용한-요청-추적"> <span class="nav-number">3</span> <span class="nav-text">Zipkin을 활용한 요청 추적</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#zipkin-적용-방법"> <span class="nav-number">4</span> <span class="nav-text">Zipkin 적용 방법</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#dependency"> <span class="nav-number">4.1</span> <span class="nav-text">Dependency</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#applicationyml"> <span class="nav-number">4.2</span> <span class="nav-text">application.yml</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#zipkin-ui를-활용한-트레이스-분석"> <span class="nav-number">5</span> <span class="nav-text">Zipkin UI를 활용한 트레이스 분석</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#서비스-간-호출-흐름-시각화"> <span class="nav-number">5.1</span> <span class="nav-text">서비스 간 호출 흐름 시각화</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#latency-분석-및-장애-감지"> <span class="nav-number">5.2</span> <span class="nav-text">Latency 분석 및 장애 감지</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#spring-aop를-활용한-미들웨어-간의-요청-추적"> <span class="nav-number">6</span> <span class="nav-text">Spring AOP를 활용한 미들웨어 간의 요청 추적</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#server--kafka-메시지-트레이싱"> <span class="nav-number">7</span> <span class="nav-text">Server → Kafka 메시지 트레이싱</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#kafka--server-트레이싱"> <span class="nav-number">8</span> <span class="nav-text">Kafka → Server 트레이싱</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#트레이싱-컨텍스트-전파의-이점"> <span class="nav-number">9</span> <span class="nav-text">트레이싱 컨텍스트 전파의 이점</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-결론"> <span class="nav-number">10</span> <span class="nav-text">🚀 결론</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#참고-자료"> <span class="nav-number">11</span> <span class="nav-text">참고 자료</span> </a> </li>
+      <li class="nav-item nav-level-1"> <a class="nav-link" href="#-들어가기"> <span class="nav-number">1</span> <span class="nav-text">📌 들어가기</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#마이크로서비스-환경의-복잡성"> <span class="nav-number">2</span> <span class="nav-text">마이크로서비스 환경의 복잡성</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#zipkin을-활용한-요청-추적"> <span class="nav-number">3</span> <span class="nav-text">Zipkin을 활용한 요청 추적</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#zipkin-적용-방법"> <span class="nav-number">4</span> <span class="nav-text">Zipkin 적용 방법</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#dependency"> <span class="nav-number">4.1</span> <span class="nav-text">Dependency</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#applicationyml"> <span class="nav-number">4.2</span> <span class="nav-text">application.yml</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#분산-트레이싱의-핵심-개념-traceid와-spanid"> <span class="nav-number">5</span> <span class="nav-text">분산 트레이싱의 핵심 개념: TraceId와 SpanId</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#traceid"> <span class="nav-number">5.1</span> <span class="nav-text">TraceId</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#spanid"> <span class="nav-number">5.2</span> <span class="nav-text">SpanId</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#zipkin-ui를-활용한-트레이스-분석"> <span class="nav-number">6</span> <span class="nav-text">Zipkin UI를 활용한 트레이스 분석</span> </a> <ol class="nav-child"> <li class="nav-item nav-level-2"> <a class="nav-link" href="#서비스-간-호출-흐름-시각화"> <span class="nav-number">6.1</span> <span class="nav-text">서비스 간 호출 흐름 시각화</span> </a> </li> <li class="nav-item nav-level-2"> <a class="nav-link" href="#latency-분석-및-장애-감지"> <span class="nav-number">6.2</span> <span class="nav-text">Latency 분석 및 장애 감지</span> </a> </li> </ol> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#spring-aop를-활용한-미들웨어-간의-요청-추적"> <span class="nav-number">7</span> <span class="nav-text">Spring AOP를 활용한 미들웨어 간의 요청 추적</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#server--kafka-메시지-트레이싱"> <span class="nav-number">8</span> <span class="nav-text">Server → Kafka 메시지 트레이싱</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#kafka--server-트레이싱"> <span class="nav-number">9</span> <span class="nav-text">Kafka → Server 트레이싱</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#트레이싱-컨텍스트-전파의-이점"> <span class="nav-number">10</span> <span class="nav-text">트레이싱 컨텍스트 전파의 이점</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#-결론"> <span class="nav-number">11</span> <span class="nav-text">🚀 결론</span> </a> </li> <li class="nav-item nav-level-1"> <a class="nav-link" href="#참고-자료"> <span class="nav-number">12</span> <span class="nav-text">참고 자료</span> </a> </li>
     </ol>
   </div>
             

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-25T21:30:02+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축</title><link href="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/" rel="alternate" type="text/html" title="Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축" /><published>2025-03-23T00:00:00+09:00</published><updated>2025-03-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s</id><content type="html" xml:base="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-25T21:41:04+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축</title><link href="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/" rel="alternate" type="text/html" title="Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축" /><published>2025-03-23T00:00:00+09:00</published><updated>2025-03-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s</id><content type="html" xml:base="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/"><![CDATA[<blockquote>
   <p>Spring Cloud Data Flow와 Kuebernetes 연동하여 효과적인 배치 구동 환경에 대해 알아봅시다!</p>
 </blockquote>
 
@@ -1518,6 +1518,28 @@
   <li>여기서 <code class="language-plaintext highlighter-rouge">spring.application.name</code>은 서비스 태깅에 활용되며, 각 서비스의 이름이 <strong>Zipkin UI</strong>에 표시되어 호출 흐름을 쉽게 파악할 수 있습니다.</li>
   <li>위와 같이 의존성과 설정을 마치면, 자동으로 <strong>각 요청에 고유한 Trace ID와 Span ID를 부여하여, 서비스 간의 호출 관계를 추적</strong>하게 됩니다.</li>
 </ul>
+
+<h1 id="분산-트레이싱의-핵심-개념-traceid와-spanid">분산 트레이싱의 핵심 개념: TraceId와 SpanId</h1>
+
+<p>분산 시스템에서 요청 추적을 가능하게 하는 핵심 요소는 <strong>TraceId</strong>와 <strong>SpanId</strong>입니다. 이 두 식별자는 <strong>B3 Propagation 형식</strong>의 기반이 되며, 전체 시스템에서 요청 흐름을 추적하는 데 필수적입니다.</p>
+
+<h2 id="traceid">TraceId</h2>
+
+<p><strong>TraceId</strong>는 하나의 완전한 트랜잭션 흐름을 식별하는 고유 식별자입니다. <strong>사용자 요청이 시스템에 처음 들어올 때 생성</strong>되며, 해당 요청이 <strong>여러 서비스를 거치더라도 동일한 TraceId가 유지</strong>됩니다. 일반적으로 128비트(16바이트) 길이의 랜덤 값으로 생성되며, 16진수 문자열로 표현됩니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">예: 4bf92f3577b34da6a3ce929d0e0e4736</code></li>
+</ul>
+
+<h2 id="spanid">SpanId</h2>
+
+<p><strong>SpanId</strong>는 전체 트레이스 내에서 특정 작업 단위(Span)를 식별하는 고유 식별자입니다. <strong>하나의 트레이스는 여러 개의 스팬으로 구성</strong>되며, <strong>각 스팬은 서비스 내 호출이나 서비스 간 통신 같은 작업</strong>을 나타냅니다. SpanId는 일반적으로 64비트(8바이트) 길이이며, 역시 16진수 문자열로 표현됩니다.</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">예: a2fb4a1d1a96d312</code></li>
+</ul>
+
+<p>서비스 간 통신에서 <strong>SpanId</strong>의 값은 변경되지만, 부모-자식 관계를 유지하기 위해 이전 <strong>SpanId</strong>는 <strong>ParentSpanId</strong>로 저장됩니다. 이를 통해 <strong>Zipkin</strong>과 같은 시스템에서 요청 처리 흐름을 계층적으로 시각화할 수 있습니다. 추가로 트레이싱 식별자(<strong>TraceId, SpanId</strong>)들이 <strong>Kafka</strong> 메시지와 함께 전파됨으로써, 비동기 메시징 환경에서도 일관된 트레이싱 컨텍스트를 유지할 수 있습니다.</p>
 
 <h1 id="zipkin-ui를-활용한-트레이스-분석">Zipkin UI를 활용한 트레이스 분석</h1>
 
