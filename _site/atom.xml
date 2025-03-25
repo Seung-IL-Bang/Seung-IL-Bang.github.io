@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-23T21:08:41+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축</title><link href="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/" rel="alternate" type="text/html" title="Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축" /><published>2025-03-23T00:00:00+09:00</published><updated>2025-03-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s</id><content type="html" xml:base="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/"><![CDATA[<blockquote>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.10.0">Jekyll</generator><link href="http://localhost:4000/atom.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2025-03-25T21:30:02+09:00</updated><id>http://localhost:4000/atom.xml</id><title type="html">Seung il’s Blog</title><subtitle>방승일 깃헙 블로그</subtitle><author><name>Bang Seung IL</name></author><entry><title type="html">Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축</title><link href="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/" rel="alternate" type="text/html" title="Spring Cloud Data Flow와 Kubernetes를 활용한 효과적인 배치 구동 환경 구축" /><published>2025-03-23T00:00:00+09:00</published><updated>2025-03-23T00:00:00+09:00</updated><id>http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s</id><content type="html" xml:base="http://localhost:4000/spring%20batch/spring%20cloud%20data%20flow/kubernetes/2025/03/23/Spring-Batch-SCDF-k8s/"><![CDATA[<blockquote>
   <p>Spring Cloud Data Flow와 Kuebernetes 연동하여 효과적인 배치 구동 환경에 대해 알아봅시다!</p>
 </blockquote>
 
@@ -1491,11 +1491,11 @@
 
 <h2 id="dependency">Dependency</h2>
 
-<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code>	<span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
-	<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-observation'</span>
-	<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-tracing-bridge-brave'</span>
-	<span class="n">implementation</span> <span class="s1">'io.zipkin.brave:brave-instrumentation-spring-web'</span>
-	<span class="n">implementation</span> <span class="s1">'io.zipkin.reporter2:zipkin-reporter-brave'</span>
+<div class="language-groovy highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">implementation</span> <span class="s1">'org.springframework.boot:spring-boot-starter-actuator'</span>
+<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-observation'</span>
+<span class="n">implementation</span> <span class="s1">'io.micrometer:micrometer-tracing-bridge-brave'</span>
+<span class="n">implementation</span> <span class="s1">'io.zipkin.brave:brave-instrumentation-spring-web'</span>
+<span class="n">implementation</span> <span class="s1">'io.zipkin.reporter2:zipkin-reporter-brave'</span>
 </code></pre></div></div>
 
 <h2 id="applicationyml">application.yml</h2>
@@ -1531,11 +1531,178 @@
 
 <h1 id="spring-aop를-활용한-미들웨어-간의-요청-추적">Spring AOP를 활용한 미들웨어 간의 요청 추적</h1>
 
-<p>마이크로서비스에서는 HTTP 호출 외에도 Kafka, Redis와 같은 미들웨어를 활용하는 경우가 많습니다. Zipkin과 Micrometer의 기본 의존성과 설정만으로는 미들웨어 통신 경로를 자동 추적하진 않습니다. 미들웨어간의 호출 흐름까지 추적하기 위해, 추적에 필요한 로직을 <strong>스프링 AOP</strong>를 활용하여 <strong>사용자 정의 트레이싱</strong> 코드를 삽입할 수 있었습니다.</p>
+<p>마이크로서비스에서는 HTTP 호출 외에도 <strong>Kafka</strong>, <strong>Redis와</strong> 같은 미들웨어를 활용하는 경우가 많습니다. Zipkin과 Micrometer의 기본 의존성과 설정만으로는 미들웨어 통신 경로를 자동 추적하진 않습니다. 미들웨어간의 호출 흐름까지 추적하기 위해, 추적에 필요한 로직을 <strong>스프링 AOP</strong>를 활용하여 <strong>사용자 정의 트레이싱</strong> 코드를 삽입할 수 있었습니다.</p>
 
-<p>예를 들어, 스프링 AOP를 활용하여 Kafka를 통한 메시지 발행/구독 흐름도 추적할 수 있습니다. 이를 통해 메시지 큐를 통한 비동기 호출도 명확하게 추적할 수 있으며, 메시지 손실이나 지연 문제를 쉽게 추적할 수 있습니다.</p>
+<p>예를 들어, 스프링 AOP를 활용하여 <strong>Kafka</strong>를 통한 메시지 발행/구독 흐름도 추적할 수 있습니다. 이를 통해 메시지 큐를 통한 비동기 호출도 명확하게 추적할 수 있으며, 메시지 손실이나 지연 문제를 쉽게 추적할 수 있습니다.</p>
 
 <p>만약 이러한 미들웨어 추적 메커니즘이 없다면, 각 미들웨어 간의 호출 흐름이 단절되어 문제 발생 시 원인 파악에 큰 어려움이 따를 것입니다. 이는 디버깅 하는 시간이 급격히 증가할 수 있습니다.</p>
+
+<h1 id="server--kafka-메시지-트레이싱">Server → Kafka 메시지 트레이싱</h1>
+
+<p>이제, 실제로 사이드 프로젝트에서 <strong>Spring AOP</strong>를 활용하여 <strong>Zipkin B3 트레이싱</strong>을 <strong>Kafka</strong> 메시지에 적용하는 방법을 살펴보겠습니다.</p>
+
+<p>스프링 애플리케이션에서 <strong>Kafka</strong>로 메시지를 발행할 때, 현재의 트레이싱 컨텍스트를 메시지 헤더에 포함시켜 전달하는 것이 중요합니다. 이를 위해 <strong>AOP(Aspect-Oriented Programming)</strong>를 활용하면 기존 코드를 수정하지 않고도 이 기능을 깔끔하게 추가할 수 있습니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">KafkaTemplate.send(String, Object)</code> 메서드를 인터셉트하여 <strong>ProducerRecord</strong>에 <strong>B3 헤더</strong>를 추가하는 방식으로 트레이싱 컨텍스트를 전파할 수 있습니다. 이렇게 하면 <strong>Kafka</strong> 소비자가 메시지를 처리할 때 동일한 트레이싱 컨텍스트를 유지할 수 있어, <strong>Zipkin</strong>에서 전체 요청 흐름을 연속적으로 확인할 수 있게 됩니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Aspect</span>
+<span class="nd">@Component</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">B3PropagationAspect</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Tracer</span> <span class="n">tracer</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">B3PropagationAspect</span><span class="o">(</span><span class="nc">Tracer</span> <span class="n">tracer</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">tracer</span> <span class="o">=</span> <span class="n">tracer</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Around</span><span class="o">(</span><span class="s">"execution(* org.springframework.kafka.core.KafkaTemplate.send(String, ..))"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">Object</span> <span class="nf">addB3HeadersToProducerMessage</span><span class="o">(</span><span class="nc">ProceedingJoinPoint</span> <span class="n">joinPoint</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">Throwable</span> <span class="o">{</span>
+        <span class="nc">Object</span><span class="o">[]</span> <span class="n">args</span> <span class="o">=</span> <span class="n">joinPoint</span><span class="o">.</span><span class="na">getArgs</span><span class="o">();</span>
+
+        <span class="c1">// 메서드 시그니처: send(String topic, V data)</span>
+        <span class="nc">String</span> <span class="n">topic</span> <span class="o">=</span> <span class="o">(</span><span class="nc">String</span><span class="o">)</span> <span class="n">args</span><span class="o">[</span><span class="mi">0</span><span class="o">];</span>
+        <span class="nc">String</span> <span class="n">data</span> <span class="o">=</span> <span class="o">(</span><span class="nc">String</span><span class="o">)</span> <span class="n">args</span><span class="o">[</span><span class="mi">1</span><span class="o">];</span>
+
+        <span class="c1">// ProducerRecord 생성</span>
+        <span class="nc">ProducerRecord</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">record</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ProducerRecord</span><span class="o">&lt;&gt;(</span><span class="n">topic</span><span class="o">,</span> <span class="n">data</span><span class="o">);</span>
+
+        <span class="c1">// 현재 활성화된 Span에서 b3 헤더에 필요한 값 추출</span>
+        <span class="nc">Span</span> <span class="n">currentSpan</span> <span class="o">=</span> <span class="n">tracer</span><span class="o">.</span><span class="na">currentSpan</span><span class="o">();</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">currentSpan</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">record</span><span class="o">.</span><span class="na">headers</span><span class="o">().</span><span class="na">add</span><span class="o">(</span><span class="s">"X-B3-TraceId"</span><span class="o">,</span> <span class="n">currentSpan</span><span class="o">.</span><span class="na">context</span><span class="o">().</span><span class="na">traceIdString</span><span class="o">().</span><span class="na">getBytes</span><span class="o">(</span><span class="no">UTF_8</span><span class="o">));</span>
+            <span class="n">record</span><span class="o">.</span><span class="na">headers</span><span class="o">().</span><span class="na">add</span><span class="o">(</span><span class="s">"X-B3-SpanId"</span><span class="o">,</span> <span class="n">currentSpan</span><span class="o">.</span><span class="na">context</span><span class="o">().</span><span class="na">spanIdString</span><span class="o">().</span><span class="na">getBytes</span><span class="o">(</span><span class="no">UTF_8</span><span class="o">));</span>
+            <span class="nc">String</span> <span class="n">sampled</span> <span class="o">=</span> <span class="o">(</span><span class="n">currentSpan</span><span class="o">.</span><span class="na">context</span><span class="o">().</span><span class="na">sampled</span><span class="o">()</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">&amp;&amp;</span> <span class="n">currentSpan</span><span class="o">.</span><span class="na">context</span><span class="o">().</span><span class="na">sampled</span><span class="o">())</span> <span class="o">?</span> <span class="s">"1"</span> <span class="o">:</span> <span class="s">"0"</span><span class="o">;</span>
+            <span class="n">record</span><span class="o">.</span><span class="na">headers</span><span class="o">().</span><span class="na">add</span><span class="o">(</span><span class="s">"X-B3-Sampled"</span><span class="o">,</span> <span class="n">sampled</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="no">UTF_8</span><span class="o">));</span>
+        <span class="o">}</span>
+
+        <span class="c1">// 원래의 KafkaTemplate.send(String, V) 대신,</span>
+        <span class="c1">// ProducerRecord를 인자로 받는 send 메서드를 호출하여 메시지 전송</span>
+        <span class="nc">KafkaTemplate</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;</span> <span class="n">kafkaTemplate</span> <span class="o">=</span> <span class="o">(</span><span class="nc">KafkaTemplate</span><span class="o">&lt;</span><span class="nc">String</span><span class="o">,</span> <span class="nc">String</span><span class="o">&gt;)</span> <span class="n">joinPoint</span><span class="o">.</span><span class="na">getTarget</span><span class="o">();</span>
+
+        <span class="nc">Span</span> <span class="n">newSpan</span> <span class="o">=</span> <span class="n">tracer</span><span class="o">.</span><span class="na">nextSpan</span><span class="o">().</span><span class="na">name</span><span class="o">(</span><span class="n">joinPoint</span><span class="o">.</span><span class="na">getSignature</span><span class="o">().</span><span class="na">toString</span><span class="o">()).</span><span class="na">start</span><span class="o">();</span>
+        <span class="k">try</span> <span class="o">(</span><span class="nc">Tracer</span><span class="o">.</span><span class="na">SpanInScope</span> <span class="n">ws</span> <span class="o">=</span> <span class="n">tracer</span><span class="o">.</span><span class="na">withSpanInScope</span><span class="o">(</span><span class="n">newSpan</span><span class="o">.</span><span class="na">start</span><span class="o">()))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="n">kafkaTemplate</span><span class="o">.</span><span class="na">send</span><span class="o">(</span><span class="n">record</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">newSpan</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">e</span><span class="o">);</span>
+            <span class="k">throw</span> <span class="n">e</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="n">newSpan</span><span class="o">.</span><span class="na">finish</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<ol>
+  <li>Spring의 <code class="language-plaintext highlighter-rouge">@Aspect</code> 기능을 활용하여 <code class="language-plaintext highlighter-rouge">KafkaTemplate.send(String, ..)</code> 메서드 호출을 인터셉트합니다. 이를 통해 메시지가 <strong>Kafka</strong>로 전송되기 직전에 트레이싱 정보를 주입할 수 있는 지점을 확보합니다.</li>
+  <li>인터셉트 시점에 <strong>Brave Tracer API</strong>를 통해 현재 활성화된 트레이싱 컨텍스트(<strong>TraceId, SpanId, Sampling</strong> 여부 등)를 추출하고, 이를 Kafka의 <strong>ProducerRecord</strong> 헤더에 B3 형식(<strong>X-B3-TraceId, X-B3-SpanId, X-B3-Sampled</strong>)으로 인코딩하여 추가합니다.</li>
+  <li>이렇게 트레이싱 정보가 포함된 메시지를 소비자 서비스에서 처리할 때, 메시지 헤더에서 B3 정보를 추출하여 동일한 트레이싱 컨텍스트를 복원합니다. 이를 통해 Zipkin과 같은 분산 트레이싱 시스템에서 서비스 간 경계를 넘어 하나의 연속된 트랜잭션으로 시각화하고 분석할 수 있게 됩니다.</li>
+</ol>
+
+<p>⭐️ 이 방식의 가장 큰 장점은 애플리케이션 코드를 직접 수정하지 않고도 트레이싱 컨텍스트 전파를 구현할 수 있어, <strong>관심사 분리(Separation of Concerns)</strong> 원칙을 준수하면서 분산 시스템의 가시성을 높일 수 있다는 점입니다.</p>
+
+<h1 id="kafka--server-트레이싱">Kafka → Server 트레이싱</h1>
+
+<p><strong>Kafka</strong> 메시지를 소비하는 측에서는 메시지 헤더에 포함된 <strong>B3 트레이싱</strong> 정보를 추출하여 서버 처리 과정의 트레이싱에 연결해야 합니다. 이 과정 역시 <strong>AOP</strong>를 활용하면 깔끔하게 구현할 수 있습니다.</p>
+
+<p><code class="language-plaintext highlighter-rouge">@KafkaListener</code> 어노테이션이 적용된 메서드를 인터셉트하여 <strong>ConsumerRecord</strong>에서 <strong>B3 헤더</strong> 정보를 추출하고, 이를 기반으로 새로운 스팬을 생성하는 방식으로 구현됩니다. 이렇게 하면 소비자 서비스에서의 처리 과정이 기존 트레이싱 컨텍스트와 연결되어 하나의 흐름으로 추적됩니다.</p>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@Aspect</span>
+<span class="nd">@Component</span>
+<span class="nd">@Slf4j</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">KafkaListenerTracingAspect</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Tracing</span> <span class="n">tracing</span><span class="o">;</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">Tracer</span> <span class="n">tracer</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">KafkaListenerTracingAspect</span><span class="o">(</span><span class="nc">Tracing</span> <span class="n">tracing</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">tracing</span> <span class="o">=</span> <span class="n">tracing</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">tracer</span> <span class="o">=</span> <span class="n">tracing</span><span class="o">.</span><span class="na">tracer</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="cm">/**
+     * KafkaListener를 감싸서, ConsumerRecord에 담긴 b3 헤더로부터 trace context를 추출하고
+     * 해당 context 기반의 스팬을 생성하여 로그 MDC에 반영합니다.
+     */</span>
+    <span class="nd">@Around</span><span class="o">(</span><span class="s">"@annotation(org.springframework.kafka.annotation.KafkaListener)"</span><span class="o">)</span>
+    <span class="kd">public</span> <span class="nc">Object</span> <span class="nf">aroundKafkaListener</span><span class="o">(</span><span class="nc">ProceedingJoinPoint</span> <span class="n">joinPoint</span><span class="o">)</span> <span class="kd">throws</span> <span class="nc">Throwable</span> <span class="o">{</span>
+        <span class="nc">ConsumerRecord</span><span class="o">&lt;?,</span> <span class="o">?&gt;</span> <span class="n">consumerRecord</span> <span class="o">=</span> <span class="n">extractConsumerRecord</span><span class="o">(</span><span class="n">joinPoint</span><span class="o">.</span><span class="na">getArgs</span><span class="o">());</span>
+
+        <span class="nc">Span</span> <span class="n">newSpan</span><span class="o">;</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">consumerRecord</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="c1">// b3 헤더 추출을 위한 extractor 람다 (key에 해당하는 헤더 값을 문자열로 변환)</span>
+            <span class="nc">TraceContextOrSamplingFlags</span> <span class="n">extracted</span> <span class="o">=</span> <span class="n">tracing</span><span class="o">.</span><span class="na">propagation</span><span class="o">().</span><span class="na">extractor</span><span class="o">(</span>
+                    <span class="o">(</span><span class="n">org</span><span class="o">.</span><span class="na">apache</span><span class="o">.</span><span class="na">kafka</span><span class="o">.</span><span class="na">common</span><span class="o">.</span><span class="na">header</span><span class="o">.</span><span class="na">Headers</span> <span class="n">headers</span><span class="o">,</span> <span class="nc">String</span> <span class="n">key</span><span class="o">)</span> <span class="o">-&gt;</span> <span class="o">{</span>
+                        <span class="nc">Header</span> <span class="n">header</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="na">lastHeader</span><span class="o">(</span><span class="n">key</span><span class="o">);</span>
+                        <span class="k">return</span> <span class="n">header</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">?</span> <span class="k">new</span> <span class="nc">String</span><span class="o">(</span><span class="n">header</span><span class="o">.</span><span class="na">value</span><span class="o">(),</span> <span class="nc">StandardCharsets</span><span class="o">.</span><span class="na">UTF_8</span><span class="o">)</span> <span class="o">:</span> <span class="kc">null</span><span class="o">;</span>
+                    <span class="o">}</span>
+            <span class="o">).</span><span class="na">extract</span><span class="o">(</span><span class="n">consumerRecord</span><span class="o">.</span><span class="na">headers</span><span class="o">());</span>
+
+            <span class="c1">// 추출된 context가 있다면 이를 기반으로 자식 스팬 생성</span>
+            <span class="n">newSpan</span> <span class="o">=</span> <span class="n">tracer</span><span class="o">.</span><span class="na">nextSpan</span><span class="o">(</span><span class="n">extracted</span><span class="o">).</span><span class="na">name</span><span class="o">(</span><span class="n">joinPoint</span><span class="o">.</span><span class="na">getSignature</span><span class="o">().</span><span class="na">toShortString</span><span class="o">());</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="c1">// ConsumerRecord가 없으면 단순히 새 스팬 생성</span>
+            <span class="n">newSpan</span> <span class="o">=</span> <span class="n">tracer</span><span class="o">.</span><span class="na">nextSpan</span><span class="o">().</span><span class="na">name</span><span class="o">(</span><span class="n">joinPoint</span><span class="o">.</span><span class="na">getSignature</span><span class="o">().</span><span class="na">toShortString</span><span class="o">());</span>
+        <span class="o">}</span>
+
+        <span class="k">try</span> <span class="o">(</span><span class="nc">Tracer</span><span class="o">.</span><span class="na">SpanInScope</span> <span class="n">ws</span> <span class="o">=</span> <span class="n">tracer</span><span class="o">.</span><span class="na">withSpanInScope</span><span class="o">(</span><span class="n">newSpan</span><span class="o">.</span><span class="na">start</span><span class="o">()))</span> <span class="o">{</span>
+            <span class="c1">// 스팬이 활성화된 상태에서 대상 메서드 실행: 이때 MDC에 TraceId 등이 반영되어 로그에 출력됨</span>
+            <span class="k">return</span> <span class="n">joinPoint</span><span class="o">.</span><span class="na">proceed</span><span class="o">();</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">Throwable</span> <span class="n">t</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">newSpan</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="n">t</span><span class="o">);</span>
+            <span class="k">throw</span> <span class="n">t</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="n">newSpan</span><span class="o">.</span><span class="na">finish</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+
+    <span class="kd">private</span> <span class="nc">ConsumerRecord</span><span class="o">&lt;?,</span> <span class="o">?&gt;</span> <span class="n">extractConsumerRecord</span><span class="o">(</span><span class="nc">Object</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">args</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+            <span class="k">for</span> <span class="o">(</span><span class="nc">Object</span> <span class="n">arg</span> <span class="o">:</span> <span class="n">args</span><span class="o">)</span> <span class="o">{</span>
+                <span class="k">if</span> <span class="o">(</span><span class="n">arg</span> <span class="k">instanceof</span> <span class="nc">ConsumerRecord</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="k">return</span> <span class="o">(</span><span class="nc">ConsumerRecord</span><span class="o">&lt;?,</span> <span class="o">?&gt;)</span> <span class="n">arg</span><span class="o">;</span>
+                <span class="o">}</span>
+            <span class="o">}</span>
+        <span class="o">}</span>
+        <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>이 <strong>Aspect</strong>는 다음과 같은 핵심 기능을 수행합니다:</p>
+
+<ol>
+  <li><code class="language-plaintext highlighter-rouge">@KafkaListener</code> 어노테이션이 적용된 메서드를 타겟으로 하는 <strong>Pointcut</strong> 정의</li>
+  <li><strong>ConsumerRecord</strong> 객체에서 B3 헤더 추출을 위한 커스텀 <strong>extractor</strong> 구현</li>
+  <li>추출된 트레이싱 컨텍스트를 기반으로 새로운 스팬 생성</li>
+  <li>생성된 스팬의 컨텍스트 내에서 원래 메서드 실행</li>
+  <li>메서드 실행 중 발생하는 예외를 스팬에 기록</li>
+  <li>메서드 실행 완료 후 스팬 종료</li>
+</ol>
+
+<p>이러한 방식으로 구현하면, <strong>Kafka</strong> 메시지 소비 시점에서 자동으로 트레이싱 컨텍스트가 복원되어 <strong>MDC(Mapped Diagnostic Context)</strong>에 반영됩니다. 이를 통해 로그에 <strong>traceId</strong>가 자동으로 포함되어 로그 추적이 용이해지며, <strong>Zipkin</strong>과 같은 분산 트레이싱 시스템에서도 하나의 트랜잭션으로 시각화됩니다.</p>
+
+<p>참고로, <strong>ELK 스택을 이용한 중앙집중식 로그 모니터링 시스템</strong>에 관한 <a href="https://seung-il-bang.github.io/msa/elk/2025/02/24/ELK-Stack-Log-Analysis/" target="_blank">포스트</a>도 있습니다. 짧게 소개하자면, <strong>Kibana</strong>에서 <strong>TraceId</strong>를 검색하면 여러 서버에서 분산적으로 발생한 로그 전부를 <strong>타임스탬프(timestamp)순</strong>으로 확인할 수 있습니다.</p>
+
+<p>아래 이미지는 <strong>주문 생성</strong>, <strong>결제 승인</strong>, <strong>배달 접수</strong>, <strong>주문 완료</strong> 등 여러 이벤트 처리에 대한 <strong>kafka 비동기 처리</strong> 도입에도 <strong>사용자의 한 요청에 대한 모든 흐름이 트레이싱</strong> 되고 있는 것을 확인할 수 있었습니다:</p>
+
+<figure align="center">
+<img src="/post_images/spring-cloud-side-project/zipkin-tracing.png" />
+<figcaption></figcaption>
+</figure>
+
+<p><code class="language-plaintext highlighter-rouge">user service</code>, <code class="language-plaintext highlighter-rouge">order service</code>, <code class="language-plaintext highlighter-rouge">product service</code>, <code class="language-plaintext highlighter-rouge">delivery service</code>, <code class="language-plaintext highlighter-rouge">payment service</code> 각 서버마다 이벤트 발행과 구독을 처리하는 흐름이 모두 담겨 있습니다.</p>
+
+<h1 id="트레이싱-컨텍스트-전파의-이점">트레이싱 컨텍스트 전파의 이점</h1>
+
+<p>이러한 방식으로 트레이싱 컨텍스트를 전파함으로써 얻을 수 있는 주요 이점은 다음과 같습니다:</p>
+
+<ol>
+  <li><strong>End-to-End 가시성</strong>: 사용자 요청부터 모든 서비스를 거쳐 최종 응답까지의 전체 흐름을 하나의 트레이스로 확인 가능</li>
+  <li><strong>성능 병목 식별</strong>: 전체 트랜잭션에서 지연이 발생하는 지점을 정확히 식별 가능</li>
+  <li><strong>장애 추적 용이성</strong>: 오류 발생 시 관련된 모든 서비스의 로그를 쉽게 연관지어 분석 가능</li>
+  <li><strong>코드 침습성 최소화</strong>: AOP를 활용하여 비즈니스 로직과 트레이싱 로직의 명확한 분리 유지</li>
+</ol>
+
+<p>이러한 접근 방식은 마이크로서비스 아키텍처에서 특히 유용하며, 서비스 간 메시지 전달이 빈번한 <strong>분산 시스템의 관찰성(Observability)을 크게 향상</strong>시킵니다.</p>
 
 <h1 id="-결론">🚀 결론</h1>
 
