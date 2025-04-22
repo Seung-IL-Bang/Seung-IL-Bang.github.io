@@ -383,7 +383,7 @@ public ItemWriter<SettlementAggregate> luaScriptDirectWriter() {
 
 
 
-1. **처리 속도 향상**: `GROUP BY` 쿼리 대비 최대 9배 성능 개선
+1. **처리 속도 향상**: `GROUP BY` 쿼리 대신 레디스 `hincrby` 연산으로 처리 속도 향상
 2. **데이터베이스 부하 감소**: 데이터베이스의 집계 연산 부담 제거
 3. **확장성 향상**: 데이터 증가에도 선형적인 성능 유지
 4. **실시간 집계 가능**: 배치 작업과 실시간 집계를 병행 가능
