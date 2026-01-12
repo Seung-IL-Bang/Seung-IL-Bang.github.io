@@ -146,7 +146,8 @@ public ItemWriter<SettlementAggregate> optimizedRedisAggregateWriter() {
     return items -> {
         // 청크의
         // 파이프라인 시작
-        redisAsyncCommands.multi();
+        // Lettuce에서 순수 파이프라인 구현 방식
+        redisAsyncCommands.setAutoFlushCommands(false); // 자동으로 명령을 보내지 않도록 설정 (버퍼링)
 
         log.info("Processing {} items in a single Redis pipeline transaction", items.size());
 
@@ -197,7 +198,7 @@ public ItemWriter<SettlementAggregate> optimizedRedisAggregateWriter() {
         }
 
         // 모든 명령을 한 번에 실행
-        redisAsyncCommands.exec();
+        redisAsyncCommands.flushCommands(); // 쌓인 명령을 한 번에 네트워크로 전송
         log.info("Successfully processed batch of {} settlement details to Redis", items.size());
     };
 }
