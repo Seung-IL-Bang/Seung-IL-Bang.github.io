@@ -1,74 +1,226 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500">
-  <!-- Background -->
-  <rect width="800" height="500" fill="#f8f9fa" />
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- 배경 -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f8fafc;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e2e8f0;stop-opacity:1" />
+    </linearGradient>
+    
+    <!-- 그림자 필터 -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+      <feOffset dx="0" dy="2" result="offsetblur"/>
+      <feComponentTransfer>
+        <feFuncA type="linear" slope="0.2"/>
+      </feComponentTransfer>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
   
-  <!-- Title -->
-  <text x="400" y="30" font-family="Arial" font-size="20" text-anchor="middle" font-weight="bold">Limit-Offset vs Zero-Offset 비교</text>
+  <rect width="1200" height="800" fill="url(#bgGradient)"/>
   
-  <!-- Limit-Offset Section -->
-  <text x="200" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Limit-Offset 방식</text>
+  <!-- 제목 -->
+  <text x="600" y="50" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="#1e293b">
+    대용량 데이터 페이징 방식 비교
+  </text>
+  <text x="600" y="80" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#64748b">
+    Limit-Offset vs Zero-Offset (Keyset Pagination)
+  </text>
   
-  <!-- Page 1 -->
-  <rect x="50" y="90" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
-  <text x="200" y="125" font-family="Arial" font-size="14" text-anchor="middle">Page 1: LIMIT 1000 OFFSET 0</text>
-  <rect x="50" y="90" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" />
-  <text x="200" y="145" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
+  <!-- 왼쪽: Limit-Offset -->
+  <g id="limit-offset">
+    <rect x="50" y="120" width="520" height="620" rx="12" fill="white" stroke="#e2e8f0" stroke-width="2" filter="url(#shadow)"/>
+    
+    <!-- 제목 -->
+    <rect x="70" y="140" width="480" height="50" rx="8" fill="#ef4444" opacity="0.1"/>
+    <text x="310" y="160" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#dc2626">
+      ⚠️ Limit-Offset 방식
+    </text>
+    <text x="310" y="180" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#ef4444">
+      시간 복잡도: O(n) - 선형 증가
+    </text>
+    
+    <!-- 데이터 블록 표현 -->
+    <g id="offset-blocks">
+      <!-- 1페이지 -->
+      <rect x="90" y="220" width="60" height="40" rx="4" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
+      <text x="120" y="245" font-family="monospace" font-size="12" text-anchor="middle" fill="#1e293b">Page 1</text>
+      <path d="M 155 240 L 180 240" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowgray)"/>
+      
+      <!-- 2페이지 -->
+      <rect x="185" y="220" width="60" height="40" rx="4" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/>
+      <text x="215" y="245" font-family="monospace" font-size="12" text-anchor="middle" fill="#1e293b">Page 2</text>
+      <path d="M 250 240 L 275 240" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowgray)"/>
+      
+      <!-- ... -->
+      <text x="300" y="245" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#64748b">...</text>
+      <path d="M 315 240 L 340 240" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrowgray)"/>
+      
+      <!-- N페이지 (목표) -->
+      <rect x="345" y="220" width="60" height="40" rx="4" fill="#fca5a5" stroke="#ef4444" stroke-width="3"/>
+      <text x="375" y="245" font-family="monospace" font-size="12" text-anchor="middle" fill="#7f1d1d" font-weight="bold">Page N</text>
+    </g>
+    
+    <!-- 설명 박스 -->
+    <rect x="90" y="290" width="440" height="120" rx="8" fill="#fef2f2" stroke="#fecaca" stroke-width="1"/>
+    <text x="110" y="315" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#991b1b">
+      작동 방식:
+    </text>
+    <text x="110" y="340" font-family="Arial, sans-serif" font-size="13" fill="#7f1d1d">
+      • OFFSET 위치까지 모든 데이터를 읽고 버림
+    </text>
+    <text x="110" y="365" font-family="Arial, sans-serif" font-size="13" fill="#7f1d1d">
+      • 페이지가 뒤로 갈수록 읽어야 할 데이터 증가
+    </text>
+    <text x="110" y="390" font-family="Arial, sans-serif" font-size="13" fill="#7f1d1d">
+      • OFFSET 10만 = 10만 건 스캔 후 버림
+    </text>
+    
+    <!-- SQL 예시 -->
+    <rect x="90" y="430" width="440" height="90" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="110" y="455" font-family="monospace" font-size="12" fill="#10b981" font-weight="bold">
+      SQL 예시:
+    </text>
+    <text x="110" y="478" font-family="monospace" font-size="11" fill="#e2e8f0">
+      SELECT * FROM users
+    </text>
+    <text x="110" y="496" font-family="monospace" font-size="11" fill="#e2e8f0">
+      ORDER BY id
+    </text>
+    <text x="110" y="514" font-family="monospace" font-size="11" fill="#fbbf24">
+      LIMIT 100 OFFSET 1000000  -- 100만 건 읽고 버림!
+    </text>
+    
+    <!-- 성능 그래프 -->
+    <rect x="90" y="540" width="440" height="170" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="310" y="565" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#1e293b">
+      응답 시간 (선형 증가)
+    </text>
+    
+    <!-- 그래프 영역 클리핑 -->
+    <clipPath id="graphClip1">
+      <rect x="110" y="580" width="410" height="110"/>
+    </clipPath>
+    
+    <!-- 선형 그래프 선 (범위 내로 제한) -->
+    <g clip-path="url(#graphClip1)">
+      <polyline points="110,680 160,665 210,645 260,620 310,590 360,555 410,515 460,470 510,420"
+                fill="none" stroke="#ef4444" stroke-width="3"/>
+    </g>
+    
+    <!-- 축 -->
+    <line x1="110" y1="690" x2="520" y2="690" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="110" y1="580" x2="110" y2="690" stroke="#94a3b8" stroke-width="2"/>
+    
+    <text x="310" y="705" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#64748b">페이지 번호 →</text>
+    <text x="75" y="640" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#64748b" transform="rotate(-90 75 640)">시간 ↑</text>
+  </g>
   
-  <!-- Page 2 -->
-  <rect x="50" y="160" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
-  <text x="200" y="195" font-family="Arial" font-size="14" text-anchor="middle">Page 2: LIMIT 1000 OFFSET 1000</text>
-  <rect x="50" y="160" width="300" height="60" rx="5" ry="5" fill-opacity="0.2" fill="#ff9999" stroke="none" />
-  <rect x="50" y="160" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" stroke-dasharray="5,5" />
-  <text x="130" y="185" font-family="Arial" font-size="12" text-anchor="middle" fill="#cc0000">스캔 영역</text>
-  <text x="200" y="215" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
+  <!-- 오른쪽: Zero-Offset -->
+  <g id="zero-offset">
+    <rect x="630" y="120" width="520" height="620" rx="12" fill="white" stroke="#e2e8f0" stroke-width="2" filter="url(#shadow)"/>
+    
+    <!-- 제목 -->
+    <rect x="650" y="140" width="480" height="50" rx="8" fill="#10b981" opacity="0.1"/>
+    <text x="890" y="160" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="#059669">
+      ✅ Zero-Offset 방식 (Keyset)
+    </text>
+    <text x="890" y="180" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#10b981">
+      시간 복잡도: O(log n)
+    </text>
+    
+    <!-- 데이터 블록 표현 (점프) -->
+    <g id="keyset-blocks">
+      <!-- 1페이지 -->
+      <rect x="670" y="220" width="60" height="40" rx="4" fill="#6ee7b7" stroke="#10b981" stroke-width="2"/>
+      <text x="700" y="245" font-family="monospace" font-size="12" text-anchor="middle" fill="#065f46">Page 1</text>
+      
+      <!-- 점프 화살표 -->
+      <path d="M 735 240 Q 830 200 925 240" fill="none" stroke="#10b981" stroke-width="3" stroke-dasharray="5,5" marker-end="url(#arrowgreen)"/>
+      <text x="830" y="220" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" fill="#059669" font-weight="bold">인덱스로 즉시 점프!</text>
+      
+      <!-- N페이지 (목표) -->
+      <rect x="930" y="220" width="60" height="40" rx="4" fill="#6ee7b7" stroke="#10b981" stroke-width="2"/>
+      <text x="960" y="245" font-family="monospace" font-size="12" text-anchor="middle" fill="#065f46">Page N</text>
+    </g>
+    
+    <!-- 설명 박스 -->
+    <rect x="670" y="290" width="440" height="120" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+    <text x="690" y="315" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#166534">
+      작동 방식:
+    </text>
+    <text x="690" y="340" font-family="Arial, sans-serif" font-size="13" fill="#15803d">
+      • 마지막 조회 ID를 WHERE 조건으로 사용
+    </text>
+    <text x="690" y="365" font-family="Arial, sans-serif" font-size="13" fill="#15803d">
+      • 인덱스(B-Tree)를 타고 다음 위치로 점프
+    </text>
+    <text x="690" y="390" font-family="Arial, sans-serif" font-size="13" fill="#15803d">
+      • Deep Pagination에도 빠름
+    </text>
+    
+    <!-- SQL 예시 -->
+    <rect x="670" y="430" width="440" height="90" rx="8" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    <text x="690" y="455" font-family="monospace" font-size="12" fill="#10b981" font-weight="bold">
+      SQL 예시:
+    </text>
+    <text x="690" y="478" font-family="monospace" font-size="11" fill="#e2e8f0">
+      SELECT * FROM users
+    </text>
+    <text x="690" y="496" font-family="monospace" font-size="11" fill="#fbbf24">
+      WHERE id > 999900  -- 마지막 조회 ID
+    </text>
+    <text x="690" y="514" font-family="monospace" font-size="11" fill="#e2e8f0">
+      ORDER BY id LIMIT 100
+    </text>
+    
+    <!-- 성능 그래프 (로그 곡선) -->
+    <rect x="670" y="540" width="440" height="170" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1"/>
+    <text x="890" y="565" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#1e293b">
+      응답 시간 (로그 증가)
+    </text>
+    
+    <!-- 그래프 영역 클리핑 -->
+    <clipPath id="graphClip2">
+      <rect x="690" y="580" width="410" height="110"/>
+    </clipPath>
+    
+    <!-- 로그 곡선 그래프 (log n 형태) -->
+    <g clip-path="url(#graphClip2)">
+      <polyline points="690,675 740,660 790,650 840,643 890,638 940,635 990,632 1040,630 1090,628"
+                fill="none" stroke="#10b981" stroke-width="3"/>
+    </g>
+    
+    <!-- 로그 곡선 강조 점들 -->
+    <circle cx="740" cy="660" r="4" fill="#10b981"/>
+    <circle cx="840" cy="643" r="4" fill="#10b981"/>
+    <circle cx="940" cy="635" r="4" fill="#10b981"/>
+    <circle cx="1040" cy="630" r="4" fill="#10b981"/>
+    
+    <!-- 축 -->
+    <line x1="690" y1="690" x2="1100" y2="690" stroke="#94a3b8" stroke-width="2"/>
+    <line x1="690" y1="580" x2="690" y2="690" stroke="#94a3b8" stroke-width="2"/>
+    
+    <text x="890" y="705" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#64748b">페이지 번호 →</text>
+    <text x="655" y="640" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#64748b" transform="rotate(-90 655 640)">시간 ↑</text>
+  </g>
   
-  <!-- Page 3 -->
-  <rect x="50" y="230" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
-  <text x="200" y="265" font-family="Arial" font-size="14" text-anchor="middle">Page 3: LIMIT 1000 OFFSET 2000</text>
-  <rect x="50" y="230" width="300" height="60" rx="5" ry="5" fill-opacity="0.4" fill="#ff6666" stroke="none" />
-  <rect x="50" y="230" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" stroke-dasharray="5,5" />
-  <text x="130" y="255" font-family="Arial" font-size="12" text-anchor="middle" fill="#cc0000">스캔 영역</text>
-  <text x="200" y="285" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
+  <!-- 화살표 마커 정의 -->
+  <defs>
+    <marker id="arrowgray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8" />
+    </marker>
+    <marker id="arrowgreen" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#10b981" />
+    </marker>
+  </defs>
   
-  <!-- Performance indicator -->
-  <text x="200" y="330" font-family="Arial" font-size="14" text-anchor="middle" font-style="italic" fill="#cc0000">오프셋이 커질수록 성능 저하!</text>
-  <path d="M 100 310 L 300 310 L 250 350 L 100 350 Z" fill-opacity="0.3" fill="#ff0000" stroke="#cc0000" stroke-width="2" />
-  
-  <!-- Zero-Offset Section -->
-  <text x="600" y="70" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">Zero-Offset 방식</text>
-  
-  <!-- Page 1 -->
-  <rect x="450" y="90" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
-  <text x="600" y="125" font-family="Arial" font-size="14" text-anchor="middle">Page 1: WHERE id > 0 LIMIT 1000</text>
-  <rect x="450" y="90" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" />
-  <text x="600" y="145" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
-  
-  <!-- Page 2 -->
-  <rect x="450" y="160" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
-  <text x="600" y="195" font-family="Arial" font-size="14" text-anchor="middle">Page 2: WHERE id > 1000 LIMIT 1000</text>
-  <rect x="450" y="160" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" />
-  <text x="600" y="215" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
-  
-  <!-- Page 3 -->
-  <rect x="450" y="230" width="300" height="60" rx="5" ry="5" fill="#c6e2ff" stroke="#0066cc" stroke-width="2" />
-  <text x="600" y="265" font-family="Arial" font-size="14" text-anchor="middle">Page 3: WHERE id > 2000 LIMIT 1000</text>
-  <rect x="450" y="230" width="300" height="60" rx="5" ry="5" fill-opacity="0.3" fill="#00cc00" stroke="none" />
-  <text x="600" y="285" font-family="Arial" font-size="12" text-anchor="middle">처리 영역</text>
-  
-  <!-- Performance indicator -->
-  <text x="600" y="330" font-family="Arial" font-size="14" text-anchor="middle" font-style="italic" fill="#009900">성능 일정하게 유지!</text>
-  <path d="M 500 310 L 700 310 L 650 350 L 500 350 Z" fill-opacity="0.3" fill="#00cc00" stroke="#009900" stroke-width="2" />
-  
-  <!-- Comparison text -->
-  <text x="400" y="400" font-family="Arial" font-size="16" text-anchor="middle" font-weight="bold">성능 비교</text>
-  
-  <text x="150" y="430" font-family="Arial" font-size="14" text-anchor="middle" fill="#cc3333">• Limit-Offset: O(n²) 복잡도</text>
-  <text x="150" y="455" font-family="Arial" font-size="14" text-anchor="middle" fill="#cc3333">• 데이터량 증가에 따라 지수적 성능 저하</text>
-  
-  <text x="600" y="430" font-family="Arial" font-size="14" text-anchor="middle" fill="#339933">• Zero-Offset: O(n) 복잡도</text>
-  <text x="600" y="455" font-family="Arial" font-size="14" text-anchor="middle" fill="#339933">• 데이터량에 관계없이 일정한 성능</text>
-  
-  <!-- Divider -->
-  <line x1="400" y1="90" x2="400" y2="370" stroke="#ccc" stroke-width="2" stroke-dasharray="5,5" />
-  <line x1="100" y1="380" x2="700" y2="380" stroke="#ccc" stroke-width="2" />
+  <!-- 하단 핵심 요약 -->
+  <rect x="50" y="760" width="1100" height="30" rx="8" fill="#fffbeb" stroke="#fcd34d" stroke-width="2"/>
+  <text x="600" y="782" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#92400e">
+    💡 핵심: O(n) → O(log n)으로 개선하여 대용량 데이터 처리 시 수천 배 성능 향상!
+  </text>
 </svg>
